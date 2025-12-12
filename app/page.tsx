@@ -11,6 +11,7 @@ import { GitBranch, Plus, FolderPlus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CreatePromptDialog } from '@/components/create-prompt-dialog';
+import { ModeToggle } from '@/components/mode-toggle';
 
 interface Prompt {
     id: string;
@@ -185,7 +186,11 @@ export default function Home() {
                             </p>
                         </div>
                     </div>
+                    import {ModeToggle} from '@/components/mode-toggle';
+
+                    // ... (in Header)
                     <div className="flex items-center gap-4">
+                        <ModeToggle />
                         <OrganizationSwitcher
                             appearance={{
                                 elements: {
@@ -202,7 +207,7 @@ export default function Home() {
             {/* Main Content */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Sidebar - Branch List */}
-                <div className="w-64 border-r bg-card overflow-y-auto flex flex-col">
+                <div className="w-64 border-r bg-sidebar overflow-y-auto flex flex-col">
                     <div className="p-3 border-b flex items-center justify-between sticky top-0 bg-card z-10">
                         <span className="text-xs font-semibold text-muted-foreground">PROMPTS</span>
                         <Button
