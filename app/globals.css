@@ -4,48 +4,86 @@
 
 @layer base {
   :root {
+    /* ChatGPT Light Mode */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* White */
+    --foreground: 222 11% 21%;
+    /* Dark Gray Text */
+
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 11% 21%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 222 11% 21%;
+
+    --primary: 156 72% 35%;
+    /* OpenAI Green-ish */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    /* Light Gray Sidebar/Inputs */
+    --secondary-foreground: 222 11% 21%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 215 14% 34%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 222 11% 21%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 156 72% 35%;
+
     --radius: 0.5rem;
+
+    /* Sidebar specific */
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 222 11% 21%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* ChatGPT Dark Mode */
+    --background: 222 11% 21%;
+    /* #343541 Main BG */
+    --foreground: 0 0% 90%;
+    /* #ECECF1 Text */
+
+    --card: 222 11% 21%;
+    --card-foreground: 0 0% 90%;
+
+    --popover: 222 11% 21%;
+    --popover-foreground: 0 0% 90%;
+
+    --primary: 156 72% 35%;
+    /* OpenAI Green */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 5% 15%;
+    /* #202123 Dark Sidebar/Inputs */
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 222 5% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 222 5% 15%;
+    --accent-foreground: 0 0% 90%;
+
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 216 10% 30%;
+    /* Subtle dark border */
+    --input: 222 10% 26%;
+    /* #40414F Input BG */
+    --ring: 156 72% 35%;
+
+    /* Sidebar specific */
+    --sidebar-background: 222 5% 15%;
+    /* #202123 */
+    --sidebar-foreground: 0 0% 90%;
   }
 }
 
@@ -53,14 +91,8 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
   }
 }

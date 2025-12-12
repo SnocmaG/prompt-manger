@@ -70,6 +70,7 @@ export function TestPanel({ branchId }: TestPanelProps) {
                             <option value="mock">Mock (No API Key)</option>
                             <option value="openai">OpenAI GPT-4</option>
                             <option value="anthropic">Anthropic Claude</option>
+                            <option value="webhook">Webhook URL</option>
                         </select>
                     </div>
                 )}
