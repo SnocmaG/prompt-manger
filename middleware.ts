@@ -4,11 +4,7 @@ const isPublicRoute = createRouteMatcher([
     '/api/prompts/live(.*)', // External API for n8n
 ]);
 
-export default clerkMiddleware(async (auth, request) => {
-    if (!isPublicRoute(request)) {
-        await auth.protect();
-    }
-});
+export default clerkMiddleware();
 
 export const config = {
     matcher: [

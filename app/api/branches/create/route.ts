@@ -26,15 +26,6 @@ export async function POST(request: NextRequest) {
                 id: promptId,
                 clientId,
             },
-            include: {
-                branches: {
-                    where: {
-                        id: {
-                            equals: prisma.prompt.fields.liveBranchId,
-                        },
-                    },
-                },
-            },
         });
 
         if (!prompt || !prompt.liveBranchId) {
@@ -47,15 +38,6 @@ export async function POST(request: NextRequest) {
         // Get the live branch's head version
         const liveBranch = await prisma.branch.findUnique({
             where: { id: prompt.liveBranchId },
-            include: {
-                versions: {
-                    where: {
-                        id: {
-                            equals: prisma.branch.fields.headVersionId,
-                        },
-                    },
-                },
-            },
         });
 
         if (!liveBranch || !liveBranch.headVersionId) {
