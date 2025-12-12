@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { branchId, testInput, provider = 'mock' } = body;
+        const { branchId, testInput, provider = 'mock', webhookUrl } = body;
 
         if (!branchId) {
             return NextResponse.json(
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
             provider: provider as AIProvider,
             promptContent: headVersion.content,
             testInput,
+            webhookUrl,
         });
 
         if (!result.success) {
