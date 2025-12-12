@@ -93,3 +93,11 @@ Your app is live and ready to use!
 ## 🆘 Need Help?
 
 See DEPLOYMENT.md for detailed instructions and troubleshooting.
+
+### ❓ "It looks like we don't have access to your repo" Error
+If your auto-deploy is broken and you see this error:
+1. Go to Render Dashboard > Settings > "Build & Deploy"
+2. Scroll to "Repository" section
+3. Click "Edit" -> "Disconnect"
+4. Click "Connect GitHub" again and re-select your repo
+5. This refreshes the permissions token.
