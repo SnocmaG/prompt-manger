@@ -6,6 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+    metadataBase: new URL("https://prompt-manger.onrender.com"),
     title: "Prompt Manager - Branch & Deploy AI Prompts",
     description: "Professional prompt management with Git-like branching for AI automations",
     icons: {
