@@ -186,7 +186,7 @@ export default function Home() {
                             </p>
                         </div>
                     </div>
-                    import {ModeToggle} from '@/components/mode-toggle';
+
 
                     // ... (in Header)
                     <div className="flex items-center gap-4">
