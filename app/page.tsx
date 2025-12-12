@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, SignIn } from '@clerk/nextjs';
 import { UserButton } from '@clerk/nextjs';
 import { BranchList } from '@/components/branch-list';
 import { PromptEditor } from '@/components/prompt-editor';
@@ -119,10 +119,8 @@ export default function Home() {
 
     if (!user) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="text-center">
-                    <p className="text-muted-foreground">Please sign in to continue</p>
-                </div>
+            <div className="flex items-center justify-center h-screen bg-background">
+                <SignIn routing="hash" />
             </div>
         );
     }
