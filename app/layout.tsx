@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Prompt Manager - Branch & Deploy AI Prompts",
     description: "Professional prompt management with Git-like branching for AI automations",
+    icons: {
+        icon: '/favicon.ico',
+    },
 };
 
 export default function RootLayout({
