@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Prompt {
+  id           String   @id @default(uuid())
+  clientId     String   // Workspace/tenant identifier
+  name         String   // e.g., "support_email_prompt"
+  liveBranchId String?  // Current live branch
+  
+  createdAt    DateTime @default(now())
+  createdBy    String
+  updatedAt    DateTime @updatedAt
+  updatedBy    String
+  
+  branches     Branch[]
+  
+  @@unique([clientId, name])
+  @@index([clientId])
+}
+
+model Branch {
+  id              String   @id @default(uuid())
+  promptId        String
+  name            String   // Slug, e.g., "main", "shorter-copy"
+  label           String   // Human readable, e.g., "Main", "Shorter Copy"
+  baseVersionId   String?  // Version this branch was created from
+  headVersionId   String?  // Current head version
+  isArchived      Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  createdBy       String
+  updatedAt       DateTime @updatedAt
+  updatedBy       String
+  
+  prompt          Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  versions        PromptVersion[]
+  
+  @@unique([promptId, name])
+  @@index([promptId])
+}
+
+model PromptVersion {
+  id              String   @id @default(uuid())
+  branchId        String
+  content         String   @db.Text
+  label           String   // e.g., "v3 – shorter intro"
+  parentVersionId String?  // Previous version in this branch
+  
+  createdAt       DateTime @default(now())
+  createdBy       String
+  updatedAt       DateTime @updatedAt
+  updatedBy       String
+  
+  branch          Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  
+  @@index([branchId])
+  @@index([createdAt])
+}
