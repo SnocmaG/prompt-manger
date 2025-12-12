@@ -14,7 +14,7 @@ interface Version {
 
 interface VersionHistoryProps {
     versions: Version[];
-    onRestore: () => void;
+    onRestore: (content: string, label: string) => void;
 }
 
 export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {

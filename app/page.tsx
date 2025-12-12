@@ -38,6 +38,7 @@ export default function Home() {
     const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [loading, setLoading] = useState(true);
+    const [restoredContent, setRestoredContent] = useState<{ content: string, label: string } | null>(null);
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -96,6 +97,10 @@ export default function Home() {
         } catch (error) {
             console.error('Error refreshing prompt:', error);
         }
+    };
+
+    const handleRestore = (content: string, label: string) => {
+        setRestoredContent({ content, label });
     };
 
     if (!isLoaded || loading) {
@@ -190,6 +195,7 @@ export default function Home() {
                                 isLive={selectedBranch.id === selectedPrompt?.liveBranchId}
                                 onSave={refreshPrompt}
                                 onDeploy={refreshPrompt}
+                                onRestore={handleRestore}
                             />
                         )}
                     </div>
@@ -207,7 +213,7 @@ export default function Home() {
                     {selectedBranch && (
                         <VersionHistory
                             versions={selectedBranch.versions}
-                            onRestore={refreshPrompt}
+                            onRestore={handleRestore}
                         />
                     )}
                 </div>

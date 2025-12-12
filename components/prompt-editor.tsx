@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DeployDialog } from '@/components/deploy-dialog';
-import { Save, Rocket } from 'lucide-react';
+import { Save, Rocket, RotateCcw } from 'lucide-react';
 
 interface Branch {
     id: string;
@@ -27,16 +27,31 @@ interface PromptEditorProps {
     isLive: boolean;
     onSave: () => void;
     onDeploy: () => void;
+    onRestore?: (content: string, label: string) => void;
 }
 
-export function PromptEditor({ branch, isLive, onSave, onDeploy }: PromptEditorProps) {
+export function PromptEditor({ branch, isLive, onSave, onDeploy, onRestore }: PromptEditorProps) {
     const currentVersion = branch.versions.find(v => v.id === branch.headVersionId);
     const [content, setContent] = useState(currentVersion?.content || '');
     const [versionLabel, setVersionLabel] = useState('');
     const [saving, setSaving] = useState(false);
+    const [restoredFrom, setRestoredFrom] = useState<string | null>(null); // Added new state
     const [showDeployDialog, setShowDeployDialog] = useState(false);
 
+    // Update content when branch changes
+    React.useEffect(() => {
+        const newContent = currentVersion?.content || '';
+        setContent(newContent);
+        setRestoredFrom(null);
+    }, [branch.id, currentVersion?.id]);
+
     const hasChanges = content !== currentVersion?.content;
+
+    const handleRestore = (restoredContent: string, fromLabel: string) => {
+        setContent(restoredContent);
+        setRestoredFrom(fromLabel);
+        setVersionLabel(`Restored from: ${fromLabel}`);
+    };
 
     const handleSave = async () => {
         if (!hasChanges || !versionLabel.trim()) {
@@ -94,6 +109,15 @@ export function PromptEditor({ branch, isLive, onSave, onDeploy }: PromptEditorP
 
             <div className="flex-1 p-6 overflow-y-auto">
                 <div className="max-w-4xl mx-auto space-y-4">
+                    {restoredFrom && (
+                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 flex items-center gap-2">
+                            <RotateCcw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                                Content restored from version: <strong>{restoredFrom}</strong>
+                            </p>
+                        </div>
+                    )}
+
                     <div>
                         <label className="text-sm font-medium mb-2 block">
                             Prompt Content
@@ -146,4 +170,18 @@ export function PromptEditor({ branch, isLive, onSave, onDeploy }: PromptEditorP
             />
         </div>
     );
+}
+
+// Export handleRestore for parent component
+export function usePromptEditor(branch: Branch) {
+    const currentVersion = branch.versions.find(v => v.id === branch.headVersionId);
+    const [content, setContent] = React.useState(currentVersion?.content || '');
+    const [restoredFrom, setRestoredFrom] = React.useState<string | null>(null);
+
+    const handleRestore = (restoredContent: string, fromLabel: string) => {
+        setContent(restoredContent);
+        setRestoredFrom(fromLabel);
+    };
+
+    return { content, restoredFrom, handleRestore };
 }
