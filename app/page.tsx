@@ -1,13 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser, SignIn } from '@clerk/nextjs';
+import { useUser, SignIn, OrganizationSwitcher } from '@clerk/nextjs';
 import { UserButton } from '@clerk/nextjs';
 import { BranchList } from '@/components/branch-list';
 import { PromptEditor } from '@/components/prompt-editor';
 import { VersionHistory } from '@/components/version-history';
 import { TestPanel } from '@/components/test-panel';
-import { GitBranch } from 'lucide-react';
+import { GitBranch, Plus, FolderPlus } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { CreatePromptDialog } from '@/components/create-prompt-dialog';
 
 interface Prompt {
     id: string;
@@ -39,6 +42,7 @@ export default function Home() {
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [loading, setLoading] = useState(true);
     const [restoredContent, setRestoredContent] = useState<{ content: string, label: string } | null>(null);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -125,16 +129,22 @@ export default function Home() {
         );
     }
 
+
+    // ... (logic)
+
     if (prompts.length === 0) {
         return (
             <div className="flex flex-col h-screen">
                 <header className="border-b bg-card">
                     <div className="flex items-center justify-between px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                             <GitBranch className="h-6 w-6 text-primary" />
                             <h1 className="text-xl font-semibold">Prompt Manager</h1>
+                        </Link>
+                        <div className="flex items-center gap-4">
+                            <OrganizationSwitcher />
+                            <UserButton afterSignOutUrl="/" />
                         </div>
-                        <UserButton afterSignOutUrl="/" />
                     </div>
                 </header>
                 <div className="flex items-center justify-center flex-1">
@@ -142,13 +152,19 @@ export default function Home() {
                         <GitBranch className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                         <h2 className="text-2xl font-semibold mb-2">No Prompts Yet</h2>
                         <p className="text-muted-foreground mb-6">
-                            Get started by creating your first prompt. We've seeded a demo prompt for you.
+                            Get started by creating your first prompt in this workspace.
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                            Run: <code className="bg-muted px-2 py-1 rounded">npm run db:seed</code>
-                        </p>
+                        <Button onClick={() => setIsCreateDialogOpen(true)}>
+                            <FolderPlus className="mr-2 h-4 w-4" />
+                            Create First Prompt
+                        </Button>
                     </div>
                 </div>
+                <CreatePromptDialog
+                    open={isCreateDialogOpen}
+                    onOpenChange={setIsCreateDialogOpen}
+                    onSuccess={fetchPrompts}
+                />
             </div>
         );
     }
@@ -159,7 +175,9 @@ export default function Home() {
             <header className="border-b bg-card">
                 <div className="flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3">
-                        <GitBranch className="h-6 w-6 text-primary" />
+                        <Link href="/" className="hover:opacity-80 transition-opacity">
+                            <GitBranch className="h-6 w-6 text-primary" />
+                        </Link>
                         <div>
                             <h1 className="text-xl font-semibold">Prompt Manager</h1>
                             <p className="text-sm text-muted-foreground">
@@ -167,30 +185,72 @@ export default function Home() {
                             </p>
                         </div>
                     </div>
-                    <UserButton afterSignOutUrl="/" />
+                    <div className="flex items-center gap-4">
+                        <OrganizationSwitcher
+                            appearance={{
+                                elements: {
+                                    rootBox: "flex items-center",
+                                    organizationSwitcherTrigger: "flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-muted transition-colors border border-transparent hover:border-border"
+                                }
+                            }}
+                        />
+                        <UserButton afterSignOutUrl="/" />
+                    </div>
                 </div>
             </header>
 
             {/* Main Content */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Sidebar - Branch List */}
-                <div className="w-64 border-r bg-card overflow-y-auto">
-                    {selectedPrompt && (
-                        <BranchList
-                            branches={selectedPrompt.branches}
-                            liveBranchId={selectedPrompt.liveBranchId}
-                            selectedBranchId={selectedBranch?.id || null}
-                            onSelectBranch={(branch) => setSelectedBranch(branch)}
-                            onBranchCreated={refreshPrompt}
-                            promptId={selectedPrompt.id}
-                        />
-                    )}
+                <div className="w-64 border-r bg-card overflow-y-auto flex flex-col">
+                    <div className="p-3 border-b flex items-center justify-between sticky top-0 bg-card z-10">
+                        <span className="text-xs font-semibold text-muted-foreground">PROMPTS</span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => setIsCreateDialogOpen(true)}
+                            title="Create New Prompt"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    <div className="flex-1">
+                        {/* Prompt Selector (Simple List for now) */}
+                        <div className="px-2 py-2 space-y-1">
+                            {prompts.map(prompt => (
+                                <button
+                                    key={prompt.id}
+                                    onClick={() => setSelectedPrompt(prompt)}
+                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${selectedPrompt?.id === prompt.id
+                                        ? 'bg-accent text-accent-foreground font-medium'
+                                        : 'hover:bg-muted text-muted-foreground'
+                                        }`}
+                                >
+                                    {prompt.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="border-t mt-auto">
+                        {selectedPrompt && (
+                            <BranchList
+                                branches={selectedPrompt.branches}
+                                liveBranchId={selectedPrompt.liveBranchId}
+                                selectedBranchId={selectedBranch?.id || null}
+                                onSelectBranch={(branch) => setSelectedBranch(branch)}
+                                onBranchCreated={refreshPrompt}
+                                promptId={selectedPrompt.id}
+                            />
+                        )}
+                    </div>
                 </div>
 
                 {/* Center - Prompt Editor */}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="flex-1 overflow-y-auto">
-                        {selectedBranch && (
+                        {selectedBranch ? (
                             <PromptEditor
                                 branch={selectedBranch}
                                 isLive={selectedBranch.id === selectedPrompt?.liveBranchId}
@@ -198,6 +258,10 @@ export default function Home() {
                                 onDeploy={refreshPrompt}
                                 onRestore={handleRestore}
                             />
+                        ) : (
+                            <div className="flex flex-1 items-center justify-center text-muted-foreground">
+                                <p>Select a prompt and branch to start editing</p>
+                            </div>
                         )}
                     </div>
 
@@ -219,6 +283,13 @@ export default function Home() {
                     )}
                 </div>
             </div>
+
+            <CreatePromptDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                onSuccess={fetchPrompts}
+            />
         </div>
     );
+
 }

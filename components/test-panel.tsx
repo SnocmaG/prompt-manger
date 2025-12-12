@@ -75,33 +75,49 @@ export function TestPanel({ branchId }: TestPanelProps) {
             {isExpanded && (
                 <div className="p-4 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-                                Test Input (Optional)
-                            </label>
-                            <Textarea
-                                value={testInput}
-                                onChange={(e) => setTestInput(e.target.value)}
-                                placeholder="Enter test input data..."
-                                className="min-h-[100px] text-sm font-mono"
-                            />
+                        <div className="space-y-3">
+                            {provider === 'webhook' && (
+                                <div>
+                                    <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
+                                        Webhook URL
+                                    </label>
+                                    <Input
+                                        value={webhookUrl}
+                                        onChange={(e) => setWebhookUrl(e.target.value)}
+                                        placeholder="https://your-automation.com/webhook..."
+                                        className="text-xs font-mono"
+                                    />
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
+                                    Test Input (JSON or Text)
+                                </label>
+                                <Textarea
+                                    value={testInput}
+                                    onChange={(e) => setTestInput(e.target.value)}
+                                    placeholder='Enter test payload...'
+                                    className="min-h-[100px] text-sm font-mono"
+                                />
+                            </div>
                         </div>
 
                         <div>
                             <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-                                AI Response
+                                {provider === 'webhook' ? 'Webhook Response' : 'AI Response'}
                             </label>
                             <div className="border rounded-md p-3 min-h-[100px] bg-muted/30 text-sm font-mono whitespace-pre-wrap max-h-[200px] overflow-y-auto">
                                 {testing ? (
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        Testing with {provider}...
+                                        {provider === 'webhook' ? 'Triggering webhook...' : `Testing with ${provider}...`}
                                     </div>
                                 ) : testOutput ? (
                                     testOutput
                                 ) : (
                                     <span className="text-muted-foreground">
-                                        Click "Run Test" to see AI response
+                                        Click "Run Test" to result
                                     </span>
                                 )}
                             </div>
@@ -109,12 +125,15 @@ export function TestPanel({ branchId }: TestPanelProps) {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">
-                            {provider === 'mock' ? 'Using mock testing (no API key required)' : `Testing with ${provider.toUpperCase()}`}
-                        </p>
+                        <div className="text-xs text-muted-foreground">
+                            {provider === 'mock' && 'Using mock testing (no API key required)'}
+                            {provider === 'openai' && 'Using OpenAI GPT-4'}
+                            {provider === 'anthropic' && 'Using Anthropic Claude'}
+                            {provider === 'webhook' && 'Will POST input to URL'}
+                        </div>
                         <Button onClick={handleTest} disabled={testing} size="sm">
                             <Play className="h-4 w-4 mr-2" />
-                            {testing ? 'Testing...' : 'Run Test'}
+                            {testing ? 'Running...' : 'Run Test'}
                         </Button>
                     </div>
                 </div>

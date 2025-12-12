@@ -11,16 +11,21 @@ export async function getUserId() {
 }
 
 export async function getClientId() {
-    const user = await currentUser();
-    if (!user) return null;
+    const { orgId, userId } = await auth();
 
-    // Use the user's ID as the clientId for now
-    // In a multi-tenant setup, you might use organization ID or custom metadata
-    return user.id;
+    // If an organization is selected, use that as the clientId (Workspace ID)
+    if (orgId) return orgId;
+
+    // Otherwise fall back to personal user ID
+    if (userId) return userId;
+
+    return null;
 }
 
 export async function getUserInfo() {
     const user = await currentUser();
+    const { orgId } = await auth();
+
     if (!user) {
         return {
             userId: null,
@@ -32,7 +37,8 @@ export async function getUserInfo() {
 
     return {
         userId: user.id,
-        clientId: user.id, // Using userId as clientId
+        // Workspace context: prioritize Organization ID, fallback to Personal ID
+        clientId: orgId || user.id,
         email: user.emailAddresses[0]?.emailAddress || null,
         name: user.firstName && user.lastName
             ? `${user.firstName} ${user.lastName}`
