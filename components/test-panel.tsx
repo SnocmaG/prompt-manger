@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Play, Loader2, Sparkles } from 'lucide-react';
 
 interface TestPanelProps {
     branchId: string;
 }
 
-type AIProvider = 'mock' | 'openai' | 'anthropic';
+type AIProvider = 'mock' | 'openai' | 'anthropic' | 'webhook';
 
 export function TestPanel({ branchId }: TestPanelProps) {
     const [testInput, setTestInput] = useState('');
@@ -17,6 +18,7 @@ export function TestPanel({ branchId }: TestPanelProps) {
     const [testing, setTesting] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [provider, setProvider] = useState<AIProvider>('mock');
+    const [webhookUrl, setWebhookUrl] = useState('');
 
     const handleTest = async () => {
         setTesting(true);
@@ -29,6 +31,7 @@ export function TestPanel({ branchId }: TestPanelProps) {
                     branchId,
                     testInput,
                     provider,
+                    webhookUrl: provider === 'webhook' ? webhookUrl : undefined,
                 }),
             });
 
