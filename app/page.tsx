@@ -43,6 +43,9 @@ export default function Home() {
     useEffect(() => {
         if (isLoaded && user) {
             fetchPrompts();
+        } else if (isLoaded && !user) {
+            // User is loaded but not authenticated
+            setLoading(false);
         }
     }, [isLoaded, user]);
 
