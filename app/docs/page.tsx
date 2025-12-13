@@ -46,7 +46,7 @@ export default function DocsPage() {
 
                     <h3>2. Edit & Refine</h3>
                     <p>
-                        Write your prompt in the editor. You can use variables like <code>{customer_name}</code> in your text.
+                        Write your prompt in the editor. You can use variables like <code>{'{customer_name}'}</code> in your text.
                         When you are happy with a draft, create a new branch or save a version.
                     </p>
 
