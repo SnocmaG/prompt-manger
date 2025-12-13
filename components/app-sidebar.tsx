@@ -148,23 +148,22 @@ export function AppSidebar() {
                     </div>
                     <div className="space-y-0.5">
                         {branches.map(branch => (
-                            <div
+                            <Link
                                 key={branch.id}
-                                className={cn(
-                                    "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10] cursor-pointer",
-                                    // We don't have easy access to 'selectedBranch' state here without global state, 
-                                    // but we can highlight if it matches some logic or just keep it simple list for now.
-                                    // Ideal: Click switches branch in the editor.
-                                    // For now, clicking might just refresh the page with query param? Or we need to use a Context.
-                                    // Let's just list them. The user asked for the list.
-                                    "text-gray-400"
-                                )}>
-                                <div className="flex items-center gap-2 truncate">
-                                    <GitBranch className="h-3 w-3" />
-                                    <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
+                                href={`/prompt/${activePromptId}?branch=${branch.id}`}
+                            >
+                                <div
+                                    className={cn(
+                                        "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10] cursor-pointer",
+                                        "text-gray-400 hover:text-white"
+                                    )}>
+                                    <div className="flex items-center gap-2 truncate">
+                                        <GitBranch className="h-3 w-3" />
+                                        <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
+                                    </div>
+                                    {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
                                 </div>
-                                {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </div>

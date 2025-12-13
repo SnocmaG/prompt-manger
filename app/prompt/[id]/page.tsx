@@ -35,26 +35,44 @@ interface Version {
     createdBy: string;
 }
 
+// ... imports
+import { Clock, PanelRightClose, PanelRightOpen, ArrowLeft } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+
+// ... interfaces
+
 export default function PromptWorkshop() {
     const { user, isLoaded } = useUser();
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const branchParam = searchParams.get('branch');
 
     const [prompt, setPrompt] = useState<Prompt | null>(null);
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
     const promptId = params.id as string;
 
     useEffect(() => {
         if (!isLoaded) return;
         if (!user) {
-            // Should be handled by middleware, but safe fallback
             router.push("/");
             return;
         }
         fetchPrompt();
     }, [isLoaded, user, promptId]);
+
+    // Effect to handle branch switching via URL
+    useEffect(() => {
+        if (prompt && branchParam) {
+            const branch = prompt.branches.find(b => b.id === branchParam);
+            if (branch) {
+                setSelectedBranch(branch);
+            }
+        }
+    }, [branchParam, prompt]);
 
     const fetchPrompt = async () => {
         try {
@@ -63,21 +81,18 @@ export default function PromptWorkshop() {
                 const data = await response.json();
                 setPrompt(data);
 
-                // Initial branch selection logic
-                if (!selectedBranch && data.branches.length > 0) {
-                    const liveBranch = data.branches.find(
-                        (b: Branch) => b.id === data.liveBranchId
-                    );
-                    setSelectedBranch(liveBranch || data.branches[0]);
-                } else if (selectedBranch) {
-                    // Refresh selected branch data
-                    const updatedBranch = data.branches.find(
-                        (b: Branch) => b.id === selectedBranch.id
-                    );
+                // Initial branch selection (if not set by URL yet)
+                if (!selectedBranch) {
+                    // Check URL again inside here? Or just default to live/first
+                    const targetBranchId = branchParam || data.liveBranchId;
+                    const targetBranch = data.branches.find((b: Branch) => b.id === targetBranchId) || data.branches[0];
+                    setSelectedBranch(targetBranch);
+                } else {
+                    // Refresh selected branch data if it exists
+                    const updatedBranch = data.branches.find((b: Branch) => b.id === selectedBranch.id);
                     if (updatedBranch) setSelectedBranch(updatedBranch);
                 }
             } else {
-                // Handle 404
                 console.error("Prompt not found");
             }
         } catch (error) {
@@ -87,74 +102,51 @@ export default function PromptWorkshop() {
         }
     };
 
+    // ... handleRestore ...
     const handleRestore = (content: string, label: string) => {
-        // This state is passed to editor via props in the original, 
-        // but the editor handles content via internal state too.
-        // For now, we'll implement this properly in the editor component refactor.
-        // The current implementation in page.tsx passed `restoredContent` to PromptEditor.
-        // I need to check PromptEditor to see if it accepts a prop for this.
         console.log("Restore requested", content, label);
+        // Implement full restore logic or pass to Editor
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-background">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
-
-    if (!prompt) {
-        return (
-            <div className="flex flex-col h-screen bg-background">
-                <DashboardHeader />
-                <div className="flex flex-1 items-center justify-center">
-                    <div className="text-center">
-                        <h2 className="text-xl font-bold">Prompt Not Found</h2>
-                        <Button variant="link" onClick={() => router.push("/")}>Return to Dashboard</Button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
+    if (!prompt) return <div className="p-10 text-center">Prompt not found. <Button variant="link" onClick={() => router.push('/')}>Go Back</Button></div>;
 
     return (
-        <div className="flex flex-col h-screen bg-background">
-
+        <div className="flex flex-col h-screen bg-background overflow-hidden">
             {/* Context Bar */}
-            <div className="border-b px-6 py-2 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between text-sm h-12 shadow-sm z-10">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Button variant="ghost" size="sm" className="h-6 px-2 text-muted-foreground hover:text-foreground" onClick={() => router.push('/')}>
-                        Dashboard
+            <div className="border-b px-4 py-2 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between text-sm h-14 shadow-sm z-20 sticky top-0">
+                <div className="flex items-center gap-3">
+                    {/* Back button needed since Sidebar doesn't have explicit "Back" for sub-pages? No, Sidebar is global. */}
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-semibold text-foreground text-lg flex items-center gap-2">
+                            {prompt.name}
+                        </span>
+                        {selectedBranch && (
+                            <span className="flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
+                                <GitBranch className="h-3 w-3" />
+                                {selectedBranch.label} {selectedBranch.id === prompt.liveBranchId && <span className="text-green-500 font-bold ml-1">• Live</span>}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                        className={isHistoryOpen ? "bg-muted text-foreground" : "text-muted-foreground"}
+                    >
+                        {isHistoryOpen ? <PanelRightClose className="h-4 w-4 mr-2" /> : <Clock className="h-4 w-4 mr-2" />}
+                        {isHistoryOpen ? "Hide History" : "History"}
                     </Button>
-                    <span className="text-muted-foreground/40">/</span>
-                    <span className="font-medium text-foreground flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary/60"></span>
-                        {prompt.name}
-                    </span>
                 </div>
             </div>
 
-            <div className="flex flex-1 overflow-hidden">
-                {/* Left Sidebar - Branch List */}
-                <div className="w-64 border-r bg-sidebar overflow-y-auto flex flex-col">
-                    <div className="p-3 border-b">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Branches</span>
-                    </div>
-                    <div className="flex-1">
-                        <BranchList
-                            branches={prompt.branches}
-                            liveBranchId={prompt.liveBranchId}
-                            selectedBranchId={selectedBranch?.id || null}
-                            onSelectBranch={setSelectedBranch}
-                            onBranchCreated={fetchPrompt}
-                            promptId={prompt.id}
-                        />
-                    </div>
-                </div>
+            <div className="flex flex-1 overflow-hidden relative">
 
-                {/* Center - Editor */}
-                <div className="flex-1 flex flex-col overflow-hidden relative">
+                {/* Main Editor Area (Full Width) */}
+                <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out mr-0">
                     <div className="flex-1 overflow-y-auto">
                         {selectedBranch ? (
                             <PromptEditor
@@ -165,13 +157,11 @@ export default function PromptWorkshop() {
                                 onRestore={handleRestore}
                             />
                         ) : (
-                            <div className="flex h-full items-center justify-center text-muted-foreground">
-                                Select a branch to start editing
-                            </div>
+                            <div className="flex h-full items-center justify-center text-muted-foreground">Select a branch</div>
                         )}
                     </div>
                     {/* Bottom - Test Panel */}
-                    <div className="border-t bg-background">
+                    <div className="border-t bg-background z-10">
                         {selectedBranch && (
                             <TestPanel
                                 branchId={selectedBranch.id}
@@ -183,19 +173,32 @@ export default function PromptWorkshop() {
                     </div>
                 </div>
 
-                {/* Right Sidebar - History */}
-                <div className="w-80 border-l bg-card overflow-y-auto">
-                    <div className="p-3 border-b sticky top-0 bg-card z-10">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Version History</span>
+                {/* Right Drawer - Version History */}
+                {/* We use a fixed/absolute positioning or flex with generic transition */}
+                <div
+                    className={`
+                        fixed inset-y-0 right-0 z-30 w-80 bg-card border-l transform transition-transform duration-300 ease-in-out shadow-2xl
+                        ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'}
+                        pt-14 
+                    `}
+                >
+                    <div className="h-full flex flex-col">
+                        <div className="p-3 border-b flex items-center justify-between bg-card">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Version History</span>
+                            <Button variant="ghost" size="icon" onClick={() => setIsHistoryOpen(false)} className="h-6 w-6">
+                                <PanelRightClose className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                            {selectedBranch && (
+                                <VersionHistory
+                                    versions={selectedBranch.versions}
+                                    onRestore={handleRestore}
+                                />
+                            )}
+                        </div>
                     </div>
-                    {selectedBranch && (
-                        <VersionHistory
-                            versions={selectedBranch.versions}
-                            onRestore={handleRestore}
-                        />
-                    )}
                 </div>
-
             </div>
         </div>
     );
