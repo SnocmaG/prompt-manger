@@ -109,61 +109,31 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
 
             {isExpanded && (
                 <div className="p-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                            {provider === 'webhook' && (
-                                <div>
-                                    <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-                                        Webhook URL (Saved)
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={webhookUrl}
-                                            onChange={(e) => setWebhookUrl(e.target.value)}
-                                            placeholder="https://hooks.zapier.com/..."
-                                            className="text-xs font-mono"
-                                        />
-                                        <Button
-                                            size="icon"
-                                            className="h-9 w-9 shrink-0"
-                                            variant="outline"
-                                            onClick={handleSaveWebhook}
-                                            title="Save URL"
-                                            disabled={isSavingUrl}
-                                        >
-                                            {isSavingUrl ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : saveSuccess ? (
-                                                <Check className="h-4 w-4 text-green-500" />
-                                            ) : (
-                                                <Save className="h-4 w-4" />
-                                            )}
-                                        </Button>
-                                    </div>
-                                    <p className="text-[10px] text-muted-foreground mt-1">
-                                        This URL will be saved for this prompt.
-                                    </p>
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-                                    Test Input (JSON or Text)
-                                </label>
-                                <Textarea
-                                    value={testInput}
-                                    onChange={(e) => setTestInput(e.target.value)}
-                                    placeholder='Enter test payload...'
-                                    className="min-h-[100px] text-sm font-mono"
-                                />
+                    <div className="grid grid-cols-2 gap-4 h-[300px]">
+                        <div className="flex flex-col h-full border rounded-md overflow-hidden bg-background">
+                            <div className="px-3 py-2 border-b bg-muted/20 text-xs font-medium text-muted-foreground flex justify-between items-center">
+                                <span>Input (JSON/Text)</span>
+                                <span className="text-[10px] opacity-70">Press ⌘+Enter to run</span>
                             </div>
+                            <Textarea
+                                value={testInput}
+                                onChange={(e) => setTestInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleTest();
+                                    }
+                                }}
+                                placeholder='Enter test payload...'
+                                className="flex-1 p-3 text-sm font-mono border-0 focus-visible:ring-0 resize-none rounded-none"
+                            />
                         </div>
 
-                        <div>
-                            <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-                                {provider === 'webhook' ? 'Webhook Response' : 'AI Response'}
-                            </label>
-                            <div className="border rounded-md p-3 min-h-[150px] bg-black text-green-400 font-mono text-xs whitespace-pre-wrap max-h-[300px] overflow-y-auto shadow-inner">
+                        <div className="flex flex-col h-full border rounded-md overflow-hidden bg-black">
+                            <div className="px-3 py-2 border-b border-white/10 bg-white/5 text-xs font-medium text-muted-foreground flex justify-between items-center">
+                                <span>{provider === 'webhook' ? 'Webhook Response' : 'AI Response'}</span>
+                            </div>
+                            <div className="flex-1 p-3 text-green-400 font-mono text-xs whitespace-pre-wrap overflow-y-auto shadow-inner">
                                 {testing ? (
                                     <div className="flex items-center gap-2 text-green-400/70">
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -180,15 +150,15 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between pt-2">
                         <div className="text-xs text-muted-foreground">
                             {provider === 'openai' && 'Using OpenAI GPT-4o Mini'}
                             {provider === 'webhook' && 'Will POST payload to the saved URL'}
                         </div>
-                        <Button onClick={handleTest} disabled={testing} size="sm">
-                            <Play className="h-4 w-4 mr-2" />
-                            {testing ? 'Running...' : 'Run Test'}
-                        </Button>
+                        {/* Button hidden as per request, but kept conditionally if user wants manual trigger? User said "Remove the button" */}
+                        <div className="text-[10px] text-muted-foreground">
+                            Hit <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"><span className="text-xs">⌘</span>Enter</kbd> to run
+                        </div>
                     </div>
                 </div>
             )}
