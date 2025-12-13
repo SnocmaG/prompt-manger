@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { CreatePromptDialog } from '@/components/create-prompt-dialog';
 import { ModeToggle } from '@/components/mode-toggle';
 import { LandingPage } from '@/components/landing-page';
+import { DashboardHeader } from '@/components/dashboard-header';
 
 interface Prompt {
     id: string;
@@ -134,18 +135,7 @@ export default function Home() {
     if (prompts.length === 0) {
         return (
             <div className="flex flex-col h-screen">
-                <header className="border-b bg-card">
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                            <GitBranch className="h-6 w-6 text-primary" />
-                            <h1 className="text-xl font-semibold">Prompt Manager</h1>
-                        </Link>
-                        <div className="flex items-center gap-4">
-                            <OrganizationSwitcher />
-                            <UserButton afterSignOutUrl="/" />
-                        </div>
-                    </div>
-                </header>
+                <DashboardHeader />
                 <div className="flex items-center justify-center flex-1">
                     <div className="text-center max-w-md">
                         <GitBranch className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -171,36 +161,7 @@ export default function Home() {
     return (
         <div className="flex flex-col h-screen bg-background">
             {/* Header */}
-            <header className="border-b bg-card">
-                <div className="flex items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-3">
-                        <Link href="/" className="hover:opacity-80 transition-opacity">
-                            <GitBranch className="h-6 w-6 text-primary" />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-semibold">Prompt Manager</h1>
-                            <p className="text-sm text-muted-foreground">
-                                {selectedPrompt?.name || 'No prompt selected'}
-                            </p>
-                        </div>
-                    </div>
-
-
-                    // ... (in Header)
-                    <div className="flex items-center gap-4">
-                        <ModeToggle />
-                        <OrganizationSwitcher
-                            appearance={{
-                                elements: {
-                                    rootBox: "flex items-center",
-                                    organizationSwitcherTrigger: "flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-muted transition-colors border border-transparent hover:border-border"
-                                }
-                            }}
-                        />
-                        <UserButton afterSignOutUrl="/" />
-                    </div>
-                </div>
-            </header>
+            <DashboardHeader />
 
             {/* Main Content */}
             <div className="flex flex-1 overflow-hidden">
