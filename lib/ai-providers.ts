@@ -1,12 +1,11 @@
 // AI Provider integrations for testing prompts
 
-export type AIProvider = 'openai' | 'anthropic' | 'mock' | 'webhook';
+export type AIProvider = 'openai' | 'anthropic' | 'mock';
 
 interface AITestRequest {
     provider: AIProvider;
     promptContent: string;
     testInput?: string;
-    webhookUrl?: string;
     model?: string;
 }
 
@@ -17,38 +16,7 @@ interface AITestResponse {
     error?: string;
 }
 
-export async function testWithWebhook(
-    promptContent: string,
-    webhookUrl: string,
-    testInput?: string
-): Promise<string> {
-    if (!webhookUrl) {
-        throw new Error('Webhook URL is required');
-    }
 
-    try {
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                prompt: promptContent,
-                input: testInput,
-                timestamp: new Date().toISOString(),
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Webhook failed with status: ${response.status}`);
-        }
-
-        const text = await response.text();
-        return `✅ Webhook trigger successful!\n\nStatus: ${response.status} ${response.statusText}\nResponse: ${text.slice(0, 500)}${text.length > 500 ? '...' : ''}`;
-    } catch (error) {
-        throw new Error(`Webhook error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-}
 
 export async function testWithOpenAI(
     promptContent: string,
@@ -142,9 +110,7 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
         let output: string;
 
         switch (request.provider) {
-            case 'webhook':
-                output = await testWithWebhook(request.promptContent, request.webhookUrl!, request.testInput);
-                break;
+
             case 'openai':
                 output = await testWithOpenAI(request.promptContent, request.testInput, request.model);
                 break;

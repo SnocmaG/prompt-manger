@@ -41,7 +41,7 @@ interface Prompt {
     createdById: string;
 }
 
-type AIProvider = 'mock' | 'openai' | 'anthropic' | 'webhook';
+type AIProvider = 'mock' | 'openai' | 'anthropic';
 
 export default function PromptWorkshop() {
     const { user, isLoaded } = useUser();
@@ -63,9 +63,9 @@ export default function PromptWorkshop() {
     const [isRunning, setIsRunning] = useState(false);
 
     // AI Config State
+    // AI Config State
     const [provider, setProvider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
-    const [webhookUrl, setWebhookUrl] = useState('');
 
     const promptId = params.id as string;
 
@@ -87,7 +87,6 @@ export default function PromptWorkshop() {
         if (selectedBranch) {
             const head = selectedBranch.versions.find(v => v.id === selectedBranch.headVersionId);
             setSystemPrompt(head?.content || '');
-            if (prompt) setWebhookUrl(prompt.webhookUrl || '');
         }
     }, [selectedBranch, prompt]);
 
@@ -130,7 +129,6 @@ export default function PromptWorkshop() {
                     branchId: selectedBranch.id, // Still needed for auth?
                     testInput: userPrompt,
                     provider,
-                    webhookUrl: provider === 'webhook' ? webhookUrl : undefined,
                     model: provider === 'openai' ? customModel : undefined,
                     overrideContent: systemPrompt // We need to handle this in backend
                 }),
@@ -203,7 +201,7 @@ export default function PromptWorkshop() {
                         <option value="openai">OpenAI</option>
                         <option value="anthropic">Anthropic</option>
                         <option value="mock">Mock</option>
-                        <option value="webhook">Webhook</option>
+                        <option value="mock">Mock</option>
                     </select>
                     <div className="w-px h-4 bg-border mx-2" />
                     <Button variant="ghost" size="sm" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
@@ -256,7 +254,7 @@ export default function PromptWorkshop() {
 
                 {/* Drawer Overlay */}
                 <div
-                    className={`fixed inset - y - 0 right - 0 z - 30 w - 80 bg - card border - l shadow - 2xl transition - transform duration - 300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt - 14`}
+                    className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
                 >
                     <div className="h-full overflow-y-auto">
                         {selectedBranch && (

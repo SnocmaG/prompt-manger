@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { branchId, testInput, provider, webhookUrl, model } = body;
+        const { branchId, testInput, provider, model } = body;
 
         if (!branchId) {
             return NextResponse.json(
@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
             provider: provider as AIProvider,
             promptContent,
             testInput,
-            webhookUrl,
             model
         });
 
