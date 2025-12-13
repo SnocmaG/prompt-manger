@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
             success: true,
             output: result.output,
             provider: result.provider,
-            promptContent: version.content,
+            promptContent: promptContent,
             testInput: testInput || null,
         });
     } catch (error) {
