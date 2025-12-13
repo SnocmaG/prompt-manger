@@ -1,69 +1,120 @@
+import Link from "next/link";
+import { ArrowRight, Book, GitBranch, Terminal, Zap } from "lucide-react";
+
 export default function DocsPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background p-6">
-            <main className="container max-w-3xl py-10">
-                <article className="prose prose-stone dark:prose-invert max-w-none">
-                    <h1>Documentation</h1>
-                    <p className="lead">
-                        Welcome to Prompt Manager. This tool helps you treat your AI prompts like code—with version control, drafting, and safe deployments.
+            <main className="container max-w-4xl py-10 mx-auto">
+
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl font-bold tracking-tight mb-4">User Guide</h1>
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Master the Prompt Manager workflow: design, test, and deploy AI prompts with confidence.
                     </p>
+                    <div className="mt-8 flex justify-center gap-4">
+                        <Link href="/docs/api" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                            <Terminal className="mr-2 h-4 w-4" />
+                            API Reference
+                        </Link>
+                    </div>
+                </div>
 
-                    <hr />
+                <div className="grid gap-12 relative">
+                    {/* Vertical Line */}
+                    <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-border hidden md:block" />
 
-                    <h2>Core Concepts</h2>
+                    {/* Step 1 */}
+                    <div className="relative flex gap-8 items-start">
+                        <div className="flex-none z-10 bg-background">
+                            <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-primary bg-card text-primary font-bold text-xl shadow-sm">
+                                1
+                            </div>
+                        </div>
+                        <div className="flex-1 pt-2 space-y-4">
+                            <h3 className="text-2xl font-semibold flex items-center gap-2">
+                                Create & Draft
+                                <Book className="h-5 w-5 text-muted-foreground" />
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                Start by creating a <strong>Prompt</strong> container. Think of this as a repository for a specific task (e.g., &quot;Customer Support Bot&quot;).
+                                Inside the Workshop, write your system instructions. Use variables like <code className="bg-muted px-1 rounded text-xs">{`{variable}`}</code> to make them dynamic.
+                            </p>
+                        </div>
+                    </div>
 
-                    <h3>📄 Prompts</h3>
-                    <p>
-                        A Prompt is a container for a specific AI task (e.g., &quot;Welcome Email Generator&quot;).
-                        Instead of overwriting your prompts in a text file, you store them here to track changes over time.
-                    </p>
+                    {/* Step 2 */}
+                    <div className="relative flex gap-8 items-start">
+                        <div className="flex-none z-10 bg-background">
+                            <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-muted bg-card text-muted-foreground font-bold text-xl shadow-sm">
+                                2
+                            </div>
+                        </div>
+                        <div className="flex-1 pt-2 space-y-4">
+                            <h3 className="text-2xl font-semibold flex items-center gap-2">
+                                Branch & Version
+                                <GitBranch className="h-5 w-5 text-muted-foreground" />
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                Work safely using <strong>Branches</strong>.
+                            </p>
+                            <ul className="list-disc list-outside pl-5 text-muted-foreground space-y-2">
+                                <li><strong>Main Branch</strong>: Your stable, production-ready code.</li>
+                                <li><strong>Feature Branches</strong>: Create a branch (e.g., <code>experiment-gpt5</code>) to test radical changes without breaking production.</li>
+                            </ul>
+                            <p className="text-muted-foreground">
+                                Save <strong>Versions</strong> frequently. Every save is immutable, so you can always roll back via the &quot;History&quot; tab.
+                            </p>
+                        </div>
+                    </div>
 
-                    <h3>🌿 Branches</h3>
-                    <p>
-                        Just like Git. Every prompt has a <strong>Main</strong> branch (production) and you can create feature branches for testing.
-                    </p>
-                    <ul>
-                        <li><strong>Main</strong>: The &quot;Live&quot; version. Don&apos;t edit this directly if you want to be safe.</li>
-                        <li><strong>Feature Branch</strong>: Create a branch (e.g., &quot;fix-tone&quot;) to experiment safely.</li>
-                    </ul>
+                    {/* Step 3 */}
+                    <div className="relative flex gap-8 items-start">
+                        <div className="flex-none z-10 bg-background">
+                            <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-muted bg-card text-muted-foreground font-bold text-xl shadow-sm">
+                                3
+                            </div>
+                        </div>
+                        <div className="flex-1 pt-2 space-y-4">
+                            <h3 className="text-2xl font-semibold flex items-center gap-2">
+                                Test & Iterate
+                                <Zap className="h-5 w-5 text-muted-foreground" />
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                Use the <strong>Test Sandbox</strong> (right panel) to verify your prompt.
+                                Select an AI model (including GPT-5 Preview) and run inputs against your current draft.
+                            </p>
+                            <div className="bg-muted/50 p-4 rounded-lg text-sm border">
+                                <strong>Tip:</strong> If you see &quot;Unsupported parameter&quot; errors with new models, ensure you are using the latest version of the app which handles <code>max_completion_tokens</code> automatically.
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>⏱️ Versions</h3>
-                    <p>
-                        Every time you click <strong>Save Version</strong>, we take a snapshot. You can never lose work.
-                        If you break something, just go to the &quot;History&quot; tab and restore an old version.
-                    </p>
+                    {/* Step 4 */}
+                    <div className="relative flex gap-8 items-start">
+                        <div className="flex-none z-10 bg-background">
+                            <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-green-500/20 bg-green-500/10 text-green-600 font-bold text-xl shadow-sm">
+                                4
+                            </div>
+                        </div>
+                        <div className="flex-1 pt-2 space-y-4">
+                            <h3 className="text-2xl font-semibold flex items-center gap-2">
+                                Deploy
+                                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                ready to go live? Click <strong>Deploy</strong> on a specific version.
+                                This updates the <code>liveBranchId</code> pointer.
+                            </p>
+                            <p className="text-muted-foreground">
+                                Your application can then fetch this prompt using the API without needing code changes.
+                            </p>
+                            <Link href="/docs/api" className="inline-flex items-center text-primary hover:underline text-sm font-medium">
+                                View Integration API &rarr;
+                            </Link>
+                        </div>
+                    </div>
 
-                    <hr />
-
-                    <h2>Workflow Guide</h2>
-
-                    <h3>1. Create a Prompt</h3>
-                    <p>Click the &quot;New Prompt&quot; button on the <strong>Dashboard</strong>. Give it a clear name.</p>
-
-                    <h3>2. The Workshop</h3>
-                    <p>
-                        Clicking a prompt card opens the <strong>Workshop</strong>. This is your focused IDE for editing.
-                        Write your prompt in the main editor. You can use variables like <code>{'{customer_name}'}</code>.
-                        When you&apos;re ready, create a new branch or save a version.
-                    </p>
-
-                    <h3>3. Test It</h3>
-                    <p>
-                        Use the <strong>Test Panel</strong> at the bottom of the Workshop.
-                        <ul>
-                            <li><strong>Mock</strong>: Just echoes your input back.</li>
-                            <li><strong>AI Providers</strong>: Connects to OpenAI/Anthropic (via your API keys).</li>
-                            <li><strong>Webhook</strong>: Sends the payload to your automation tool (n8n/Zapier).</li>
-                        </ul>
-                    </p>
-
-                    <h3>4. Deploy to Live</h3>
-                    <p>
-                        When a version is perfect, click <strong>Deploy</strong>.
-                        This sets that specific version as the &quot;Live&quot; version that your API will return.
-                    </p>
-
-                </article>
+                </div>
             </main>
         </div>
     )

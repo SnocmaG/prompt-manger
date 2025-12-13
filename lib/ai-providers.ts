@@ -29,20 +29,30 @@ export async function testWithOpenAI(
         throw new Error('OpenAI API key not configured');
     }
 
+    const isNewModel = model.startsWith('gpt-5') || model.startsWith('o1') || model.startsWith('o3');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: any = {
+        model: model,
+        messages: [
+            { role: 'system', content: promptContent },
+            ...(testInput ? [{ role: 'user', content: testInput }] : []),
+        ],
+    };
+
+    if (isNewModel) {
+        body.max_completion_tokens = 500;
+    } else {
+        body.max_tokens = 500;
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-            model: model,
-            messages: [
-                { role: 'system', content: promptContent },
-                ...(testInput ? [{ role: 'user', content: testInput }] : []),
-            ],
-            max_tokens: 500,
-        }),
+        body: JSON.stringify(body),
     });
 
     if (!response.ok) {
