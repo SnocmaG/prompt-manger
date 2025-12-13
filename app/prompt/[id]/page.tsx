@@ -18,7 +18,8 @@ interface Version {
     id: string;
     content: string;
     label: string;
-    createdAt: Date;
+    createdAt: string;
+    createdBy?: string;
 }
 
 interface Branch {
@@ -34,10 +35,10 @@ interface Prompt {
     name: string;
     liveBranchId: string | null;
     branches: Branch[];
-    webhookUrl?: string; // Added
-    createdAt: Date;
-    updatedAt: Date;
-    createdById: string; // Added, was missing in some interfaces
+    webhookUrl?: string;
+    createdAt: string;
+    updatedAt: string;
+    createdById: string;
 }
 
 type AIProvider = 'mock' | 'openai' | 'anthropic' | 'webhook';
