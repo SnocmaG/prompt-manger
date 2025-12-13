@@ -94,7 +94,7 @@ export default function PromptWorkshop() {
     // ... Fetch Logic ...
     const fetchPrompt = async () => {
         try {
-            const response = await fetch(`/ api / prompts / ${promptId} `);
+            const response = await fetch(`/api/prompts/${promptId}`);
             if (response.ok) {
                 const data = await response.json();
                 setPrompt(data);
