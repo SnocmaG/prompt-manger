@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CreatePromptDialog } from '@/components/create-prompt-dialog';
 import { ModeToggle } from '@/components/mode-toggle';
+import { LandingPage } from '@/components/landing-page';
 
 interface Prompt {
     id: string;
@@ -123,11 +124,7 @@ export default function Home() {
     }
 
     if (!user) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-background">
-                <SignIn routing="hash" />
-            </div>
-        );
+        return <LandingPage />;
     }
 
 
