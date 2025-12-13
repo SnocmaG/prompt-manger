@@ -51,6 +51,36 @@ export function AppSidebar() {
         p.name.toLowerCase().includes(search.toLowerCase())
     )
 
+    // Extract prompt ID from path
+    const promptIdMatch = pathname.match(/^\/prompt\/([^/]+)/)
+    const activePromptId = promptIdMatch ? promptIdMatch[1] : null
+
+    const [branches, setBranches] = useState<any[]>([])
+
+    // Fetch branches if we are on a prompt page
+    useEffect(() => {
+        if (!activePromptId) {
+            setBranches([])
+            return
+        }
+
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(`/api/prompts/${activePromptId}`)
+                if (res.ok) {
+                    const data = await res.json()
+                    // The API returns the prompt object which contains branches
+                    if (data.branches) {
+                        setBranches(data.branches)
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch branches", e)
+            }
+        }
+        fetchBranches()
+    }, [activePromptId])
+
     return (
         <div className="w-[260px] h-screen flex flex-col bg-[#171717] text-gray-300 border-r border-[#ffffff10] shrink-0">
             {/* Header / New Prompt */}
@@ -108,6 +138,37 @@ export function AppSidebar() {
                     />
                 </div>
             </div>
+
+            {/* Contextual Branches List (Only when inside a prompt) */}
+            {activePromptId && branches.length > 0 && (
+                <div className="px-3 py-2">
+                    <div className="flex items-center justify-between px-2 mb-1">
+                        <div className="text-xs font-semibold text-gray-500">Branches</div>
+                        {/* We could add a create button here if we wire it up, but simpler for now just list */}
+                    </div>
+                    <div className="space-y-0.5">
+                        {branches.map(branch => (
+                            <div
+                                key={branch.id}
+                                className={cn(
+                                    "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10] cursor-pointer",
+                                    // We don't have easy access to 'selectedBranch' state here without global state, 
+                                    // but we can highlight if it matches some logic or just keep it simple list for now.
+                                    // Ideal: Click switches branch in the editor.
+                                    // For now, clicking might just refresh the page with query param? Or we need to use a Context.
+                                    // Let's just list them. The user asked for the list.
+                                    "text-gray-400"
+                                )}>
+                                <div className="flex items-center gap-2 truncate">
+                                    <GitBranch className="h-3 w-3" />
+                                    <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
+                                </div>
+                                {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Prompt List (Scrollable) */}
             <div className="flex-1 overflow-hidden mt-2">
