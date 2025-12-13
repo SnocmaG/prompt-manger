@@ -100,7 +100,7 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                         >
                             <option value="mock">Mock (No API Key)</option>
                             <option value="webhook">Webhook URL</option>
-                            <option value="openai">OpenAI GPT-4</option>
+                            <option value="openai">OpenAI GPT-4o Mini</option>
                             <option value="anthropic">Anthropic Claude</option>
                         </select>
                     </div>
@@ -182,7 +182,7 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
 
                     <div className="flex items-center justify-between">
                         <div className="text-xs text-muted-foreground">
-                            {provider === 'mock' && 'Using mock testing (no API key required)'}
+                            {provider === 'openai' && 'Using OpenAI GPT-4o Mini'}
                             {provider === 'webhook' && 'Will POST payload to the saved URL'}
                         </div>
                         <Button onClick={handleTest} disabled={testing} size="sm">
