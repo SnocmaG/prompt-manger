@@ -1,6 +1,8 @@
+```javascript
 "use client"
 
 import Link from "next/link"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs"
 import {
     GitBranch,
@@ -8,15 +10,12 @@ import {
     Search,
     BookOpen,
     Webhook,
-    Settings,
-    MoreHorizontal,
     LayoutDashboard
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { ModeToggle } from "@/components/mode-toggle"
 
@@ -28,6 +27,8 @@ interface Prompt {
 export function AppSidebar() {
     const pathname = usePathname()
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const activeBranchId = searchParams.get('branch')
     const [prompts, setPrompts] = useState<Prompt[]>([])
     const [search, setSearch] = useState("")
 
@@ -66,7 +67,7 @@ export function AppSidebar() {
 
         const fetchBranches = async () => {
             try {
-                const res = await fetch(`/api/prompts/${activePromptId}`)
+                const res = await fetch(`/ api / prompts / ${ activePromptId } `)
                 if (res.ok) {
                     const data = await res.json()
                     // The API returns the prompt object which contains branches
@@ -144,7 +145,6 @@ export function AppSidebar() {
                 <div className="px-3 py-2">
                     <div className="flex items-center justify-between px-2 mb-1">
                         <div className="text-xs font-semibold text-gray-500">Branches</div>
-                        {/* We could add a create button here if we wire it up, but simpler for now just list */}
                     </div>
                     <div className="space-y-0.5">
                         {branches.map(branch => {
@@ -152,7 +152,7 @@ export function AppSidebar() {
                             return (
                                 <Link
                                     key={branch.id}
-                                    href={`/prompt/${activePromptId}?branch=${branch.id}`}
+                                    href={`/ prompt / ${ activePromptId }?branch = ${ branch.id } `}
                                 >
                                     <div
                                         className={cn(
@@ -168,7 +168,7 @@ export function AppSidebar() {
                                         {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
                                     </div>
                                 </Link>
-                            );
+                            )
                         })}
                     </div>
                 </div>
@@ -180,10 +180,10 @@ export function AppSidebar() {
                 <ScrollArea className="h-full px-2">
                     <div className="space-y-0.5">
                         {filteredPrompts.map(prompt => (
-                            <Link key={prompt.id} href={`/prompt/${prompt.id}`}>
+                            <Link key={prompt.id} href={`/ prompt / ${ prompt.id } `}>
                                 <div className={cn(
                                     "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10] cursor-pointer",
-                                    pathname === `/prompt/${prompt.id}` ? "bg-[#ffffff10] text-white" : "text-gray-400"
+                                    pathname === `/ prompt / ${ prompt.id } ` ? "bg-[#ffffff10] text-white" : "text-gray-400"
                                 )}>
                                     <span className="truncate max-w-[180px]">{prompt.name}</span>
                                 </div>
