@@ -126,11 +126,11 @@ export default function PromptWorkshop() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    branchId: selectedBranch.id, // Still needed for auth?
+                    branchId: selectedBranch.id,
                     testInput: userPrompt,
                     provider,
-                    model: provider === 'openai' ? customModel : undefined,
-                    overrideContent: systemPrompt // We need to handle this in backend
+                    model: customModel,
+                    overrideContent: systemPrompt
                 }),
             });
 
@@ -190,6 +190,10 @@ export default function PromptWorkshop() {
                         onChange={e => setCustomModel(e.target.value)}
                         className="h-7 text-xs bg-background border rounded px-2 min-w-[140px]"
                     >
+                        <optgroup label="GPT-5 (Preview)">
+                            <option value="gpt-5-preview">GPT-5 Preview</option>
+                            <option value="gpt-5">GPT-5</option>
+                        </optgroup>
                         <optgroup label="GPT-4 Checkpoints">
                             <option value="gpt-4o">GPT-4o</option>
                             <option value="gpt-4o-mini">GPT-4o Mini</option>
@@ -242,7 +246,7 @@ export default function PromptWorkshop() {
                 </div>
 
                 {/* Right Column: AI Response (50%) */}
-                <div className="flex-1 flex flex-col min-w-[400px] bg-black">
+                <div className="flex-1 flex flex-col min-w-[400px] border-l border-border/50">
                     <ResponseViewer
                         output={aiOutput}
                         isTesting={isRunning}

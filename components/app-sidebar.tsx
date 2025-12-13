@@ -211,9 +211,10 @@ export function AppSidebar() {
                         appearance={{
                             elements: {
                                 rootBox: "w-full",
-                                organizationSwitcherTrigger: "w-full flex items-center justify-between text-gray-300 hover:text-white text-xs py-2 px-2 rounded hover:bg-[#ffffff10] transition-colors group",
-                                organizationPreviewTextContainer: "text-gray-300 group-hover:text-white",
-                                organizationPreviewMainIdentifier: "text-gray-300 group-hover:text-white font-medium"
+                                organizationSwitcherTrigger: "w-full flex items-center justify-between text-white hover:text-white text-xs py-2 px-2 rounded hover:bg-[#ffffff10] transition-colors group",
+                                organizationPreviewTextContainer: "text-white",
+                                organizationPreviewMainIdentifier: "text-white font-medium",
+                                organizationPreviewSecondaryIdentifier: "text-gray-400"
                             }
                         }}
                     />
