@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { branchId, testInput, provider = 'mock', webhookUrl } = body;
+        const { branchId, testInput, provider, webhookUrl, model } = body;
 
         if (!branchId) {
             return NextResponse.json(
