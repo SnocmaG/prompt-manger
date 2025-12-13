@@ -7,6 +7,7 @@ interface AITestRequest {
     promptContent: string;
     testInput?: string;
     webhookUrl?: string;
+    model?: string;
 }
 
 interface AITestResponse {
@@ -51,7 +52,8 @@ export async function testWithWebhook(
 
 export async function testWithOpenAI(
     promptContent: string,
-    testInput?: string
+    testInput?: string,
+    model: string = 'gpt-4o-mini'
 ): Promise<string> {
     const apiKey = process.env.OPENAI_API_KEY;
 
@@ -66,7 +68,7 @@ export async function testWithOpenAI(
             'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: model,
             messages: [
                 { role: 'system', content: promptContent },
                 ...(testInput ? [{ role: 'user', content: testInput }] : []),
@@ -144,7 +146,7 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
                 output = await testWithWebhook(request.promptContent, request.webhookUrl!, request.testInput);
                 break;
             case 'openai':
-                output = await testWithOpenAI(request.promptContent, request.testInput);
+                output = await testWithOpenAI(request.promptContent, request.testInput, request.model);
                 break;
             case 'anthropic':
                 output = await testWithAnthropic(request.promptContent, request.testInput);
