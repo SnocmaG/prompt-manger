@@ -163,17 +163,17 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                             <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
                                 {provider === 'webhook' ? 'Webhook Response' : 'AI Response'}
                             </label>
-                            <div className="border rounded-md p-3 min-h-[100px] bg-muted/30 text-sm font-mono whitespace-pre-wrap max-h-[200px] overflow-y-auto">
+                            <div className="border rounded-md p-3 min-h-[150px] bg-black text-green-400 font-mono text-xs whitespace-pre-wrap max-h-[300px] overflow-y-auto shadow-inner">
                                 {testing ? (
-                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                    <div className="flex items-center gap-2 text-green-400/70">
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        {provider === 'webhook' ? 'Triggering webhook...' : `Testing with ${provider}...`}
+                                        <span className="animate-pulse">{provider === 'webhook' ? 'Triggering webhook...' : `Testing with ${provider}...`}</span>
                                     </div>
                                 ) : testOutput ? (
                                     testOutput
                                 ) : (
-                                    <span className="text-muted-foreground">
-                                        Click "Run Test" to see result
+                                    <span className="text-muted-foreground/50 opacity-50">
+                                        $ Waiting for test execution...
                                     </span>
                                 )}
                             </div>

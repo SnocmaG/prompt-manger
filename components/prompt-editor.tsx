@@ -126,7 +126,7 @@ export function PromptEditor({ branch, isLive, onSave, onDeploy, onRestore }: Pr
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             placeholder="Enter your prompt content here..."
-                            className="min-h-[400px] font-mono text-sm"
+                            className="min-h-[500px] font-mono text-sm leading-relaxed bg-background dark:bg-[#1e1e1e] border-0 focus-visible:ring-0 resize-none p-4"
                         />
                     </div>
 
