@@ -15,7 +15,6 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { LandingPage } from '@/components/landing-page';
 
 interface Prompt {
-interface Prompt {
     id: string;
     name: string;
     webhookUrl: string | null;
