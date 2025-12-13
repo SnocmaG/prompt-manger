@@ -1,22 +1,25 @@
+```
 "use client";
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { GitBranch } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { Clock, PanelRightClose, PanelRightOpen, ArrowLeft, GitBranch } from "lucide-react";
+import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BranchList } from "@/components/branch-list";
 import { PromptEditor } from "@/components/prompt-editor";
 import { VersionHistory } from "@/components/version-history";
 import { TestPanel } from "@/components/test-panel";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { UserPromptInput } from "@/components/user-prompt-input";
+import { ResponseViewer } from "@/components/response-viewer";
+import { Input } from "@/components/ui/input";
 
-interface Prompt {
+interface Version {
     id: string;
-    name: string;
-    webhookUrl: string | null;
-    liveBranchId: string | null;
-    branches: Branch[];
+    content: string;
+    label: string;
+    createdAt: Date;
 }
 
 interface Branch {
@@ -27,12 +30,15 @@ interface Branch {
     versions: Version[];
 }
 
-interface Version {
+interface Prompt {
     id: string;
-    content: string;
-    label: string;
-    createdAt: string;
-    createdBy: string;
+    name: string;
+    liveBranchId: string | null;
+    branches: Branch[];
+    webhookUrl?: string; // Added
+    createdAt: Date;
+    updatedAt: Date;
+    createdById: string; // Added, was missing in some interfaces
 }
 
 type AIProvider = 'mock' | 'openai' | 'anthropic' | 'webhook';
@@ -88,7 +94,7 @@ export default function PromptWorkshop() {
     // ... Fetch Logic ...
     const fetchPrompt = async () => {
         try {
-            const response = await fetch(`/api/prompts/${promptId}`);
+            const response = await fetch(`/ api / prompts / ${ promptId } `);
             if (response.ok) {
                 const data = await response.json();
                 setPrompt(data);
@@ -114,7 +120,7 @@ export default function PromptWorkshop() {
             // The existing API reads from DB. We want to test CURRENT EDITOR CONTENT.
             // If the API only supports DB, we need to save a draft OR update API to accept 'content' override.
             // LET'S UPDATE API TO ACCEPT 'promptContent' override.
-            // Check `app/api/ai/test/route.ts` - it reads from DB.
+            // Check `app / api / ai / test / route.ts` - it reads from DB.
             // FIX: We will pass `promptContent` in the body.
 
             const response = await fetch('/api/ai/test', {
@@ -250,7 +256,7 @@ export default function PromptWorkshop() {
 
                 {/* Drawer Overlay */}
                 <div
-                    className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
+                    className={`fixed inset - y - 0 right - 0 z - 30 w - 80 bg - card border - l shadow - 2xl transition - transform duration - 300 ${ isHistoryOpen ? 'translate-x-0' : 'translate-x-full' } pt - 14`}
                 >
                     <div className="h-full overflow-y-auto">
                         {selectedBranch && (
