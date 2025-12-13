@@ -15,13 +15,9 @@ export async function GET(request: NextRequest) {
         const prompt = await prisma.prompt.findUnique({
             where: { id: promptId },
             include: {
-                branches: {
-                    include: {
-                        versions: {
-                            orderBy: { createdAt: 'desc' },
-                            take: 5 // Limit to recent versions to keep payload light
-                        }
-                    }
+                versions: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 5 // Limit to recent versions
                 }
             }
         });

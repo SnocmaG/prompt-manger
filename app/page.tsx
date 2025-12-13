@@ -12,13 +12,11 @@ import { PromptCard } from '@/components/prompt-card';
 interface Prompt {
     id: string;
     name: string;
-    webhookUrl: string | null;
-    liveBranchId: string | null;
+    liveVersionId: string | null;
     updatedAt: string;
     _count: {
-        branches: number;
+        versions: number;
     };
-    branches: { id: string }[];
 }
 
 export default function Dashboard() {
@@ -40,12 +38,10 @@ export default function Dashboard() {
             const response = await fetch('/api/prompts');
             if (response.ok) {
                 const data = await response.json();
-                // We might need to adjust this depending on what the API actually returns for counts
-                // If API doesn't return counts, we'll calculate them.
-                const processed = data.map((p: Prompt & { branches?: { length: number }[] }) => ({
+                const processed = data.map((p: Prompt & { versions?: { length: number }[] }) => ({
                     ...p,
-                    updatedAt: p.updatedAt || new Date().toISOString(), // Fallback if not in API yet
-                    _count: { branches: p.branches?.length || 0 }
+                    updatedAt: p.updatedAt || new Date().toISOString(),
+                    _count: { versions: p.versions?.length || p._count?.versions || 0 }
                 }));
                 setPrompts(processed);
             }
@@ -101,8 +97,8 @@ export default function Dashboard() {
                                 id={prompt.id}
                                 name={prompt.name}
                                 updatedAt={prompt.updatedAt}
-                                liveBranchId={prompt.liveBranchId}
-                                branchCount={prompt._count.branches}
+                                liveVersionId={prompt.liveVersionId}
+                                versionCount={prompt._count.versions}
                             />
                         ))}
                     </div>

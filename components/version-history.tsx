@@ -6,7 +6,8 @@ import { History, Clock } from 'lucide-react';
 
 interface Version {
     id: string;
-    content: string;
+    systemPrompt: string;
+    userPrompt: string;
     label: string;
     createdAt: string;
     createdBy?: string;
@@ -14,10 +15,13 @@ interface Version {
 
 interface VersionHistoryProps {
     versions: Version[];
-    onRestore: (content: string, label: string) => void;
+    liveVersionId: string | null;
+    onRestore: (systemPrompt: string, userPrompt: string) => void;
+    onDeploy: (version: Version) => void;
 }
 
-export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
+export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }: VersionHistoryProps) {
+    // They usually come sorted from API, but sort again to be safe
     const sortedVersions = [...versions].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
@@ -48,7 +52,7 @@ export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
                 <div className="flex items-center gap-2 mb-1">
                     <History className="h-4 w-4 text-muted-foreground" />
                     <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                        Version History
+                        History
                     </h2>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -58,10 +62,10 @@ export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
 
             <ScrollArea className="flex-1">
                 <div className="p-3 space-y-2">
-                    {sortedVersions.map((version, index) => (
+                    {sortedVersions.map((version) => (
                         <div
                             key={version.id}
-                            className="border rounded-lg p-3 hover:bg-accent/50 transition-colors"
+                            className={`border rounded-lg p-3 hover:bg-accent/50 transition-colors ${version.id === liveVersionId ? 'border-primary/50' : ''}`}
                         >
                             <div className="flex items-start justify-between gap-2 mb-2">
                                 <div className="flex-1 min-w-0">
@@ -73,9 +77,9 @@ export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
                                         <span>{formatDate(version.createdAt)}</span>
                                     </div>
                                 </div>
-                                {index === 0 && (
-                                    <div className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded font-medium">
-                                        Current
+                                {version.id === liveVersionId && (
+                                    <div className="bg-green-500/10 text-green-600 text-[10px] px-2 py-0.5 rounded font-medium border border-green-500/20">
+                                        LIVE
                                     </div>
                                 )}
                             </div>
@@ -84,22 +88,32 @@ export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
                                 by {version.createdBy || 'Unknown'}
                             </div>
 
-                            <div className="text-xs bg-muted/50 p-2 rounded font-mono line-clamp-3">
-                                {version.content}
+                            <div className="text-xs bg-muted/50 p-2 rounded max-h-20 overflow-hidden mb-2">
+                                <span className="font-semibold text-[10px] uppercase text-muted-foreground block mb-1">System</span>
+                                <div className="line-clamp-2 font-mono">{version.systemPrompt}</div>
                             </div>
 
-                            {index !== 0 && (
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 text-xs h-7"
+                                    onClick={() => onDeploy(version)}
+                                    disabled={version.id === liveVersionId}
+                                >
+                                    {version.id === liveVersionId ? 'Live' : 'Deploy'}
+                                </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="w-full mt-2 text-xs h-7"
+                                    className="flex-1 text-xs h-7"
                                     onClick={() => {
-                                        onRestore(version.content, version.label);
+                                        onRestore(version.systemPrompt, version.userPrompt);
                                     }}
                                 >
-                                    Restore Version
+                                    Restore
                                 </Button>
-                            )}
+                            </div>
                         </div>
                     ))}
 

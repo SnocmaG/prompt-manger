@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserInfo } from '@/lib/auth';
 import { testPrompt, AIProvider } from '@/lib/ai-providers';
-import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
@@ -12,53 +11,20 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { branchId, testInput, provider, model } = body;
+        const { testInput, provider, model, overrideContent } = body;
 
-        if (!branchId) {
+        // If no content provided, we can't test. (Previously checked branch)
+        if (!overrideContent) {
             return NextResponse.json(
-                { error: 'Missing required field: branchId' },
+                { error: 'Missing prompt content' },
                 { status: 400 }
             );
         }
 
-        // Get branch with head version
-        const branch = await prisma.branch.findFirst({
-            where: {
-                id: branchId,
-            },
-            include: {
-                prompt: true,
-            },
-        });
-
-        if (!branch || branch.prompt.clientId !== clientId) {
-            return NextResponse.json(
-                { error: 'Branch not found' },
-                { status: 404 }
-            );
-        }
-
-        // 2. Determine prompt content
-        let promptContent = '';
-
-        if (body.overrideContent) {
-            promptContent = body.overrideContent;
-        } else {
-            // Fetch from DB if no override
-            const version = await prisma.promptVersion.findFirst({
-                where: { branchId },
-                orderBy: { createdAt: 'desc' },
-            });
-            if (!version) {
-                return NextResponse.json({ error: 'No version found' }, { status: 404 });
-            }
-            promptContent = version.content;
-        }
-
-        // 3. Test the prompt
+        // Test the prompt (overrideContent acts as system prompt)
         const result = await testPrompt({
             provider: provider as AIProvider,
-            promptContent,
+            promptContent: overrideContent,
             testInput,
             model
         });
@@ -78,7 +44,7 @@ export async function POST(request: NextRequest) {
             output: result.output,
             provider: result.provider,
             model: result.model,
-            promptContent: promptContent,
+            promptContent: overrideContent,
             testInput: testInput || null,
         });
     } catch (error) {

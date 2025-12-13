@@ -20,13 +20,8 @@ export async function GET(
                 clientId,
             },
             include: {
-                branches: {
-                    include: {
-                        versions: {
-                            orderBy: { createdAt: 'desc' },
-                        },
-                    },
-                    orderBy: { createdAt: 'asc' },
+                versions: {
+                    orderBy: { createdAt: 'desc' },
                 },
             },
         });
@@ -58,7 +53,7 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { webhookUrl, name } = body;
+        const { name, liveVersionId } = body;
 
         const updatedPrompt = await prisma.prompt.update({
             where: {
@@ -67,7 +62,7 @@ export async function PATCH(
             },
             data: {
                 ...(name && { name }),
-                ...(webhookUrl !== undefined && { webhookUrl }),
+                ...(liveVersionId && { liveVersionId }),
                 updatedBy: userName || userId,
             },
         });

@@ -11,28 +11,26 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { branchId, content, label } = body;
+        const { promptId, systemPrompt, userPrompt, label } = body;
 
-        if (!branchId || !content || !label) {
+        if (!promptId || !systemPrompt || !label) {
             return NextResponse.json(
-                { error: 'Missing required fields: branchId, content, label' },
+                { error: 'Missing required fields: promptId, systemPrompt, label' },
                 { status: 400 }
             );
         }
 
-        // Verify branch ownership
-        const branch = await prisma.branch.findFirst({
+        // Verify prompt ownership
+        const prompt = await prisma.prompt.findFirst({
             where: {
-                id: branchId,
-            },
-            include: {
-                prompt: true,
+                id: promptId,
+                clientId,
             },
         });
 
-        if (!branch || branch.prompt.clientId !== clientId) {
+        if (!prompt) {
             return NextResponse.json(
-                { error: 'Branch not found' },
+                { error: 'Prompt not found' },
                 { status: 404 }
             );
         }
@@ -40,20 +38,11 @@ export async function POST(request: NextRequest) {
         // Create new version
         const newVersion = await prisma.promptVersion.create({
             data: {
-                branchId,
-                content,
+                promptId,
+                systemPrompt,
+                userPrompt: userPrompt || '',
                 label,
-                parentVersionId: branch.headVersionId,
                 createdBy: userName || userId,
-                updatedBy: userName || userId,
-            },
-        });
-
-        // Update branch head
-        await prisma.branch.update({
-            where: { id: branchId },
-            data: {
-                headVersionId: newVersion.id,
                 updatedBy: userName || userId,
             },
         });

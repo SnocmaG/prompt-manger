@@ -34,43 +34,31 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        if (!prompt || !prompt.liveBranchId) {
+        if (!prompt || !prompt.liveVersionId) {
             return NextResponse.json(
-                { error: 'Prompt not found or no live branch set' },
+                { error: 'Prompt not found or no live version set' },
                 { status: 404 }
             );
         }
 
-        // Get the live branch
-        const liveBranch = await prisma.branch.findUnique({
-            where: { id: prompt.liveBranchId },
+        // Get the live version
+        const liveVersion = await prisma.promptVersion.findUnique({
+            where: { id: prompt.liveVersionId },
         });
 
-        if (!liveBranch || !liveBranch.headVersionId) {
+        if (!liveVersion) {
             return NextResponse.json(
-                { error: 'Live branch not found or no head version' },
-                { status: 404 }
-            );
-        }
-
-        // Get the head version
-        const headVersion = await prisma.promptVersion.findUnique({
-            where: { id: liveBranch.headVersionId },
-        });
-
-        if (!headVersion) {
-            return NextResponse.json(
-                { error: 'Head version not found' },
+                { error: 'Live version not found' },
                 { status: 404 }
             );
         }
 
         return NextResponse.json({
-            content: headVersion.content,
-            branchLabel: liveBranch.label,
-            versionLabel: headVersion.label,
-            updatedAt: headVersion.updatedAt.toISOString(),
-            updatedBy: headVersion.updatedBy,
+            systemPrompt: liveVersion.systemPrompt,
+            userPrompt: liveVersion.userPrompt,
+            versionLabel: liveVersion.label,
+            updatedAt: liveVersion.updatedAt.toISOString(),
+            updatedBy: liveVersion.updatedBy,
         });
     } catch (error) {
         console.error('Error fetching live prompt:', error);

@@ -51,18 +51,14 @@ export default function DocsPage() {
                         </div>
                         <div className="flex-1 pt-2 space-y-4">
                             <h3 className="text-2xl font-semibold flex items-center gap-2">
-                                Branch & Version
+                                Versioning
                                 <GitBranch className="h-5 w-5 text-muted-foreground" />
                             </h3>
                             <p className="text-muted-foreground leading-relaxed">
-                                Work safely using <strong>Branches</strong>.
+                                Save <strong>Versions</strong> frequently as you iterate on your instructions and user prompts.
                             </p>
-                            <ul className="list-disc list-outside pl-5 text-muted-foreground space-y-2">
-                                <li><strong>Main Branch</strong>: Your stable, production-ready code.</li>
-                                <li><strong>Feature Branches</strong>: Create a branch (e.g., <code>experiment-gpt5</code>) to test radical changes without breaking production.</li>
-                            </ul>
                             <p className="text-muted-foreground">
-                                Save <strong>Versions</strong> frequently. Every save is immutable, so you can always roll back via the &quot;History&quot; tab.
+                                Every save creates an immutable snapshot. You can easily roll back to previous versions using the history panel.
                             </p>
                         </div>
                     </div>
@@ -102,8 +98,8 @@ export default function DocsPage() {
                                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
                             </h3>
                             <p className="text-muted-foreground leading-relaxed">
-                                ready to go live? Click <strong>Deploy</strong> on a specific version.
-                                This updates the <code>liveBranchId</code> pointer.
+                                Ready to go live? Click <strong>Deploy</strong> on a specific version.
+                                This updates the <code>liveVersionId</code> pointer.
                             </p>
                             <p className="text-muted-foreground">
                                 Your application can then fetch this prompt using the API without needing code changes.

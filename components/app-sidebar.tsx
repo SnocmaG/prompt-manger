@@ -3,18 +3,16 @@
 import Link from "next/link"
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs"
 import {
-    GitBranch,
     Plus,
     Search,
     BookOpen,
-    Webhook,
     LayoutDashboard
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { ModeToggle } from "@/components/mode-toggle"
 
@@ -26,8 +24,8 @@ interface Prompt {
 export function AppSidebar() {
     const pathname = usePathname()
     const router = useRouter()
-    const searchParams = useSearchParams()
-    const activeBranchId = searchParams.get('branch')
+    // const searchParams = useSearchParams()
+    // const activeBranchId = searchParams.get('branch') // Removed
     const [prompts, setPrompts] = useState<Prompt[]>([])
     const [search, setSearch] = useState("")
 
@@ -53,29 +51,7 @@ export function AppSidebar() {
 
     // Extract prompt ID from path (robust method)
     // Pathname format: /prompt/[id]
-    const activePromptId = pathname.startsWith('/prompt/') ? pathname.split('/')[2] : null
-
-    interface SidebarBranch {
-        id: string;
-        label: string;
-        name: string;
-        isLive: boolean;
-    }
-
-    const [branches, setBranches] = useState<SidebarBranch[]>([])
-
-    // Fetch branches if we are on a prompt page
-    useEffect(() => {
-        if (!activePromptId) {
-            setBranches([])
-            return
-        }
-
-        const fetchBranches = async () => {
-            // ...
-        }
-        fetchBranches()
-    }, [activePromptId])
+    // const activePromptId = pathname.startsWith('/prompt/') ? pathname.split('/')[2] : null
 
     return (
         <div className="w-[260px] h-screen flex flex-col bg-[#171717] text-gray-300 border-r border-[#ffffff10] shrink-0">
@@ -102,15 +78,6 @@ export function AppSidebar() {
                         Explore Library
                     </div>
                 </Link>
-                <Link href="/webhook">
-                    <div className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
-                        pathname === "/webhook" && "bg-[#ffffff10] text-white"
-                    )}>
-                        <Webhook className="h-4 w-4" />
-                        Webhooks
-                    </div>
-                </Link>
                 <Link href="/docs">
                     <div className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
@@ -134,41 +101,6 @@ export function AppSidebar() {
                     />
                 </div>
             </div>
-
-            {/* Contextual Branches List (Only when inside a prompt) */}
-            {activePromptId && branches.length > 0 && (
-                <div className="px-3 py-2">
-                    <div className="flex items-center justify-between px-2 mb-1">
-                        <div className="text-xs font-semibold text-gray-500">Branches</div>
-                        {/* We could add a create button here if we wire it up, but simpler for now just list */}
-                    </div>
-                    <div className="space-y-0.5">
-                        {branches.map(branch => {
-                            const isActive = activeBranchId === branch.id;
-                            return (
-                                <Link
-                                    key={branch.id}
-                                    href={`/prompt/${activePromptId}?branch=${branch.id}`}
-                                >
-                                    <div
-                                        className={cn(
-                                            "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
-                                            isActive
-                                                ? "bg-[#ffffff15] text-white font-medium"
-                                                : "text-gray-400 hover:text-white hover:bg-[#ffffff10]"
-                                        )}>
-                                        <div className="flex items-center gap-2 truncate">
-                                            <GitBranch className={cn("h-3 w-3", isActive ? "text-primary" : "")} />
-                                            <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
-                                        </div>
-                                        {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
-                                    </div>
-                                </Link>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
 
             {/* Prompt List (Scrollable) */}
             <div className="flex-1 overflow-hidden mt-2">

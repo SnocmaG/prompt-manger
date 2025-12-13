@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { GitBranch, Clock, MoreHorizontal } from "lucide-react";
+import { GitCommit, Clock, MoreHorizontal } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PromptCardProps {
     id: string;
     name: string;
     updatedAt: string;
-    liveBranchId: string | null;
-    branchCount: number;
+    liveVersionId: string | null;
+    versionCount: number;
 }
 
-export function PromptCard({ id, name, updatedAt, liveBranchId, branchCount }: PromptCardProps) {
+export function PromptCard({ id, name, updatedAt, liveVersionId, versionCount }: PromptCardProps) {
     // Format date nicely
     const date = new Date(updatedAt).toLocaleDateString("en-US", {
         month: "short",
@@ -28,7 +28,7 @@ export function PromptCard({ id, name, updatedAt, liveBranchId, branchCount }: P
                         <CardTitle className="text-base font-semibold leading-tight group-hover:text-primary transition-colors">
                             {name}
                         </CardTitle>
-                        {liveBranchId && (
+                        {liveVersionId && (
                             <div className="shrink-0 animate-pulse">
                                 <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
                             </div>
@@ -39,8 +39,8 @@ export function PromptCard({ id, name, updatedAt, liveBranchId, branchCount }: P
                 <CardContent className="flex-1 pb-4 relative">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
                         <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border/50">
-                            <GitBranch className="h-3.5 w-3.5" />
-                            <span>{branchCount} Branches</span>
+                            <GitCommit className="h-3.5 w-3.5" />
+                            <span>{versionCount} Versions</span>
                         </div>
                     </div>
                 </CardContent>

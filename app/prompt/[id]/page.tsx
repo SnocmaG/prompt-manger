@@ -2,36 +2,29 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Clock, GitBranch } from "lucide-react";
-import { useSearchParams, useParams } from "next/navigation";
+import { Clock, GitCommit } from "lucide-react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PromptEditor } from "@/components/prompt-editor";
 import { VersionHistory } from "@/components/version-history";
 import { UserPromptInput } from "@/components/user-prompt-input";
 import { ResponseViewer } from "@/components/response-viewer";
+import { DeployDialog } from "@/components/deploy-dialog";
 
 interface Version {
     id: string;
-    content: string;
+    systemPrompt: string;
+    userPrompt: string;
     label: string;
     createdAt: string;
     createdBy?: string;
 }
 
-interface Branch {
-    id: string;
-    name: string;
-    label: string;
-    headVersionId: string | null;
-    versions: Version[];
-}
-
 interface Prompt {
     id: string;
     name: string;
-    liveBranchId: string | null;
-    branches: Branch[];
-    webhookUrl?: string;
+    liveVersionId: string | null;
+    versions: Version[];
     createdAt: string;
     updatedAt: string;
     createdById: string;
@@ -42,11 +35,8 @@ type AIProvider = 'mock' | 'openai' | 'anthropic';
 export default function PromptWorkshop() {
     const { user, isLoaded } = useUser();
     const params = useParams();
-    const searchParams = useSearchParams();
-    const branchParam = searchParams.get('branch');
 
     const [prompt, setPrompt] = useState<Prompt | null>(null);
-    const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [loading, setLoading] = useState(true);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
@@ -62,6 +52,8 @@ export default function PromptWorkshop() {
     const [provider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
 
+    const [deployTarget, setDeployTarget] = useState<Version | null>(null);
+
     const promptId = params.id as string;
 
     // ... Fetch Logic ...
@@ -71,63 +63,42 @@ export default function PromptWorkshop() {
             if (response.ok) {
                 const data = await response.json();
                 setPrompt(data);
-                // Selection logic: Keep current if possible, else default
-                const targetId = selectedBranch?.id || branchParam || data.liveBranchId || (data.branches[0]?.id);
-                // Fix strict type check by allowing implicit any matching or explicit typing
-                const branch = data.branches.find((b: { id: string }) => b.id === targetId) || data.branches[0];
-                setSelectedBranch(branch);
+
+                // If it's the first load or we have no inputs yet, load the latest/live version
+                // For now, let's load HEAD (latest created) if distinct
+                if (data.versions && data.versions.length > 0) {
+                    const head = data.versions[0]; // Ordered by desc
+                    setSystemPrompt(head.systemPrompt);
+                    setUserPrompt(head.userPrompt || '');
+                }
             }
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
         }
-    }, [promptId, branchParam, selectedBranch?.id]);
+    }, [promptId]);
 
     // ... Auth Effect ...
     useEffect(() => {
         if (!isLoaded) return;
-        // Simple auth check
-        if (!user) {
-            // console.log("User not found, redirecting");
-            // router.push("/"); 
-            // Commented out auto-redirect for testing to prevent ghost redirects if Clerk flickers. 
-            // Middleware should handle mostly.
-        }
         fetchPrompt();
     }, [isLoaded, user, promptId, fetchPrompt]);
-
-    // Update systemPrompt when branch changes
-    useEffect(() => {
-        if (selectedBranch) {
-            const head = selectedBranch.versions.find(v => v.id === selectedBranch.headVersionId);
-            setSystemPrompt(head?.content || '');
-        }
-    }, [selectedBranch, prompt]);
 
 
     // --- Actions ---
 
     // 1. Run Test
     const handleRunTest = async () => {
-        if (!selectedBranch) return;
         setIsRunning(true);
         setError(undefined);
         setAiOutput('');
 
         try {
-            // We use the 'testPrompt' API which might need update to accept RAW content?
-            // The existing API reads from DB. We want to test CURRENT EDITOR CONTENT.
-            // If the API only supports DB, we need to save a draft OR update API to accept 'content' override.
-            // LET'S UPDATE API TO ACCEPT 'promptContent' override.
-            // Check `app / api / ai / test / route.ts` - it reads from DB.
-            // FIX: We will pass `promptContent` in the body.
-
             const response = await fetch('/api/ai/test', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    branchId: selectedBranch.id,
                     testInput: userPrompt,
                     provider,
                     model: customModel,
@@ -152,14 +123,15 @@ export default function PromptWorkshop() {
 
     // 2. Save System Prompt (Version)
     const handleSaveVersion = async (label: string) => {
-        if (!selectedBranch) return;
+        if (!prompt) return;
         try {
             const response = await fetch('/api/versions/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    branchId: selectedBranch.id,
-                    content: systemPrompt,
+                    promptId: prompt.id,
+                    systemPrompt,
+                    userPrompt,
                     label,
                 }),
             });
@@ -169,8 +141,16 @@ export default function PromptWorkshop() {
         } catch (e) { console.error(e); }
     };
 
+    const handleRestore = (sys: string, user: string) => {
+        setSystemPrompt(sys);
+        setUserPrompt(user);
+        setIsHistoryOpen(false);
+    };
+
     if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
     if (!prompt) return <div>Not Found</div>;
+
+    const currentVersionId = prompt.versions?.[0]?.id; // Simplification: "Current" is just latest for editing context usually
 
     return (
         <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
@@ -178,12 +158,10 @@ export default function PromptWorkshop() {
             <div className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0 z-20">
                 <div className="flex items-center gap-4">
                     <span className="font-semibold text-lg">{prompt.name}</span>
-                    {selectedBranch && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                            <GitBranch className="h-3 w-3" />
-                            {selectedBranch.label}
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+                        <GitCommit className="h-3 w-3" />
+                        {prompt.versions.length} versions
+                    </div>
                 </div>
 
                 {/* AI Config Bar (Top Right) */}
@@ -222,7 +200,7 @@ export default function PromptWorkshop() {
                 {/* Left Column: Input + System Prompt (50%) */}
                 <div className="flex-1 flex flex-col border-r border-border/50 min-w-[400px] overflow-hidden">
 
-                    {/* Top Pane: User Prompt (Test Input) - 40% height initially? Or flex-1? User asked for "upper half is user prompt". 50/50 vertical. */}
+                    {/* Top Pane: User Prompt (Test Input) */}
                     <div className="flex-1 min-h-0 border-b border-border/50">
                         <UserPromptInput
                             value={userPrompt}
@@ -232,19 +210,15 @@ export default function PromptWorkshop() {
                         />
                     </div>
 
-                    {/* Bottom Pane: System Prompt (Editor) - 50% */}
+                    {/* Bottom Pane: System Prompt (Editor) */}
                     <div className="flex-1 min-h-0">
-                        {selectedBranch ? (
-                            <PromptEditor
-                                branch={selectedBranch}
-                                isLive={selectedBranch.id === prompt.liveBranchId}
-                                content={systemPrompt}
-                                onChange={setSystemPrompt}
-                                onSave={handleSaveVersion}
-                                onDeploy={fetchPrompt}
-                                onRestore={(c) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
-                            />
-                        ) : <div>Select Branch</div>}
+                        <PromptEditor
+                            systemPrompt={systemPrompt}
+                            onChange={setSystemPrompt}
+                            onSave={handleSaveVersion}
+                            // onDeploy={fetchPrompt} // TODO: Implement deploy/set live logic
+                            isLive={currentVersionId === prompt.liveVersionId}
+                        />
                     </div>
                 </div>
 
@@ -264,16 +238,30 @@ export default function PromptWorkshop() {
                     className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
                 >
                     <div className="h-full overflow-y-auto">
-                        {selectedBranch && (
-                            <VersionHistory
-                                versions={selectedBranch.versions}
-                                onRestore={(c) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
-                            />
-                        )}
+                        <VersionHistory
+                            versions={prompt.versions}
+                            liveVersionId={prompt.liveVersionId}
+                            onRestore={handleRestore}
+                            onDeploy={setDeployTarget}
+                        />
                     </div>
                 </div>
 
             </div>
+
+            {deployTarget && (
+                <DeployDialog
+                    open={!!deployTarget}
+                    onOpenChange={(open) => !open && setDeployTarget(null)}
+                    promptId={prompt.id}
+                    versionId={deployTarget.id}
+                    versionLabel={deployTarget.label}
+                    onSuccess={() => {
+                        setDeployTarget(null);
+                        fetchPrompt();
+                    }}
+                />
+            )}
         </div>
     );
 }

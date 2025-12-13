@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs"
-import { GitBranch, BookOpen, Webhook } from "lucide-react"
+import { LayoutDashboard, BookOpen } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { cn } from "@/lib/utils"
 
@@ -14,14 +14,8 @@ export function DashboardHeader() {
         {
             name: "Prompts",
             href: "/",
-            icon: GitBranch,
+            icon: LayoutDashboard,
             active: pathname === "/"
-        },
-        {
-            name: "Webhooks",
-            href: "/webhook",
-            icon: Webhook,
-            active: pathname === "/webhook"
         },
         {
             name: "Documentation",
@@ -36,7 +30,7 @@ export function DashboardHeader() {
             <div className="container flex h-14 items-center px-4 max-w-screen-2xl">
                 <div className="mr-8 flex items-center gap-2">
                     <Link href="/" className="flex items-center gap-2 font-bold">
-                        <GitBranch className="h-6 w-6 text-primary" />
+                        <LayoutDashboard className="h-6 w-6 text-primary" />
                         <span className="hidden md:inline-block">Prompt Manager</span>
                     </Link>
                 </div>

@@ -5,22 +5,22 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Seeding database...');
 
-    // Create a demo prompt with main branch
-    const prompt = await prisma.prompt.create({
-        data: {
-            clientId: 'demo-client',
-            name: 'welcome_email',
-            createdBy: 'system',
-            updatedBy: 'system',
-            branches: {
-                create: {
-                    name: 'main',
-                    label: 'Main',
-                    createdBy: 'system',
-                    updatedBy: 'system',
-                    versions: {
-                        create: {
-                            content: `You are a friendly customer support assistant. Your goal is to help users with their questions in a warm and professional manner.
+    // Create a demo prompt with initial version
+    // Using transaction for atomicity (optional in seed but good practice)
+    const prompt = await prisma.$transaction(async (tx) => {
+        const newPrompt = await tx.prompt.create({
+            data: {
+                clientId: 'demo-client',
+                name: 'welcome_email',
+                createdBy: 'system',
+                updatedBy: 'system',
+            }
+        });
+
+        const initialVersion = await tx.promptVersion.create({
+            data: {
+                promptId: newPrompt.id,
+                systemPrompt: `You are a friendly customer support assistant. Your goal is to help users with their questions in a warm and professional manner.
 
 Key guidelines:
 - Be concise but thorough
@@ -29,42 +29,27 @@ Key guidelines:
 - Ask clarifying questions when needed
 
 Remember to always maintain a positive attitude and prioritize customer satisfaction.`,
-                            label: 'Initial version',
-                            createdBy: 'system',
-                            updatedBy: 'system',
-                        },
-                    },
-                },
-            },
-        },
-        include: {
-            branches: {
-                include: {
-                    versions: true,
-                },
-            },
-        },
-    });
+                userPrompt: '',
+                label: 'Initial version',
+                createdBy: 'system',
+                updatedBy: 'system',
+            }
+        });
 
-    // Update the branch to set headVersionId
-    const mainBranch = prompt.branches[0];
-    const initialVersion = mainBranch.versions[0];
+        const updatedPrompt = await tx.prompt.update({
+            where: { id: newPrompt.id },
+            data: { liveVersionId: initialVersion.id },
+            include: {
+                versions: true
+            }
+        });
 
-    await prisma.branch.update({
-        where: { id: mainBranch.id },
-        data: { headVersionId: initialVersion.id },
-    });
-
-    // Update the prompt to set liveBranchId
-    await prisma.prompt.update({
-        where: { id: prompt.id },
-        data: { liveBranchId: mainBranch.id },
+        return updatedPrompt;
     });
 
     console.log('✅ Seed completed successfully!');
     console.log(`Created prompt: ${prompt.name}`);
-    console.log(`Created branch: ${mainBranch.name}`);
-    console.log(`Created version: ${initialVersion.label}`);
+    console.log(`Created version: ${prompt.versions[0].label}`);
 }
 
 main()

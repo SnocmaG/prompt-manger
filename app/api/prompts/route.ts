@@ -13,14 +13,9 @@ export async function GET() {
         const prompts = await prisma.prompt.findMany({
             where: { clientId },
             include: {
-                branches: {
-                    include: {
-                        versions: {
-                            orderBy: { createdAt: 'desc' },
-                            take: 1,
-                        },
-                    },
-                },
+                _count: {
+                    select: { versions: true }
+                }
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -53,62 +48,41 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create prompt with main branch and initial version
-        const prompt = await prisma.prompt.create({
-            data: {
-                clientId,
-                name,
-                createdBy: userName || userId,
-                updatedBy: userName || userId,
-                branches: {
-                    create: {
-                        name: 'main',
-                        label: 'Main',
-                        createdBy: userName || userId,
-                        updatedBy: userName || userId,
-                        versions: {
-                            create: {
-                                content: '', // Empty initial content
-                                label: 'Initial version',
-                                createdBy: userName || userId,
-                                updatedBy: userName || userId,
-                            },
-                        },
-                    },
-                },
-            },
-            include: {
-                branches: {
-                    include: {
-                        versions: true,
-                    },
-                },
-            },
+        // Create prompt with initial version
+        // We use a transaction to ensure both are created
+        const prompt = await prisma.$transaction(async (tx) => {
+            const newPrompt = await tx.prompt.create({
+                data: {
+                    clientId,
+                    name,
+                    createdBy: userName || userId,
+                    updatedBy: userName || userId,
+                }
+            });
+
+            const initialVersion = await tx.promptVersion.create({
+                data: {
+                    promptId: newPrompt.id,
+                    systemPrompt: '',
+                    userPrompt: '',
+                    label: 'Initial version',
+                    createdBy: userName || userId,
+                    updatedBy: userName || userId,
+                }
+            });
+
+            const updatedPrompt = await tx.prompt.update({
+                where: { id: newPrompt.id },
+                data: { liveVersionId: initialVersion.id },
+                include: {
+                    versions: true // return versions to client
+                }
+            });
+
+            return updatedPrompt;
         });
 
-        // Update branch to set headVersionId
-        const mainBranch = prompt.branches[0];
-        const initialVersion = mainBranch.versions[0];
-
-        await prisma.branch.update({
-            where: { id: mainBranch.id },
-            data: { headVersionId: initialVersion.id },
-        });
-
-        // Update prompt to set liveBranchId
-        const updatedPrompt = await prisma.prompt.update({
-            where: { id: prompt.id },
-            data: { liveBranchId: mainBranch.id },
-            include: {
-                branches: {
-                    include: {
-                        versions: true,
-                    },
-                },
-            },
-        });
-
-        return NextResponse.json(updatedPrompt);
+        return NextResponse.json(prompt);
     } catch (error) {
         console.error('Error creating prompt:', error);
         return NextResponse.json(

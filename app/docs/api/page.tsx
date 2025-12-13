@@ -68,13 +68,13 @@ export default function ApiDocsPage() {
                             <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Response</h4>
                             <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto">
                                 {`{
-  "id": "cm...",
-  "prompt": {
-     "id": "...",
-     "name": "Marketing Email"
-  },
-  "content": "You are a helpful assistant...",
-  "label": "v1.2"
+  "promptId": "cm...",
+  "name": "Marketing Email",
+  "versionId": "...",
+  "systemPrompt": "You are a helpful assistant...",
+  "userPrompt": "Draft an email about...",
+  "label": "v1.2",
+  "createdAt": "..."
 }`}
                             </pre>
                         </div>
@@ -140,14 +140,17 @@ export default function ApiDocsPage() {
 
                             <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Body Parameters</h4>
                             <div className="grid grid-cols-[120px_1fr] gap-y-2 text-sm mb-4">
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">branchId</code>
-                                <span className="text-muted-foreground">ID of the branch to save to.</span>
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">promptId</code>
+                                <span className="text-muted-foreground">ID of the prompt to save version for.</span>
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">content</code>
-                                <span className="text-muted-foreground">The full system prompt content.</span>
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">systemPrompt</code>
+                                <span className="text-muted-foreground">The system instructions.</span>
+
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">userPrompt</code>
+                                <span className="text-muted-foreground">The user prompt (test input).</span>
 
                                 <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">label</code>
-                                <span className="text-muted-foreground">Human-readable label (e.g., &quot;v1.5 - darker tone&quot;).</span>
+                                <span className="text-muted-foreground">Human-readable version label.</span>
                             </div>
                         </div>
                     </details>

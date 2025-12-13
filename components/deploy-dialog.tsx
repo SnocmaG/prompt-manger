@@ -15,16 +15,18 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 interface DeployDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    branchId: string;
-    branchLabel: string;
+    promptId: string;
+    versionId: string;
+    versionLabel: string;
     onSuccess: () => void;
 }
 
 export function DeployDialog({
     open,
     onOpenChange,
-    branchId,
-    branchLabel,
+    promptId,
+    versionId,
+    versionLabel,
     onSuccess,
 }: DeployDialogProps) {
     const [deploying, setDeploying] = useState(false);
@@ -32,17 +34,17 @@ export function DeployDialog({
     const handleDeploy = async () => {
         setDeploying(true);
         try {
-            const response = await fetch('/api/branches/deploy', {
-                method: 'POST',
+            const response = await fetch(`/api/prompts/${promptId}`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ branchId }),
+                body: JSON.stringify({ liveVersionId: versionId }),
             });
 
             if (response.ok) {
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error deploying branch:', error);
+            console.error('Error deploying version:', error);
         } finally {
             setDeploying(false);
         }
@@ -57,7 +59,7 @@ export function DeployDialog({
                         Deploy to Live
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to deploy <strong>{branchLabel}</strong> to live?
+                        Are you sure you want to deploy version <strong>{versionLabel}</strong> to live?
                         This will make it the active prompt for all production automations.
                     </DialogDescription>
                 </DialogHeader>
