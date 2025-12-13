@@ -56,8 +56,8 @@ export function AppSidebar() {
             {/* Header / New Prompt */}
             <div className="p-3 mb-2">
                 <Button
-                    variant="outline"
-                    className="w-full justify-start gap-2 bg-transparent border-[#ffffff20] hover:bg-[#ffffff10] text-white"
+                    variant="default"
+                    className="w-full justify-start gap-2 shadow-sm font-semibold from-primary to-primary/80 bg-gradient-to-r text-primary-foreground hover:opacity-90 transition-all border-0"
                     onClick={() => router.push('/')}
                 >
                     <Plus className="h-4 w-4" />
@@ -150,7 +150,9 @@ export function AppSidebar() {
                         appearance={{
                             elements: {
                                 rootBox: "w-full",
-                                organizationSwitcherTrigger: "w-full flex items-center justify-between text-gray-400 hover:text-white text-xs py-1 px-2 rounded hover:bg-[#ffffff10]"
+                                organizationSwitcherTrigger: "w-full flex items-center justify-between text-gray-300 hover:text-white text-xs py-2 px-2 rounded hover:bg-[#ffffff10] transition-colors",
+                                organizationPreviewTextContainer: "text-gray-300 group-hover:text-white",
+                                organizationPreviewMainIdentifier: "text-gray-300 group-hover:text-white"
                             }
                         }}
                     />
