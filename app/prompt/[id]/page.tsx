@@ -35,11 +35,7 @@ interface Version {
     createdBy: string;
 }
 
-// ... imports
-import { Clock, PanelRightClose, PanelRightOpen, ArrowLeft } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-
-// ... interfaces
+type AIProvider = 'mock' | 'openai' | 'anthropic' | 'webhook';
 
 export default function PromptWorkshop() {
     const { user, isLoaded } = useUser();
@@ -53,8 +49,21 @@ export default function PromptWorkshop() {
     const [loading, setLoading] = useState(true);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
+    // --- Lifted State ---
+    const [systemPrompt, setSystemPrompt] = useState('');
+    const [userPrompt, setUserPrompt] = useState('');
+    const [aiOutput, setAiOutput] = useState('');
+    const [error, setError] = useState<string | undefined>();
+    const [isRunning, setIsRunning] = useState(false);
+
+    // AI Config State
+    const [provider, setProvider] = useState<AIProvider>('openai');
+    const [customModel, setCustomModel] = useState('gpt-4o-mini');
+    const [webhookUrl, setWebhookUrl] = useState('');
+
     const promptId = params.id as string;
 
+    // ... Auth Effect ...
     useEffect(() => {
         if (!isLoaded) return;
         // Simple auth check
@@ -67,155 +76,192 @@ export default function PromptWorkshop() {
         fetchPrompt();
     }, [isLoaded, user, promptId]);
 
-    // ...
-
-    // And update the History button to be safe
-    // ... onClick={(e) => { e.preventDefault(); setIsHistoryOpen(!isHistoryOpen); }}
-
-    // Effect to handle branch switching via URL
+    // Update systemPrompt when branch changes
     useEffect(() => {
-        if (prompt && branchParam) {
-            const branch = prompt.branches.find(b => b.id === branchParam);
-            if (branch) {
-                setSelectedBranch(branch);
-            }
+        if (selectedBranch) {
+            const head = selectedBranch.versions.find(v => v.id === selectedBranch.headVersionId);
+            setSystemPrompt(head?.content || '');
+            if (prompt) setWebhookUrl(prompt.webhookUrl || '');
         }
-    }, [branchParam, prompt]);
+    }, [selectedBranch, prompt]);
 
+    // ... Fetch Logic ...
     const fetchPrompt = async () => {
         try {
             const response = await fetch(`/api/prompts/${promptId}`);
             if (response.ok) {
                 const data = await response.json();
                 setPrompt(data);
-
-                // Initial branch selection (if not set by URL yet)
-                if (!selectedBranch) {
-                    // Check URL again inside here? Or just default to live/first
-                    const targetBranchId = branchParam || data.liveBranchId;
-                    const targetBranch = data.branches.find((b: Branch) => b.id === targetBranchId) || data.branches[0];
-                    setSelectedBranch(targetBranch);
-                } else {
-                    // Refresh selected branch data if it exists
-                    const updatedBranch = data.branches.find((b: Branch) => b.id === selectedBranch.id);
-                    if (updatedBranch) setSelectedBranch(updatedBranch);
-                }
-            } else {
-                console.error("Prompt not found");
+                // Selection logic: Keep current if possible, else default
+                const targetId = selectedBranch?.id || branchParam || data.liveBranchId || (data.branches[0]?.id);
+                const branch = data.branches.find((b: any) => b.id === targetId) || data.branches[0];
+                setSelectedBranch(branch);
             }
-        } catch (error) {
-            console.error("Error fetching prompt:", error);
+        } catch (e) { console.error(e); } finally { setLoading(false); }
+    };
+
+    // --- Actions ---
+
+    // 1. Run Test
+    const handleRunTest = async () => {
+        if (!selectedBranch) return;
+        setIsRunning(true);
+        setError(undefined);
+        setAiOutput('');
+
+        try {
+            // We use the 'testPrompt' API which might need update to accept RAW content?
+            // The existing API reads from DB. We want to test CURRENT EDITOR CONTENT.
+            // If the API only supports DB, we need to save a draft OR update API to accept 'content' override.
+            // LET'S UPDATE API TO ACCEPT 'promptContent' override.
+            // Check `app/api/ai/test/route.ts` - it reads from DB.
+            // FIX: We will pass `promptContent` in the body.
+
+            const response = await fetch('/api/ai/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    branchId: selectedBranch.id, // Still needed for auth?
+                    testInput: userPrompt,
+                    provider,
+                    webhookUrl: provider === 'webhook' ? webhookUrl : undefined,
+                    model: provider === 'openai' ? customModel : undefined,
+                    overrideContent: systemPrompt // We need to handle this in backend
+                }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setAiOutput(data.output);
+            } else {
+                setError(data.error || 'Test failed');
+            }
+        } catch (e) {
+            setError('Network error');
         } finally {
-            setLoading(false);
+            setIsRunning(false);
         }
     };
 
-    // ... handleRestore ...
-    const handleRestore = (content: string, label: string) => {
-        console.log("Restore requested", content, label);
-        // Implement full restore logic or pass to Editor
+    // 2. Save System Prompt (Version)
+    const handleSaveVersion = async (label: string) => {
+        if (!selectedBranch) return;
+        try {
+            const response = await fetch('/api/versions/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    branchId: selectedBranch.id,
+                    content: systemPrompt,
+                    label,
+                }),
+            });
+            if (response.ok) {
+                fetchPrompt(); // Refresh list
+            }
+        } catch (e) { console.error(e); }
     };
 
     if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
-    if (!prompt) return <div className="p-10 text-center">Prompt not found. <Button variant="link" onClick={() => router.push('/')}>Go Back</Button></div>;
+    if (!prompt) return <div>Not Found</div>;
 
     return (
-        <div className="flex flex-col h-screen bg-background overflow-hidden">
-            {/* Context Bar */}
-            <div className="border-b px-4 py-2 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between text-sm h-14 shadow-sm z-20 sticky top-0">
-                <div className="flex items-center gap-3">
-                    {/* Back button needed since Sidebar doesn't have explicit "Back" for sub-pages? No, Sidebar is global. */}
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <span className="font-semibold text-foreground text-lg flex items-center gap-2">
-                            {prompt.name}
-                        </span>
-                        {selectedBranch && (
-                            <span className="flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
-                                <GitBranch className="h-3 w-3" />
-                                {selectedBranch.label} {selectedBranch.id === prompt.liveBranchId && <span className="text-green-500 font-bold ml-1">• Live</span>}
-                            </span>
-                        )}
-                    </div>
+        <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
+            {/* Header / Context Bar */}
+            <div className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0 z-20">
+                <div className="flex items-center gap-4">
+                    <span className="font-semibold text-lg">{prompt.name}</span>
+                    {selectedBranch && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+                            <GitBranch className="h-3 w-3" />
+                            {selectedBranch.label}
+                        </div>
+                    )}
                 </div>
 
+                {/* AI Config Bar (Top Right) */}
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => { e.preventDefault(); setIsHistoryOpen(!isHistoryOpen); }}
-                        className={isHistoryOpen ? "bg-muted text-foreground" : "text-muted-foreground"}
+                    {provider === 'openai' && (
+                        <Input
+                            value={customModel}
+                            onChange={e => setCustomModel(e.target.value)}
+                            className="h-7 w-32 text-xs bg-background"
+                            placeholder="Model"
+                        />
+                    )}
+                    <select
+                        value={provider}
+                        onChange={e => setProvider(e.target.value as AIProvider)}
+                        className="h-7 text-xs bg-background border rounded px-2"
                     >
-                        {isHistoryOpen ? <PanelRightClose className="h-4 w-4 mr-2" /> : <Clock className="h-4 w-4 mr-2" />}
-                        {isHistoryOpen ? "Hide History" : "History"}
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                        <option value="mock">Mock</option>
+                        <option value="webhook">Webhook</option>
+                    </select>
+                    <div className="w-px h-4 bg-border mx-2" />
+                    <Button variant="ghost" size="sm" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
+                        <Clock className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
 
-            <div className="flex flex-1 overflow-hidden relative">
+            {/* Main Workspace - 2 Columns */}
+            <div className="flex-1 flex flex-row overflow-hidden">
 
-                {/* Center Content Area - Split Screen */}
-                <div className="flex-1 flex flex-row overflow-hidden relative">
+                {/* Left Column: Input + System Prompt (50%) */}
+                <div className="flex-1 flex flex-col border-r border-border/50 min-w-[400px] overflow-hidden">
 
-                    {/* Left: Editor (50%) */}
-                    <div className="flex-1 flex flex-col overflow-hidden border-r border-border/40 min-w-[400px]">
-                        <div className="flex-1 overflow-y-auto">
-                            {selectedBranch ? (
-                                <PromptEditor
-                                    branch={selectedBranch}
-                                    isLive={selectedBranch.id === prompt.liveBranchId}
-                                    onSave={fetchPrompt}
-                                    onDeploy={fetchPrompt}
-                                    onRestore={handleRestore}
-                                />
-                            ) : (
-                                <div className="flex h-full items-center justify-center text-muted-foreground">Select a branch</div>
-                            )}
-                        </div>
+                    {/* Top Pane: User Prompt (Test Input) - 40% height initially? Or flex-1? User asked for "upper half is user prompt". 50/50 vertical. */}
+                    <div className="flex-1 min-h-0 border-b border-border/50">
+                        <UserPromptInput
+                            value={userPrompt}
+                            onChange={setUserPrompt}
+                            onRun={handleRunTest}
+                            isTesting={isRunning}
+                        />
                     </div>
 
-                    {/* Right: Test Panel (50%) */}
-                    <div className="flex-1 flex flex-col bg-background min-w-[400px]">
+                    {/* Bottom Pane: System Prompt (Editor) - 50% */}
+                    <div className="flex-1 min-h-0">
                         {selectedBranch ? (
-                            <TestPanel
-                                branchId={selectedBranch.id}
-                                promptId={prompt.id}
-                                initialWebhookUrl={prompt.webhookUrl || ''}
-                                onWebhookSave={fetchPrompt}
+                            <PromptEditor
+                                branch={selectedBranch}
+                                isLive={selectedBranch.id === prompt.liveBranchId}
+                                content={systemPrompt}
+                                onChange={setSystemPrompt}
+                                onSave={handleSaveVersion}
+                                onDeploy={fetchPrompt}
+                                onRestore={(c, l) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
                             />
-                        ) : (
-                            <div className="flex h-full items-center justify-center text-muted-foreground bg-muted/5">
-                                Select a branch to test
-                            </div>
+                        ) : <div>Select Branch</div>}
+                    </div>
+                </div>
+
+                {/* Right Column: AI Response (50%) */}
+                <div className="flex-1 flex flex-col min-w-[400px] bg-black">
+                    <ResponseViewer
+                        output={aiOutput}
+                        isTesting={isRunning}
+                        provider={provider}
+                        error={error}
+                    />
+                </div>
+
+                {/* Drawer Overlay */}
+                <div
+                    className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
+                >
+                    <div className="h-full overflow-y-auto">
+                        {selectedBranch && (
+                            <VersionHistory
+                                versions={selectedBranch.versions}
+                                onRestore={(c, l) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
+                            />
                         )}
                     </div>
                 </div>
 
-                {/* Right Drawer - Version History */}
-                {/* We use a fixed/absolute positioning or flex with generic transition */}
-                <div
-                    className={`
-                        fixed inset-y-0 right-0 z-30 w-80 bg-card border-l transform transition-transform duration-300 ease-in-out shadow-2xl
-                        ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'}
-                        pt-14 
-                    `}
-                >
-                    <div className="h-full flex flex-col">
-                        <div className="p-3 border-b flex items-center justify-between bg-card">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Version History</span>
-                            <Button variant="ghost" size="icon" onClick={() => setIsHistoryOpen(false)} className="h-6 w-6">
-                                <PanelRightClose className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto">
-                            {selectedBranch && (
-                                <VersionHistory
-                                    versions={selectedBranch.versions}
-                                    onRestore={handleRestore}
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     );

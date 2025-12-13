@@ -38,23 +38,27 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 2. Fetch the prompt content from the database
-        const version = await prisma.promptVersion.findFirst({
-            where: { branchId },
-            orderBy: { createdAt: 'desc' },
-        });
+        // 2. Determine prompt content
+        let promptContent = '';
 
-        if (!version) {
-            return NextResponse.json(
-                { error: 'No version found for this branch' },
-                { status: 404 }
-            );
+        if (body.overrideContent) {
+            promptContent = body.overrideContent;
+        } else {
+            // Fetch from DB if no override
+            const version = await prisma.promptVersion.findFirst({
+                where: { branchId },
+                orderBy: { createdAt: 'desc' },
+            });
+            if (!version) {
+                return NextResponse.json({ error: 'No version found' }, { status: 404 });
+            }
+            promptContent = version.content;
         }
 
         // 3. Test the prompt
         const result = await testPrompt({
             provider: provider as AIProvider,
-            promptContent: version.content,
+            promptContent,
             testInput,
             webhookUrl,
             model

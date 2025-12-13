@@ -22,137 +22,106 @@ interface Version {
     label: string;
 }
 
-interface PromptEditorProps {
+export interface PromptEditorProps {
     branch: Branch;
     isLive: boolean;
-    onSave: () => void;
+    content: string; // Controlled
+    onChange: (value: string) => void; // Controlled
+    onSave: (label: string) => Promise<void>; // Updated signature
     onDeploy: () => void;
     onRestore?: (content: string, label: string) => void;
 }
 
-export function PromptEditor({ branch, isLive, onSave, onDeploy, onRestore }: PromptEditorProps) {
-    const currentVersion = branch.versions.find(v => v.id === branch.headVersionId);
-    const [content, setContent] = useState(currentVersion?.content || '');
+export function PromptEditor({ branch, isLive, content, onChange, onSave, onDeploy, onRestore }: PromptEditorProps) {
+    // const currentVersion = branch.versions.find(v => v.id === branch.headVersionId);
+    // REMOVED local state for content
+
     const [versionLabel, setVersionLabel] = useState('');
     const [saving, setSaving] = useState(false);
-    const [restoredFrom, setRestoredFrom] = useState<string | null>(null); // Added new state
+    const [restoredFrom, setRestoredFrom] = useState<string | null>(null);
     const [showDeployDialog, setShowDeployDialog] = useState(false);
 
-    // Update content when branch changes
+    // Reset restored state when branch changes, parent handles content reset
     React.useEffect(() => {
-        const newContent = currentVersion?.content || '';
-        setContent(newContent);
         setRestoredFrom(null);
-    }, [branch.id, currentVersion?.id]);
+    }, [branch.id]);
 
-    const hasChanges = content !== currentVersion?.content;
+    const hasChanges = true; // Simplified for now, or pass originalContent to compare
 
-    const handleRestore = (restoredContent: string, fromLabel: string) => {
-        setContent(restoredContent);
+    const handleRestoreInternal = (restoredContent: string, fromLabel: string) => {
+        onChange(restoredContent); // Update parent
         setRestoredFrom(fromLabel);
         setVersionLabel(`Restored from: ${fromLabel}`);
+        if (onRestore) onRestore(restoredContent, fromLabel);
     };
 
-    const handleSave = async () => {
-        if (!hasChanges || !versionLabel.trim()) {
-            return;
-        }
-
+    const handleSaveClick = async () => {
+        if (!versionLabel.trim()) return;
         setSaving(true);
         try {
-            const response = await fetch('/api/versions/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    branchId: branch.id,
-                    content,
-                    label: versionLabel,
-                }),
-            });
-
-            if (response.ok) {
-                setVersionLabel('');
-                onSave();
-            }
-        } catch (error) {
-            console.error('Error saving version:', error);
+            await onSave(versionLabel); // Delegate save logic
+            setVersionLabel('');
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="border-b bg-card p-4">
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-semibold">{branch.label}</h2>
-                        {isLive && <Badge variant="success">Live</Badge>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {!isLive && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowDeployDialog(true)}
-                            >
-                                <Rocket className="h-4 w-4 mr-2" />
-                                Deploy to Live
-                            </Button>
-                        )}
-                    </div>
+        <div className="flex flex-col h-full bg-card"> {/* Removed bg-card/50 to check contrast */}
+            <div className="border-b bg-card p-2 px-4 shrink-0 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">System Prompt</span>
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-[10px] text-muted-foreground">{branch.name}</code>
+                    {isLive && <Badge variant="success" className="h-4 text-[10px]">Live</Badge>}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                    Branch: <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{branch.name}</code>
-                </p>
+                <div className="flex items-center gap-2">
+                    {!isLive && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => setShowDeployDialog(true)}
+                        >
+                            <Rocket className="h-3 w-3 mr-1" />
+                            Deploy
+                        </Button>
+                    )}
+                </div>
             </div>
 
-            <div className="flex-1 p-6 overflow-y-auto">
-                <div className="max-w-4xl mx-auto space-y-4">
-                    {restoredFrom && (
-                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3 flex items-center gap-2">
-                            <RotateCcw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <p className="text-sm text-blue-800 dark:text-blue-200">
-                                Content restored from version: <strong>{restoredFrom}</strong>
-                            </p>
-                        </div>
-                    )}
+            <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 relative">
+                    <Textarea
+                        value={content}
+                        onChange={(e) => onChange(e.target.value)}
+                        placeholder="Enter system prompt (instructions)..."
+                        className="absolute inset-0 w-full h-full p-4 font-mono text-sm leading-relaxed bg-background/50 border-0 focus-visible:ring-0 resize-none rounded-none"
+                    />
+                </div>
 
-                    <div>
-                        <label className="text-sm font-medium mb-2 block">
-                            Prompt Content
-                        </label>
-                        <Textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder="Enter your prompt content here..."
-                            className="min-h-[500px] font-mono text-sm leading-relaxed bg-background dark:bg-[#1e1e1e] border-0 focus-visible:ring-0 resize-none p-4"
+                {/* Bottom Bar: Version Label & Save */}
+                <div className="border-t p-2 bg-muted/10 shrink-0">
+                    <div className="flex gap-2">
+                        <Input
+                            value={versionLabel}
+                            onChange={(e) => setVersionLabel(e.target.value)}
+                            placeholder="Version label (e.g. Iteration 5)..."
+                            className="flex-1 h-8 text-xs bg-background"
                         />
+                        <Button
+                            onClick={handleSaveClick}
+                            disabled={saving || !versionLabel.trim()}
+                            size="sm"
+                            className="h-8 text-xs"
+                        >
+                            <Save className="h-3 w-3 mr-1" />
+                            {saving ? 'Saving...' : 'Save Version'}
+                        </Button>
                     </div>
-
-                    {hasChanges && (
-                        <div className="border rounded-lg p-4 bg-accent/50">
-                            <label className="text-sm font-medium mb-2 block">
-                                Version Label
-                            </label>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={versionLabel}
-                                    onChange={(e) => setVersionLabel(e.target.value)}
-                                    placeholder="e.g., Updated intro section"
-                                    className="flex-1"
-                                />
-                                <Button
-                                    onClick={handleSave}
-                                    disabled={saving || !versionLabel.trim()}
-                                >
-                                    <Save className="h-4 w-4 mr-2" />
-                                    {saving ? 'Saving...' : 'Save Version'}
-                                </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                                Saving will create a new immutable version in the history
-                            </p>
+                    {restoredFrom && (
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-blue-400">
+                            <RotateCcw className="h-3 w-3" />
+                            Restored from: {restoredFrom}
                         </div>
                     )}
                 </div>
@@ -172,16 +141,5 @@ export function PromptEditor({ branch, isLive, onSave, onDeploy, onRestore }: Pr
     );
 }
 
-// Export handleRestore for parent component
-export function usePromptEditor(branch: Branch) {
-    const currentVersion = branch.versions.find(v => v.id === branch.headVersionId);
-    const [content, setContent] = React.useState(currentVersion?.content || '');
-    const [restoredFrom, setRestoredFrom] = React.useState<string | null>(null);
+// Remove usePromptEditor hook if no longer needed or update it
 
-    const handleRestore = (restoredContent: string, fromLabel: string) => {
-        setContent(restoredContent);
-        setRestoredFrom(fromLabel);
-    };
-
-    return { content, restoredFrom, handleRestore };
-}
