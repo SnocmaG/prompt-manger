@@ -51,9 +51,9 @@ export function AppSidebar() {
         p.name.toLowerCase().includes(search.toLowerCase())
     )
 
-    // Extract prompt ID from path
-    const promptIdMatch = pathname.match(/^\/prompt\/([^/]+)/)
-    const activePromptId = promptIdMatch ? promptIdMatch[1] : null
+    // Extract prompt ID from path (robust method)
+    // Pathname format: /prompt/[id]
+    const activePromptId = pathname.startsWith('/prompt/') ? pathname.split('/')[2] : null
 
     const [branches, setBranches] = useState<any[]>([])
 

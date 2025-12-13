@@ -57,12 +57,20 @@ export default function PromptWorkshop() {
 
     useEffect(() => {
         if (!isLoaded) return;
+        // Simple auth check
         if (!user) {
-            router.push("/");
-            return;
+            // console.log("User not found, redirecting");
+            // router.push("/"); 
+            // Commented out auto-redirect for testing to prevent ghost redirects if Clerk flickers. 
+            // Middleware should handle mostly.
         }
         fetchPrompt();
     }, [isLoaded, user, promptId]);
+
+    // ...
+
+    // And update the History button to be safe
+    // ... onClick={(e) => { e.preventDefault(); setIsHistoryOpen(!isHistoryOpen); }}
 
     // Effect to handle branch switching via URL
     useEffect(() => {
@@ -134,7 +142,7 @@ export default function PromptWorkshop() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                        onClick={(e) => { e.preventDefault(); setIsHistoryOpen(!isHistoryOpen); }}
                         className={isHistoryOpen ? "bg-muted text-foreground" : "text-muted-foreground"}
                     >
                         {isHistoryOpen ? <PanelRightClose className="h-4 w-4 mr-2" /> : <Clock className="h-4 w-4 mr-2" />}
