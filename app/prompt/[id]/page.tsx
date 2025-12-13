@@ -56,6 +56,7 @@ export default function PromptWorkshop() {
     const [aiOutput, setAiOutput] = useState('');
     const [error, setError] = useState<string | undefined>();
     const [isRunning, setIsRunning] = useState(false);
+    const [usedModel, setUsedModel] = useState<string | undefined>();
 
     // AI Config State
     const [provider] = useState<AIProvider>('openai');
@@ -137,8 +138,10 @@ export default function PromptWorkshop() {
             const data = await response.json();
             if (response.ok) {
                 setAiOutput(data.output);
+                setUsedModel(data.model);
             } else {
                 setError(data.error || 'Test failed');
+                setUsedModel(undefined);
             }
         } catch {
             setError('Network error');
@@ -252,6 +255,7 @@ export default function PromptWorkshop() {
                         isTesting={isRunning}
                         provider={provider}
                         error={error}
+                        model={usedModel}
                     />
                 </div>
 
