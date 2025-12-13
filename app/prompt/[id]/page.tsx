@@ -1,4 +1,3 @@
-```
 "use client";
 
 import { useEffect, useState } from "react";
@@ -94,7 +93,7 @@ export default function PromptWorkshop() {
     // ... Fetch Logic ...
     const fetchPrompt = async () => {
         try {
-            const response = await fetch(`/ api / prompts / ${ promptId } `);
+            const response = await fetch(`/ api / prompts / ${promptId} `);
             if (response.ok) {
                 const data = await response.json();
                 setPrompt(data);
@@ -256,7 +255,7 @@ export default function PromptWorkshop() {
 
                 {/* Drawer Overlay */}
                 <div
-                    className={`fixed inset - y - 0 right - 0 z - 30 w - 80 bg - card border - l shadow - 2xl transition - transform duration - 300 ${ isHistoryOpen ? 'translate-x-0' : 'translate-x-full' } pt - 14`}
+                    className={`fixed inset - y - 0 right - 0 z - 30 w - 80 bg - card border - l shadow - 2xl transition - transform duration - 300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt - 14`}
                 >
                     <div className="h-full overflow-y-auto">
                         {selectedBranch && (
