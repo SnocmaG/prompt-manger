@@ -42,21 +42,22 @@ export default function DocsPage() {
                     <h2>Workflow Guide</h2>
 
                     <h3>1. Create a Prompt</h3>
-                    <p>Click the "Create Prompt" button on the dashboard. Give it a clear name.</p>
+                    <p>Click the "New Prompt" button on the <strong>Dashboard</strong>. Give it a clear name.</p>
 
-                    <h3>2. Edit & Refine</h3>
+                    <h3>2. The Workshop</h3>
                     <p>
-                        Write your prompt in the editor. You can use variables like <code>{'{customer_name}'}</code> in your text.
-                        When you are happy with a draft, create a new branch or save a version.
+                        Clicking a prompt card opens the <strong>Workshop</strong>. This is your focused IDE for editing.
+                        Write your prompt in the main editor. You can use variables like <code>{'{customer_name}'}</code>.
+                        When you're ready, create a new branch or save a version.
                     </p>
 
                     <h3>3. Test It</h3>
                     <p>
-                        Use the <strong>Test Panel</strong> at the bottom.
+                        Use the <strong>Test Panel</strong> at the bottom of the Workshop.
                         <ul>
-                            <li><strong>Mock</strong>: Just echoes your input back (good for checking variables).</li>
-                            <li><strong>AI Providers</strong>: Connects to OpenAI/Anthropic to actually run the prompt.</li>
-                            <li><strong>Webhook</strong>: Sends the prompt to your own automation (n8n/Zapier).</li>
+                            <li><strong>Mock</strong>: Just echoes your input back.</li>
+                            <li><strong>AI Providers</strong>: Connects to OpenAI/Anthropic (via your API keys).</li>
+                            <li><strong>Webhook</strong>: Sends the payload to your automation tool (n8n/Zapier).</li>
                         </ul>
                     </p>
 
