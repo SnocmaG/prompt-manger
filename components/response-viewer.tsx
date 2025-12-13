@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ResponseViewerProps {
