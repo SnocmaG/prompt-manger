@@ -122,11 +122,17 @@ export default function PromptWorkshop() {
         <div className="flex flex-col h-screen bg-background">
             <DashboardHeader />
 
-            {/* Sub-header / Context Bar could go here */}
-            <div className="border-b px-4 py-2 bg-muted/20 flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Prompt:</span>
-                    <span className="font-semibold">{prompt.name}</span>
+            {/* Context Bar */}
+            <div className="border-b px-6 py-2 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between text-sm h-12 shadow-sm z-10">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Button variant="ghost" size="sm" className="h-6 px-2 text-muted-foreground hover:text-foreground" onClick={() => router.push('/')}>
+                        Dashboard
+                    </Button>
+                    <span className="text-muted-foreground/40">/</span>
+                    <span className="font-medium text-foreground flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-primary/60"></span>
+                        {prompt.name}
+                    </span>
                 </div>
             </div>
 
