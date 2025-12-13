@@ -12,34 +12,34 @@ interface ResponseViewerProps {
 
 export function ResponseViewer({ output, isTesting, provider, error }: ResponseViewerProps) {
     return (
-        <div className="flex flex-col h-full bg-black border-l border-border/40">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/5">
+        <div className="flex flex-col h-full bg-card">
+            <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/40">
                 <div className="flex items-center gap-2">
-                    <Sparkles className="h-3 w-3 text-green-400" />
+                    <Sparkles className="h-3 w-3 text-primary" />
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Response</span>
                 </div>
                 {isTesting && (
-                    <div className="flex items-center gap-2 text-green-400 text-xs animate-pulse">
+                    <div className="flex items-center gap-2 text-primary text-xs animate-pulse">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         Running {provider}...
                     </div>
                 )}
             </div>
-            <div className="flex-1 relative overflow-hidden bg-black/50">
+            <div className="flex-1 relative overflow-hidden">
                 <ScrollArea className="h-full w-full">
                     <div className="p-4 font-mono text-sm whitespace-pre-wrap">
                         {error ? (
-                            <div className="text-red-400 flex items-start gap-2">
+                            <div className="text-destructive flex items-start gap-2">
                                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                                 <div>{error}</div>
                             </div>
                         ) : output ? (
-                            <div className="text-green-400/90 leading-relaxed">
+                            <div className="text-foreground leading-relaxed">
                                 {output}
                             </div>
                         ) : (
                             !isTesting && (
-                                <div className="text-muted-foreground/30 italic text-xs mt-10 text-center">
+                                <div className="text-muted-foreground/50 italic text-xs mt-10 text-center">
                                     waiting for execution...
                                 </div>
                             )
