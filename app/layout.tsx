@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider"
+import { AppSidebar } from '@/components/app-sidebar';
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,9 +18,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
         <ClerkProvider>
             <html lang="en" suppressHydrationWarning>
@@ -30,7 +31,17 @@ export default function RootLayout({
                         enableSystem
                         disableTransitionOnChange
                     >
-                        {children}
+                        <div className="flex h-screen overflow-hidden bg-background">
+                            {/* Sidebar only visible when authenticated - wrapper check handled inside Sidebar or we wrap children */}
+                            <SignedIn>
+                                <AppSidebar />
+                            </SignedIn>
+
+                            {/* Main Content Area */}
+                            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                                {children}
+                            </div>
+                        </div>
                     </ThemeProvider>
                 </body>
             </html>
