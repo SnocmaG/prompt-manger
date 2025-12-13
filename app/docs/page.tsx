@@ -1,15 +1,8 @@
+```
 import { DashboardHeader } from "@/components/dashboard-header"
 
 export default function DocsPage() {
     return (
-        <div className="flex flex-col min-h-screen bg-background">
-            <div className="flex flex-col min-h-screen bg-background p-6">
-
-                <main className="container max-w-3xl py-10">
-                    <article className="prose prose-stone dark:prose-invert max-w-none">
-                        <h1>Documentation</h1>
-                        <p className="lead">
-                            Welcome to Prompt Manager. This tool helps you treat your AI prompts like code—with version control, drafting, and safe deployments.
                         </p>
 
                         <hr />
