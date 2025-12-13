@@ -4,19 +4,35 @@ import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ResponseViewerProps {
-    output: string;
+    output: string | null;
     isTesting: boolean;
-    provider: string;
-    error?: string;
+    provider: string | null;
+    error?: string | null;
+    model?: string;
 }
 
-export function ResponseViewer({ output, isTesting, provider, error }: ResponseViewerProps) {
+export function ResponseViewer({ output, isTesting, provider, error, model }: ResponseViewerProps) {
+    if (!output && !isTesting && !error) {
+        return (
+            <div className="flex flex-col h-full items-center justify-center text-muted-foreground p-8 border-l border-border/50 bg-muted/20">
+                <p>Run a test to see the AI response here.</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex flex-col h-full bg-card">
-            <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/40">
+        <div className="flex flex-col h-full bg-card border-l border-border/50">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
                 <div className="flex items-center gap-2">
-                    <Sparkles className="h-3 w-3 text-primary" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Response</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">AI Response</span>
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium uppercase border border-primary/20">
+                        {provider || 'UNKNOWN'}
+                    </span>
+                    {model && (
+                        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500 text-[10px] font-medium border border-purple-500/20">
+                            {model}
+                        </span>
+                    )}
                 </div>
                 {isTesting && (
                     <div className="flex items-center gap-2 text-primary text-xs animate-pulse">

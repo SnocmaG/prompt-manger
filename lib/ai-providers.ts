@@ -14,6 +14,7 @@ interface AITestResponse {
     output: string;
     provider: AIProvider;
     error?: string;
+    model?: string;
 }
 
 
@@ -118,13 +119,16 @@ Response would appear here based on your prompt and input.`;
 export async function testPrompt(request: AITestRequest): Promise<AITestResponse> {
     try {
         let output: string;
+        let effectiveModel = request.model;
 
         switch (request.provider) {
 
             case 'openai':
-                output = await testWithOpenAI(request.promptContent, request.testInput, request.model);
+                effectiveModel = request.model || 'gpt-4o-mini';
+                output = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel);
                 break;
             case 'anthropic':
+                // For now hardcoded in existing function, but we can expose if needed
                 output = await testWithAnthropic(request.promptContent, request.testInput);
                 break;
             case 'mock':
@@ -137,6 +141,7 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
             success: true,
             output,
             provider: request.provider,
+            model: effectiveModel,
         };
     } catch (error) {
         return {
