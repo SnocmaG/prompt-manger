@@ -15,8 +15,10 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { LandingPage } from '@/components/landing-page';
 
 interface Prompt {
+interface Prompt {
     id: string;
     name: string;
+    webhookUrl: string | null;
     liveBranchId: string | null;
     branches: Branch[];
 }
@@ -269,9 +271,16 @@ export default function Home() {
 
                     {/* Bottom - Test Panel */}
                     <div className="border-t">
-                        {selectedBranch && (
-                            <TestPanel branchId={selectedBranch.id} />
-                        )}
+                        <div className="border-t">
+                            {selectedBranch && selectedPrompt && (
+                                <TestPanel
+                                    branchId={selectedBranch.id}
+                                    promptId={selectedPrompt.id}
+                                    initialWebhookUrl={selectedPrompt.webhookUrl || ''}
+                                    onWebhookSave={refreshPrompt}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
 

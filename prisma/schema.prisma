@@ -21,6 +21,8 @@ model Prompt {
   updatedAt    DateTime @updatedAt
   updatedBy    String
   
+  webhookUrl   String?  // Persistent URL for automation testing
+
   branches     Branch[]
   
   @@unique([clientId, name])

@@ -44,3 +44,40 @@ export async function GET(
         );
     }
 }
+
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { clientId, userId, name: userName } = await getUserInfo();
+        const { id } = await params;
+
+        if (!clientId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { webhookUrl, name } = body;
+
+        const updatedPrompt = await prisma.prompt.update({
+            where: {
+                id,
+                clientId // Ensure ownership
+            },
+            data: {
+                ...(name && { name }),
+                ...(webhookUrl !== undefined && { webhookUrl }),
+                updatedBy: userName || userId,
+            },
+        });
+
+        return NextResponse.json(updatedPrompt);
+    } catch (error) {
+        console.error('Error updating prompt:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}
