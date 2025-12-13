@@ -1,37 +1,6 @@
 "use client"
 
 import Link from "next/link"
-const searchParams = useSearchParams();
-const activeBranchId = searchParams.get('branch');
-
-// ... (existing code)
-
-// In the branch map:
-{
-    branches.map(branch => {
-        const isActive = activeBranchId === branch.id;
-        return (
-            <Link
-                key={branch.id}
-                href={`/prompt/${activePromptId}?branch=${branch.id}`}
-            >
-                <div
-                    className={cn(
-                        "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
-                        isActive
-                            ? "bg-[#ffffff15] text-white font-medium"
-                            : "text-gray-400 hover:text-white hover:bg-[#ffffff10]"
-                    )}>
-                    <div className="flex items-center gap-2 truncate">
-                        <GitBranch className={cn("h-3 w-3", isActive ? "text-primary" : "")} />
-                        <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
-                    </div>
-                    {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
-                </div>
-            </Link>
-        );
-    })
-}
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs"
 import {
     GitBranch,
@@ -178,24 +147,29 @@ export function AppSidebar() {
                         {/* We could add a create button here if we wire it up, but simpler for now just list */}
                     </div>
                     <div className="space-y-0.5">
-                        {branches.map(branch => (
-                            <Link
-                                key={branch.id}
-                                href={`/prompt/${activePromptId}?branch=${branch.id}`}
-                            >
-                                <div
-                                    className={cn(
-                                        "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10] cursor-pointer",
-                                        "text-gray-400 hover:text-white"
-                                    )}>
-                                    <div className="flex items-center gap-2 truncate">
-                                        <GitBranch className="h-3 w-3" />
-                                        <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
+                        {branches.map(branch => {
+                            const isActive = activeBranchId === branch.id;
+                            return (
+                                <Link
+                                    key={branch.id}
+                                    href={`/prompt/${activePromptId}?branch=${branch.id}`}
+                                >
+                                    <div
+                                        className={cn(
+                                            "group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer",
+                                            isActive
+                                                ? "bg-[#ffffff15] text-white font-medium"
+                                                : "text-gray-400 hover:text-white hover:bg-[#ffffff10]"
+                                        )}>
+                                        <div className="flex items-center gap-2 truncate">
+                                            <GitBranch className={cn("h-3 w-3", isActive ? "text-primary" : "")} />
+                                            <span className="truncate max-w-[140px]">{branch.label || branch.name}</span>
+                                        </div>
+                                        {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
                                     </div>
-                                    {branch.isLive && <span className="text-[10px] bg-green-900/40 text-green-400 px-1.5 py-0.5 rounded">Live</span>}
-                                </div>
-                            </Link>
-                        ))}
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
             )}
