@@ -93,6 +93,22 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    @apply font-mono;
+  }
+
+  /* Ensure typography plugin uses correct font for code blocks */
+  .prose code {
+    @apply font-mono;
+  }
+
+  .prose pre {
+    @apply font-mono;
   }
 }

@@ -46,15 +46,6 @@ export function PromptEditor({ branch, isLive, content, onChange, onSave, onDepl
         setRestoredFrom(null);
     }, [branch.id]);
 
-    const hasChanges = true; // Simplified for now, or pass originalContent to compare
-
-    const handleRestoreInternal = (restoredContent: string, fromLabel: string) => {
-        onChange(restoredContent); // Update parent
-        setRestoredFrom(fromLabel);
-        setVersionLabel(`Restored from: ${fromLabel}`);
-        if (onRestore) onRestore(restoredContent, fromLabel);
-    };
-
     const handleSaveClick = async () => {
         if (!versionLabel.trim()) return;
         setSaving(true);

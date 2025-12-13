@@ -94,11 +94,10 @@ export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
                                     size="sm"
                                     className="w-full mt-2 text-xs h-7"
                                     onClick={() => {
-                                        // In a real implementation, this would restore the version
-                                        console.log('Restore version:', version.id);
+                                        onRestore(version.content, version.label);
                                     }}
                                 >
-                                    View Full Content
+                                    Restore Version
                                 </Button>
                             )}
                         </div>

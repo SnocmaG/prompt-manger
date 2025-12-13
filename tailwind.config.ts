@@ -48,6 +48,10 @@ const config: Config = {
                     foreground: "hsl(var(--sidebar-foreground))",
                 },
             },
+            fontFamily: {
+                sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+                mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+            },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",

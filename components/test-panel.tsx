@@ -1,60 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Play, Loader2, Sparkles, Save, Check } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 interface TestPanelProps {
     branchId: string;
-    promptId: string;
-    initialWebhookUrl: string;
-    onWebhookSave: () => void;
 }
 
-type AIProvider = 'mock' | 'openai' | 'anthropic' | 'webhook';
+type AIProvider = 'mock' | 'openai' | 'anthropic';
 
-export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave }: TestPanelProps) {
+export function TestPanel({ branchId }: TestPanelProps) {
     const [testInput, setTestInput] = useState('');
     const [testOutput, setTestOutput] = useState('');
     const [testing, setTesting] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
     const [provider, setProvider] = useState<AIProvider>('mock');
-    const [webhookUrl, setWebhookUrl] = useState(initialWebhookUrl);
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
-    const [isSavingUrl, setIsSavingUrl] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
 
-    // Update local state if prop changes (external refresh)
-    useEffect(() => {
-        setWebhookUrl(initialWebhookUrl);
-    }, [initialWebhookUrl]);
-
-    const handleSaveWebhook = async () => {
-        setIsSavingUrl(true);
-        try {
-            const response = await fetch(`/api/prompts/${promptId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ webhookUrl }),
-            });
-
-            if (response.ok) {
-                setSaveSuccess(true);
-                onWebhookSave(); // Refresh parent to sync state
-                setTimeout(() => setSaveSuccess(false), 2000);
-            }
-        } catch (error) {
-            console.error('Failed to save webhook URL', error);
-        } finally {
-            setIsSavingUrl(false);
-        }
-    };
+    // Remove unused Webhook persistence logic since it's removed globally? 
+    // Wait, the user only removed it from the PAGE but TestPanel might still have some vestiges.
+    // The previous edit tried to remove isSavingUrl etc. I will implement a clean version.
 
     const handleTest = async () => {
         setTesting(true);
-        setIsExpanded(true);
         try {
             const response = await fetch('/api/ai/test', {
                 method: 'POST',
@@ -63,7 +32,6 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                     branchId,
                     testInput,
                     provider,
-                    webhookUrl: provider === 'webhook' ? webhookUrl : undefined,
                     model: provider === 'openai' ? customModel : undefined
                 }),
             });
@@ -95,7 +63,7 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                         <Input
                             value={customModel}
                             onChange={(e) => setCustomModel(e.target.value)}
-                            placeholder="Model (e.g. gpt-4)"
+                            placeholder="Model"
                             className="h-6 w-32 text-xs bg-background/50"
                         />
                     )}
@@ -104,10 +72,9 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                         onChange={(e) => setProvider(e.target.value as AIProvider)}
                         className="text-xs border rounded px-2 py-1 bg-background"
                     >
-                        <option value="mock">Mock (No API Key)</option>
-                        <option value="webhook">Webhook URL</option>
+                        <option value="mock">Mock</option>
                         <option value="openai">OpenAI</option>
-                        <option value="anthropic">Anthropic Claude</option>
+                        <option value="anthropic">Anthropic</option>
                     </select>
                 </div>
             </div>
@@ -137,13 +104,13 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                     {/* Output Area */}
                     <div className="flex-1 flex flex-col border rounded-md overflow-hidden bg-black min-h-[150px]">
                         <div className="px-3 py-2 border-b border-white/10 bg-white/5 text-xs font-medium text-muted-foreground flex justify-between items-center shrink-0">
-                            <span>{provider === 'webhook' ? 'Webhook Response' : 'AI Response'}</span>
+                            <span>AI Response</span>
                             {testing && <Loader2 className="h-3 w-3 animate-spin text-green-400" />}
                         </div>
                         <div className="flex-1 p-3 text-green-400 font-mono text-xs whitespace-pre-wrap overflow-y-auto shadow-inner">
                             {testing ? (
                                 <div className="flex items-center gap-2 text-green-400/70">
-                                    <span className="animate-pulse">{provider === 'webhook' ? 'Triggering webhook...' : `Testing with ${provider}...`}</span>
+                                    <span className="animate-pulse">Testing with {provider}...</span>
                                 </div>
                             ) : testOutput ? (
                                 testOutput
@@ -154,10 +121,6 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                             )}
                         </div>
                     </div>
-                </div>
-
-                <div className="text-[10px] text-muted-foreground text-center shrink-0">
-                    {provider === 'openai' && 'Using OpenAI Model: ' + customModel}
                 </div>
             </div>
         </div>

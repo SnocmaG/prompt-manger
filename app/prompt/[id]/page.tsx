@@ -12,7 +12,6 @@ import { TestPanel } from "@/components/test-panel";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { UserPromptInput } from "@/components/user-prompt-input";
 import { ResponseViewer } from "@/components/response-viewer";
-import { Input } from "@/components/ui/input";
 
 interface Version {
     id: string;
@@ -185,24 +184,23 @@ export default function PromptWorkshop() {
 
                 {/* AI Config Bar (Top Right) */}
                 <div className="flex items-center gap-2">
-                    {provider === 'openai' && (
-                        <Input
-                            value={customModel}
-                            onChange={e => setCustomModel(e.target.value)}
-                            className="h-7 w-32 text-xs bg-background"
-                            placeholder="Model"
-                        />
-                    )}
                     <select
-                        value={provider}
-                        onChange={e => setProvider(e.target.value as AIProvider)}
-                        className="h-7 text-xs bg-background border rounded px-2"
+                        value={customModel}
+                        onChange={e => setCustomModel(e.target.value)}
+                        className="h-7 text-xs bg-background border rounded px-2 min-w-[140px]"
                     >
-                        <option value="openai">OpenAI</option>
-                        <option value="anthropic">Anthropic</option>
-                        <option value="mock">Mock</option>
-                        <option value="mock">Mock</option>
+                        <optgroup label="GPT-4 Checkpoints">
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                        </optgroup>
+                        <optgroup label="GPT-3.5">
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        </optgroup>
                     </select>
+
+
                     <div className="w-px h-4 bg-border mx-2" />
                     <Button variant="ghost" size="sm" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
                         <Clock className="h-4 w-4" />
