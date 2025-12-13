@@ -14,7 +14,7 @@ export default function DocsPage() {
 
                     <h3>📄 Prompts</h3>
                     <p>
-                        A Prompt is a container for a specific AI task (e.g., "Welcome Email Generator").
+                        A Prompt is a container for a specific AI task (e.g., &quot;Welcome Email Generator&quot;).
                         Instead of overwriting your prompts in a text file, you store them here to track changes over time.
                     </p>
 
@@ -23,14 +23,14 @@ export default function DocsPage() {
                         Just like Git. Every prompt has a <strong>Main</strong> branch (production) and you can create feature branches for testing.
                     </p>
                     <ul>
-                        <li><strong>Main</strong>: The "Live" version. Don't edit this directly if you want to be safe.</li>
-                        <li><strong>Feature Branch</strong>: Create a branch (e.g., "fix-tone") to experiment safely.</li>
+                        <li><strong>Main</strong>: The &quot;Live&quot; version. Don&apos;t edit this directly if you want to be safe.</li>
+                        <li><strong>Feature Branch</strong>: Create a branch (e.g., &quot;fix-tone&quot;) to experiment safely.</li>
                     </ul>
 
                     <h3>⏱️ Versions</h3>
                     <p>
                         Every time you click <strong>Save Version</strong>, we take a snapshot. You can never lose work.
-                        If you break something, just go to the "History" tab and restore an old version.
+                        If you break something, just go to the &quot;History&quot; tab and restore an old version.
                     </p>
 
                     <hr />
@@ -38,13 +38,13 @@ export default function DocsPage() {
                     <h2>Workflow Guide</h2>
 
                     <h3>1. Create a Prompt</h3>
-                    <p>Click the "New Prompt" button on the <strong>Dashboard</strong>. Give it a clear name.</p>
+                    <p>Click the &quot;New Prompt&quot; button on the <strong>Dashboard</strong>. Give it a clear name.</p>
 
                     <h3>2. The Workshop</h3>
                     <p>
                         Clicking a prompt card opens the <strong>Workshop</strong>. This is your focused IDE for editing.
                         Write your prompt in the main editor. You can use variables like <code>{'{customer_name}'}</code>.
-                        When you're ready, create a new branch or save a version.
+                        When you&apos;re ready, create a new branch or save a version.
                     </p>
 
                     <h3>3. Test It</h3>
@@ -60,7 +60,7 @@ export default function DocsPage() {
                     <h3>4. Deploy to Live</h3>
                     <p>
                         When a version is perfect, click <strong>Deploy</strong>.
-                        This sets that specific version as the "Live" version that your API will return.
+                        This sets that specific version as the &quot;Live&quot; version that your API will return.
                     </p>
 
                 </article>

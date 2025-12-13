@@ -65,7 +65,7 @@ export function DeployDialog({
                 <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-lg p-4 my-4">
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
                         <strong>Warning:</strong> External systems (like n8n) will immediately start
-                        using this version. Make sure you've tested it thoroughly.
+                        using this version. Make sure you&apos;ve tested it thoroughly.
                     </p>
                 </div>
 

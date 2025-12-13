@@ -3,10 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs"
-import { GitBranch, BookOpen, Webhook, Zap } from "lucide-react"
+import { GitBranch, BookOpen, Webhook } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 export function DashboardHeader() {
     const pathname = usePathname()

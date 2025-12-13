@@ -12,7 +12,7 @@ interface Branch {
     name: string;
     label: string;
     headVersionId: string | null;
-    versions: any[];
+    versions: unknown[];
 }
 
 interface BranchListProps {
@@ -63,8 +63,8 @@ export function BranchList({
                                 key={branch.id}
                                 onClick={() => onSelectBranch(branch)}
                                 className={`w-full text-left p-3 rounded-lg mb-1 transition-colors ${isSelected
-                                        ? 'bg-primary/10 border border-primary/20'
-                                        : 'hover:bg-accent'
+                                    ? 'bg-primary/10 border border-primary/20'
+                                    : 'hover:bg-accent'
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-2">

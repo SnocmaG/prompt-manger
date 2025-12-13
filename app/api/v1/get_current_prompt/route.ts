@@ -12,16 +12,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Missing promptId' }, { status: 400 });
         }
 
-        // Fetch prompt and its live branch + head version
-        const prompt = await prisma.prompt.findUnique({
-            where: { id: promptId },
-            include: {
-                branches: {
-                    where: { id: { equals: prisma.branch.fields.id } }, // Placeholder, we need to find the branch that IS the live branch
-                    // Actually, simpler to find the prompt, check liveBranchId, then fetch the branch/version
-                }
-            }
-        });
+
 
         // Revised cleaner query
         const targetPrompt = await prisma.prompt.findUnique({

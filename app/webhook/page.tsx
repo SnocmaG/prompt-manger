@@ -1,7 +1,7 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Webhook, Zap, ArrowRight, Save, Play } from "lucide-react"
+import { Webhook, Zap, Save } from "lucide-react"
 
 export default function WebhookPage() {
     return (
@@ -14,7 +14,7 @@ export default function WebhookPage() {
                         Test AI Workflows <span className="text-primary">Instantly</span>
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Don't copy-paste prompts between apps. Use our built-in Webhook Tester to send prompt outputs directly to your automation workflow.
+                        Don&apos;t copy-paste prompts between apps. Use our built-in Webhook Tester to send prompt outputs directly to your automation workflow.
                     </p>
                 </section>
 
@@ -42,7 +42,7 @@ export default function WebhookPage() {
                             <Zap className="h-8 w-8 text-primary mb-2" />
                             <CardTitle>Real-time Testing</CardTitle>
                             <CardDescription>
-                                Trigger workflows immediately with your prompt's output.
+                                Trigger workflows immediately with your prompt&apos;s output.
                             </CardDescription>
                         </CardHeader>
                     </Card>
@@ -55,13 +55,13 @@ export default function WebhookPage() {
                         <div className="space-y-2">
                             <div className="bg-primary/10 w-8 h-8 rounded-full flex items-center justify-center font-bold text-primary">1</div>
                             <h3 className="font-semibold">Select Prompt</h3>
-                            <p className="text-sm text-muted-foreground">Go to the "Prompts" tab and open any prompt you want to test.</p>
+                            <p className="text-sm text-muted-foreground">Go to the &quot;Prompts&quot; tab and open any prompt you want to test.</p>
                         </div>
 
                         <div className="space-y-2">
                             <div className="bg-primary/10 w-8 h-8 rounded-full flex items-center justify-center font-bold text-primary">2</div>
                             <h3 className="font-semibold">Open Test Panel</h3>
-                            <p className="text-sm text-muted-foreground">Click "Test Prompt" at the bottom. Choose <strong>Webhook URL</strong> as the provider.</p>
+                            <p className="text-sm text-muted-foreground">Click &quot;Test Prompt&quot; at the bottom. Choose <strong>Webhook URL</strong> as the provider.</p>
                         </div>
 
                         <div className="space-y-2">
@@ -73,7 +73,7 @@ export default function WebhookPage() {
                         <div className="space-y-2">
                             <div className="bg-primary/10 w-8 h-8 rounded-full flex items-center justify-center font-bold text-primary">4</div>
                             <h3 className="font-semibold">Run Test</h3>
-                            <p className="text-sm text-muted-foreground">Enter input JSON and click <strong>Run Test</strong>. We'll POST the data to your endpoint.</p>
+                            <p className="text-sm text-muted-foreground">Enter input JSON and click <strong>Run Test</strong>. We&apos;ll POST the data to your endpoint.</p>
                         </div>
 
                     </div>

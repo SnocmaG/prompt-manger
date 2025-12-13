@@ -6,7 +6,7 @@ import { Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CreatePromptDialog } from '@/components/create-prompt-dialog';
 import { LandingPage } from '@/components/landing-page';
-import { DashboardHeader } from '@/components/dashboard-header';
+
 import { PromptCard } from '@/components/prompt-card';
 
 interface Prompt {
@@ -18,7 +18,7 @@ interface Prompt {
     _count: {
         branches: number;
     };
-    branches: any[]; // Kept for now if needed, but we rely on _count mostly
+    branches: { id: string }[];
 }
 
 export default function Dashboard() {
@@ -42,7 +42,7 @@ export default function Dashboard() {
                 const data = await response.json();
                 // We might need to adjust this depending on what the API actually returns for counts
                 // If API doesn't return counts, we'll calculate them.
-                const processed = data.map((p: any) => ({
+                const processed = data.map((p: Prompt & { branches?: { length: number }[] }) => ({
                     ...p,
                     updatedAt: p.updatedAt || new Date().toISOString(), // Fallback if not in API yet
                     _count: { branches: p.branches?.length || 0 }
