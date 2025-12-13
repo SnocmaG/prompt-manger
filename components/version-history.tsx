@@ -9,7 +9,7 @@ interface Version {
     content: string;
     label: string;
     createdAt: string;
-    createdBy: string;
+    createdBy?: string;
 }
 
 interface VersionHistoryProps {
@@ -81,7 +81,7 @@ export function VersionHistory({ versions, onRestore }: VersionHistoryProps) {
                             </div>
 
                             <div className="text-xs text-muted-foreground mb-2">
-                                by {version.createdBy}
+                                by {version.createdBy || 'Unknown'}
                             </div>
 
                             <div className="text-xs bg-muted/50 p-2 rounded font-mono line-clamp-3">
