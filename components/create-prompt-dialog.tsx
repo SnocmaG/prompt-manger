@@ -38,7 +38,7 @@ export function CreatePromptDialog({ open, onOpenChange, onSuccess }: CreateProm
             setName("");
             onSuccess();
             onOpenChange(false);
-        } catch (err) {
+        } catch {
             setError("Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
@@ -51,7 +51,7 @@ export function CreatePromptDialog({ open, onOpenChange, onSuccess }: CreateProm
                 <DialogHeader>
                     <DialogTitle>Create New Prompt</DialogTitle>
                     <DialogDescription>
-                        Enter a unique name for your prompt (e.g., "welcome-email-generator").
+                        Enter a unique name for your prompt (e.g., &quot;welcome-email-generator&quot;).
                     </DialogDescription>
                 </DialogHeader>
 

@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { GitBranch, Zap, Layers, Terminal } from "lucide-react";
+import { GitBranch, Zap, Layers } from "lucide-react";
 import { SignInButton } from "@clerk/nextjs";
 
 export function LandingPage() {

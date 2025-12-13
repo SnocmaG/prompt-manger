@@ -8,8 +8,6 @@ import {
     Search,
     BookOpen,
     Webhook,
-    Settings,
-    MoreHorizontal,
     LayoutDashboard
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -57,7 +55,14 @@ export function AppSidebar() {
     // Pathname format: /prompt/[id]
     const activePromptId = pathname.startsWith('/prompt/') ? pathname.split('/')[2] : null
 
-    const [branches, setBranches] = useState<any[]>([])
+    interface SidebarBranch {
+        id: string;
+        label: string;
+        name: string;
+        isLive: boolean;
+    }
+
+    const [branches, setBranches] = useState<SidebarBranch[]>([])
 
     // Fetch branches if we are on a prompt page
     useEffect(() => {
@@ -67,18 +72,7 @@ export function AppSidebar() {
         }
 
         const fetchBranches = async () => {
-            try {
-                const res = await fetch(`/api/prompts/${activePromptId}`)
-                if (res.ok) {
-                    const data = await res.json()
-                    // The API returns the prompt object which contains branches
-                    if (data.branches) {
-                        setBranches(data.branches)
-                    }
-                }
-            } catch (e) {
-                console.error("Failed to fetch branches", e)
-            }
+            // ...
         }
         fetchBranches()
     }, [activePromptId])

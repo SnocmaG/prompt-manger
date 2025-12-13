@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Clock, PanelRightClose, PanelRightOpen, ArrowLeft, GitBranch } from "lucide-react";
-import { useSearchParams, useParams, useRouter } from "next/navigation";
+import { Clock, GitBranch } from "lucide-react";
+import { useSearchParams, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { BranchList } from "@/components/branch-list";
 import { PromptEditor } from "@/components/prompt-editor";
 import { VersionHistory } from "@/components/version-history";
-import { TestPanel } from "@/components/test-panel";
-import { DashboardHeader } from "@/components/dashboard-header";
 import { UserPromptInput } from "@/components/user-prompt-input";
 import { ResponseViewer } from "@/components/response-viewer";
 
@@ -45,7 +42,6 @@ type AIProvider = 'mock' | 'openai' | 'anthropic';
 export default function PromptWorkshop() {
     const { user, isLoaded } = useUser();
     const params = useParams();
-    const router = useRouter();
     const searchParams = useSearchParams();
     const branchParam = searchParams.get('branch');
 
@@ -62,11 +58,30 @@ export default function PromptWorkshop() {
     const [isRunning, setIsRunning] = useState(false);
 
     // AI Config State
-    // AI Config State
-    const [provider, setProvider] = useState<AIProvider>('openai');
+    const [provider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
 
     const promptId = params.id as string;
+
+    // ... Fetch Logic ...
+    const fetchPrompt = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/prompts/${promptId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setPrompt(data);
+                // Selection logic: Keep current if possible, else default
+                const targetId = selectedBranch?.id || branchParam || data.liveBranchId || (data.branches[0]?.id);
+                // Fix strict type check by allowing implicit any matching or explicit typing
+                const branch = data.branches.find((b: { id: string }) => b.id === targetId) || data.branches[0];
+                setSelectedBranch(branch);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, [promptId, branchParam, selectedBranch?.id]);
 
     // ... Auth Effect ...
     useEffect(() => {
@@ -79,7 +94,7 @@ export default function PromptWorkshop() {
             // Middleware should handle mostly.
         }
         fetchPrompt();
-    }, [isLoaded, user, promptId]);
+    }, [isLoaded, user, promptId, fetchPrompt]);
 
     // Update systemPrompt when branch changes
     useEffect(() => {
@@ -89,20 +104,6 @@ export default function PromptWorkshop() {
         }
     }, [selectedBranch, prompt]);
 
-    // ... Fetch Logic ...
-    const fetchPrompt = async () => {
-        try {
-            const response = await fetch(`/api/prompts/${promptId}`);
-            if (response.ok) {
-                const data = await response.json();
-                setPrompt(data);
-                // Selection logic: Keep current if possible, else default
-                const targetId = selectedBranch?.id || branchParam || data.liveBranchId || (data.branches[0]?.id);
-                const branch = data.branches.find((b: any) => b.id === targetId) || data.branches[0];
-                setSelectedBranch(branch);
-            }
-        } catch (e) { console.error(e); } finally { setLoading(false); }
-    };
 
     // --- Actions ---
 
@@ -139,7 +140,7 @@ export default function PromptWorkshop() {
             } else {
                 setError(data.error || 'Test failed');
             }
-        } catch (e) {
+        } catch {
             setError('Network error');
         } finally {
             setIsRunning(false);
@@ -234,7 +235,7 @@ export default function PromptWorkshop() {
                                 onChange={setSystemPrompt}
                                 onSave={handleSaveVersion}
                                 onDeploy={fetchPrompt}
-                                onRestore={(c, l) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
+                                onRestore={(c) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
                             />
                         ) : <div>Select Branch</div>}
                     </div>
@@ -258,7 +259,7 @@ export default function PromptWorkshop() {
                         {selectedBranch && (
                             <VersionHistory
                                 versions={selectedBranch.versions}
-                                onRestore={(c, l) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
+                                onRestore={(c) => { setSystemPrompt(c); setIsHistoryOpen(false); }}
                             />
                         )}
                     </div>

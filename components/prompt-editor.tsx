@@ -32,7 +32,7 @@ export interface PromptEditorProps {
     onRestore?: (content: string, label: string) => void;
 }
 
-export function PromptEditor({ branch, isLive, content, onChange, onSave, onDeploy, onRestore }: PromptEditorProps) {
+export function PromptEditor({ branch, isLive, content, onChange, onSave, onDeploy }: PromptEditorProps) {
     // const currentVersion = branch.versions.find(v => v.id === branch.headVersionId);
     // REMOVED local state for content
 
