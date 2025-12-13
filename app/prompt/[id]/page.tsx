@@ -153,30 +153,39 @@ export default function PromptWorkshop() {
 
             <div className="flex flex-1 overflow-hidden relative">
 
-                {/* Main Editor Area (Full Width) */}
-                <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out mr-0">
-                    <div className="flex-1 overflow-y-auto">
-                        {selectedBranch ? (
-                            <PromptEditor
-                                branch={selectedBranch}
-                                isLive={selectedBranch.id === prompt.liveBranchId}
-                                onSave={fetchPrompt}
-                                onDeploy={fetchPrompt}
-                                onRestore={handleRestore}
-                            />
-                        ) : (
-                            <div className="flex h-full items-center justify-center text-muted-foreground">Select a branch</div>
-                        )}
+                {/* Center Content Area - Split Screen */}
+                <div className="flex-1 flex flex-row overflow-hidden relative">
+
+                    {/* Left: Editor (50%) */}
+                    <div className="flex-1 flex flex-col overflow-hidden border-r border-border/40 min-w-[400px]">
+                        <div className="flex-1 overflow-y-auto">
+                            {selectedBranch ? (
+                                <PromptEditor
+                                    branch={selectedBranch}
+                                    isLive={selectedBranch.id === prompt.liveBranchId}
+                                    onSave={fetchPrompt}
+                                    onDeploy={fetchPrompt}
+                                    onRestore={handleRestore}
+                                />
+                            ) : (
+                                <div className="flex h-full items-center justify-center text-muted-foreground">Select a branch</div>
+                            )}
+                        </div>
                     </div>
-                    {/* Bottom - Test Panel */}
-                    <div className="border-t bg-background z-10">
-                        {selectedBranch && (
+
+                    {/* Right: Test Panel (50%) */}
+                    <div className="flex-1 flex flex-col bg-background min-w-[400px]">
+                        {selectedBranch ? (
                             <TestPanel
                                 branchId={selectedBranch.id}
                                 promptId={prompt.id}
                                 initialWebhookUrl={prompt.webhookUrl || ''}
                                 onWebhookSave={fetchPrompt}
                             />
+                        ) : (
+                            <div className="flex h-full items-center justify-center text-muted-foreground bg-muted/5">
+                                Select a branch to test
+                            </div>
                         )}
                     </div>
                 </div>

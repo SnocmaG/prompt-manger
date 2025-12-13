@@ -38,31 +38,26 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!branch.headVersionId) {
-            return NextResponse.json(
-                { error: 'Branch has no head version' },
-                { status: 400 }
-            );
-        }
-
-        // Get the head version
-        const headVersion = await prisma.promptVersion.findUnique({
-            where: { id: branch.headVersionId },
+        // 2. Fetch the prompt content from the database
+        const version = await prisma.promptVersion.findFirst({
+            where: { branchId },
+            orderBy: { createdAt: 'desc' },
         });
 
-        if (!headVersion) {
+        if (!version) {
             return NextResponse.json(
-                { error: 'Head version not found' },
+                { error: 'No version found for this branch' },
                 { status: 404 }
             );
         }
 
-        // Test with AI provider
+        // 3. Test the prompt
         const result = await testPrompt({
             provider: provider as AIProvider,
-            promptContent: headVersion.content,
+            promptContent: version.content,
             testInput,
             webhookUrl,
+            model
         });
 
         if (!result.success) {
@@ -79,7 +74,7 @@ export async function POST(request: NextRequest) {
             success: true,
             output: result.output,
             provider: result.provider,
-            promptContent: headVersion.content,
+            promptContent: version.content,
             testInput: testInput || null,
         });
     } catch (error) {

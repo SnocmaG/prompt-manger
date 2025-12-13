@@ -22,6 +22,7 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
     const [isExpanded, setIsExpanded] = useState(false);
     const [provider, setProvider] = useState<AIProvider>('mock');
     const [webhookUrl, setWebhookUrl] = useState(initialWebhookUrl);
+    const [customModel, setCustomModel] = useState('gpt-4o-mini');
     const [isSavingUrl, setIsSavingUrl] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -63,6 +64,7 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
                     testInput,
                     provider,
                     webhookUrl: provider === 'webhook' ? webhookUrl : undefined,
+                    model: provider === 'openai' ? customModel : undefined
                 }),
             });
 
@@ -82,86 +84,82 @@ export function TestPanel({ branchId, promptId, initialWebhookUrl, onWebhookSave
     };
 
     return (
-        <div className="bg-card">
-            <div className="border-b px-4 py-2 flex items-center justify-between">
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-                >
+        <div className="h-full flex flex-col bg-card">
+            <div className="border-b px-4 py-2 flex items-center justify-between shrink-0 h-10">
+                <div className="flex items-center gap-2 font-semibold text-xs text-muted-foreground uppercase tracking-wider">
                     <Sparkles className="h-4 w-4" />
-                    Test Prompt
-                </button>
-                {isExpanded && (
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={provider}
-                            onChange={(e) => setProvider(e.target.value as AIProvider)}
-                            className="text-xs border rounded px-2 py-1 bg-background"
-                        >
-                            <option value="mock">Mock (No API Key)</option>
-                            <option value="webhook">Webhook URL</option>
-                            <option value="openai">OpenAI GPT-4o Mini</option>
-                            <option value="anthropic">Anthropic Claude</option>
-                        </select>
-                    </div>
-                )}
+                    Test Playground
+                </div>
+                <div className="flex items-center gap-2">
+                    {provider === 'openai' && (
+                        <Input
+                            value={customModel}
+                            onChange={(e) => setCustomModel(e.target.value)}
+                            placeholder="Model (e.g. gpt-4)"
+                            className="h-6 w-32 text-xs bg-background/50"
+                        />
+                    )}
+                    <select
+                        value={provider}
+                        onChange={(e) => setProvider(e.target.value as AIProvider)}
+                        className="text-xs border rounded px-2 py-1 bg-background"
+                    >
+                        <option value="mock">Mock (No API Key)</option>
+                        <option value="webhook">Webhook URL</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic Claude</option>
+                    </select>
+                </div>
             </div>
 
-            {isExpanded && (
-                <div className="p-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-4 h-[300px]">
-                        <div className="flex flex-col h-full border rounded-md overflow-hidden bg-background">
-                            <div className="px-3 py-2 border-b bg-muted/20 text-xs font-medium text-muted-foreground flex justify-between items-center">
-                                <span>Input (JSON/Text)</span>
-                                <span className="text-[10px] opacity-70">Press ⌘+Enter to run</span>
-                            </div>
-                            <Textarea
-                                value={testInput}
-                                onChange={(e) => setTestInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleTest();
-                                    }
-                                }}
-                                placeholder='Enter test payload...'
-                                className="flex-1 p-3 text-sm font-mono border-0 focus-visible:ring-0 resize-none rounded-none"
-                            />
+            <div className="flex-1 flex flex-col p-4 space-y-3 overflow-hidden">
+                <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+                    {/* Input Area */}
+                    <div className="flex-1 flex flex-col border rounded-md overflow-hidden bg-background min-h-[150px]">
+                        <div className="px-3 py-2 border-b bg-muted/20 text-xs font-medium text-muted-foreground flex justify-between items-center shrink-0">
+                            <span>Input (JSON/Text)</span>
+                            <span className="text-[10px] opacity-70">⌘+Enter to run</span>
                         </div>
-
-                        <div className="flex flex-col h-full border rounded-md overflow-hidden bg-black">
-                            <div className="px-3 py-2 border-b border-white/10 bg-white/5 text-xs font-medium text-muted-foreground flex justify-between items-center">
-                                <span>{provider === 'webhook' ? 'Webhook Response' : 'AI Response'}</span>
-                            </div>
-                            <div className="flex-1 p-3 text-green-400 font-mono text-xs whitespace-pre-wrap overflow-y-auto shadow-inner">
-                                {testing ? (
-                                    <div className="flex items-center gap-2 text-green-400/70">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span className="animate-pulse">{provider === 'webhook' ? 'Triggering webhook...' : `Testing with ${provider}...`}</span>
-                                    </div>
-                                ) : testOutput ? (
-                                    testOutput
-                                ) : (
-                                    <span className="text-muted-foreground/50 opacity-50">
-                                        $ Waiting for test execution...
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                        <Textarea
+                            value={testInput}
+                            onChange={(e) => setTestInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleTest();
+                                }
+                            }}
+                            placeholder='Enter test payload...'
+                            className="flex-1 p-3 text-sm font-mono border-0 focus-visible:ring-0 resize-none rounded-none"
+                        />
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
-                        <div className="text-xs text-muted-foreground">
-                            {provider === 'openai' && 'Using OpenAI GPT-4o Mini'}
-                            {provider === 'webhook' && 'Will POST payload to the saved URL'}
+                    {/* Output Area */}
+                    <div className="flex-1 flex flex-col border rounded-md overflow-hidden bg-black min-h-[150px]">
+                        <div className="px-3 py-2 border-b border-white/10 bg-white/5 text-xs font-medium text-muted-foreground flex justify-between items-center shrink-0">
+                            <span>{provider === 'webhook' ? 'Webhook Response' : 'AI Response'}</span>
+                            {testing && <Loader2 className="h-3 w-3 animate-spin text-green-400" />}
                         </div>
-                        {/* Button hidden as per request, but kept conditionally if user wants manual trigger? User said "Remove the button" */}
-                        <div className="text-[10px] text-muted-foreground">
-                            Hit <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"><span className="text-xs">⌘</span>Enter</kbd> to run
+                        <div className="flex-1 p-3 text-green-400 font-mono text-xs whitespace-pre-wrap overflow-y-auto shadow-inner">
+                            {testing ? (
+                                <div className="flex items-center gap-2 text-green-400/70">
+                                    <span className="animate-pulse">{provider === 'webhook' ? 'Triggering webhook...' : `Testing with ${provider}...`}</span>
+                                </div>
+                            ) : testOutput ? (
+                                testOutput
+                            ) : (
+                                <span className="text-muted-foreground/50 opacity-50">
+                                    $ Waiting for test execution...
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
-            )}
+
+                <div className="text-[10px] text-muted-foreground text-center shrink-0">
+                    {provider === 'openai' && 'Using OpenAI Model: ' + customModel}
+                </div>
+            </div>
         </div>
     );
 }
