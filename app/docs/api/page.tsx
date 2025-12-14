@@ -102,6 +102,7 @@ export default function ApiDocsPage() {
     "id": "cm47...v3",
     "label": "v2.0 - Production",
     "systemPrompt": "You are an expert email copywriter...",
+    "userPrompt": "Write a welcome email for...",
     "createdAt": "2023-12-14..."
   }
 }`}
