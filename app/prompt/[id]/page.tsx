@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useUser, useOrganization } from "@clerk/nextjs";
-import { Clock, GitCommit, ChevronRight, Home, PlayCircle, History as HistoryIcon } from "lucide-react";
+import { Clock, GitCommit, ChevronRight, Home, History as HistoryIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PromptEditor } from "@/components/prompt-editor";
