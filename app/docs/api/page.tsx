@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ShieldAlert, Key } from "lucide-react";
+import { ArrowLeft, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUserInfo } from "@/lib/auth";
 

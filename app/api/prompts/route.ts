@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
 
         // Create prompt with initial version
         // We use a transaction to ensure both are created
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const prompt = await prisma.$transaction(async (tx: any) => {
             const newPrompt = await tx.prompt.create({
                 data: {

@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Trash2, Copy, Key, Plus } from "lucide-react"
+import { Trash2, Copy, Plus } from "lucide-react"
 import { useUser, useOrganization } from "@clerk/nextjs"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
@@ -119,7 +119,7 @@ export default function ApiKeysPage() {
                                     {createdKey}
                                 </div>
                                 <div className="text-sm text-yellow-600 font-medium">
-                                    Copy this key now. You won't be able to see it again!
+                                    Copy this key now. You won&apos;t be able to see it again!
                                 </div>
                                 <Button variant="outline" className="w-full" onClick={() => copyToClipboard(createdKey)}>
                                     <Copy className="mr-2 h-4 w-4" /> Copy Key
