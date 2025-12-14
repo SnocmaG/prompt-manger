@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Clock, GitCommit } from "lucide-react";
+import { useUser, useOrganization } from "@clerk/nextjs";
+import { Clock, GitCommit, ChevronRight, Home } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PromptEditor } from "@/components/prompt-editor";
@@ -10,6 +10,7 @@ import { VersionHistory } from "@/components/version-history";
 import { UserPromptInput } from "@/components/user-prompt-input";
 import { ResponseViewer } from "@/components/response-viewer";
 import { DeployDialog } from "@/components/deploy-dialog";
+import { EditVersionDialog } from "@/components/edit-version-dialog";
 
 interface Version {
     id: string;
@@ -53,6 +54,9 @@ export default function PromptWorkshop() {
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
 
     const [deployTarget, setDeployTarget] = useState<Version | null>(null);
+    const [editTarget, setEditTarget] = useState<Version | null>(null);
+
+    const { organization } = useOrganization();
 
     const promptId = params.id as string;
 
@@ -156,11 +160,18 @@ export default function PromptWorkshop() {
         <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
             {/* Header / Context Bar */}
             <div className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0 z-20">
-                <div className="flex items-center gap-4">
-                    <span className="font-semibold text-lg">{prompt.name}</span>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                        <GitCommit className="h-3 w-3" />
-                        {prompt.versions.length} versions
+                <div className="flex items-center gap-2 text-sm text-muted-foreground overflow-hidden whitespace-nowrap">
+                    <div className="flex items-center hover:text-foreground transition-colors cursor-pointer">
+                        <Home className="h-4 w-4 mr-1" />
+                        <span className="font-medium">{organization ? organization.name : (user?.primaryEmailAddress?.emailAddress || 'Personal')}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                    <div className="flex items-center font-semibold text-foreground">
+                        {prompt.name}
+                        <div className="ml-3 flex items-center gap-1.5 text-xs font-normal text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                            <GitCommit className="h-3 w-3" />
+                            {prompt.versions.length}
+                        </div>
                     </div>
                 </div>
 
@@ -243,6 +254,7 @@ export default function PromptWorkshop() {
                             liveVersionId={prompt.liveVersionId}
                             onRestore={handleRestore}
                             onDeploy={setDeployTarget}
+                            onEdit={setEditTarget}
                         />
                     </div>
                 </div>
@@ -258,6 +270,19 @@ export default function PromptWorkshop() {
                     versionLabel={deployTarget.label}
                     onSuccess={() => {
                         setDeployTarget(null);
+                        fetchPrompt();
+                    }}
+                />
+            )}
+
+            {editTarget && (
+                <EditVersionDialog
+                    open={!!editTarget}
+                    onOpenChange={(open) => !open && setEditTarget(null)}
+                    versionId={editTarget.id}
+                    currentLabel={editTarget.label}
+                    onSuccess={() => {
+                        setEditTarget(null);
                         fetchPrompt();
                     }}
                 />
