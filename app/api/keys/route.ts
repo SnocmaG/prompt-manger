@@ -48,7 +48,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
     try {
-        const { clientId, userId } = await getUserInfo();
+        const { clientId, userId, isAdmin } = await getUserInfo();
 
         if (!clientId || !userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -70,7 +70,8 @@ export async function POST(request: NextRequest) {
                 key,
                 name,
                 clientId,
-                createdBy: userId
+                createdBy: userId,
+                isAdmin: (body.isAdmin && isAdmin) ? true : false
             }
         });
 

@@ -26,6 +26,7 @@ export default function ApiKeysPage() {
     const [newKeyName, setNewKeyName] = useState("")
     const [createdKey, setCreatedKey] = useState<string | null>(null)
     const [isCreateOpen, setIsCreateOpen] = useState(false)
+    const [isAdminKey, setIsAdminKey] = useState(false)
 
     const fetchKeys = async () => {
         try {
@@ -51,7 +52,7 @@ export default function ApiKeysPage() {
             const res = await fetch('/api/keys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newKeyName })
+                body: JSON.stringify({ name: newKeyName, isAdmin: isAdminKey })
             })
             if (res.ok) {
                 const data = await res.json()
@@ -90,7 +91,10 @@ export default function ApiKeysPage() {
                 </div>
                 <Dialog open={isCreateOpen} onOpenChange={(open) => {
                     setIsCreateOpen(open);
-                    if (!open) setCreatedKey(null); // Reset on close
+                    if (!open) {
+                        setCreatedKey(null);
+                        setIsAdminKey(false);
+                    }
                 }}>
                     <DialogTrigger asChild>
                         <Button>
@@ -112,6 +116,20 @@ export default function ApiKeysPage() {
                                     value={newKeyName}
                                     onChange={(e) => setNewKeyName(e.target.value)}
                                 />
+                                {user?.primaryEmailAddress?.emailAddress && ['snircomag@gmail.com', 'snir@moonshot.com'].includes(user.primaryEmailAddress.emailAddress) && (
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="adminKey"
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            checked={isAdminKey}
+                                            onChange={(e) => setIsAdminKey(e.target.checked)}
+                                        />
+                                        <label htmlFor="adminKey" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                            Grant Admin Privileges (View All Data)
+                                        </label>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="py-4 space-y-4">
