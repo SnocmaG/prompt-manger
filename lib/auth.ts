@@ -41,7 +41,7 @@ export async function getUserInfo() {
                 clientId: keyRecord.clientId,
                 email: 'api-key-user',
                 name: keyRecord.name,
-                isAdmin: false // API keys currently don't grant Admin superpowers unless we add a specific scope
+                isAdmin: keyRecord.isAdmin // API keys now support Admin superpowers if flagged in DB
             };
         }
     }

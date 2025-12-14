@@ -75,6 +75,7 @@ model ApiKey {
   lastUsed  DateTime?
   
   createdBy String   // User who created the key
+  isAdmin   Boolean  @default(false)
   
   @@index([clientId])
 }

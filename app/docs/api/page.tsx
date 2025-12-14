@@ -58,6 +58,9 @@ export default async function ApiDocsPage() {
                                     Your <code>GET /api/prompts</code> requests will return <strong>ALL</strong> prompts from ALL workspaces/users,
                                     ignoring the usual <code>clientId</code> filter.
                                 </p>
+                                <p className="text-sm text-muted-foreground mt-2 border-l-2 border-red-200 pl-2">
+                                    <strong>Note:</strong> You can use a dedicated <strong>Admin API Key</strong> to access this endpoint programmatically without user login.
+                                </p>
                             </div>
                         </div>
                     )}
