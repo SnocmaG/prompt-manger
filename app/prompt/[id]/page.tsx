@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useUser, useOrganization } from "@clerk/nextjs";
-import { Clock, GitCommit, ChevronRight, Home } from "lucide-react";
+import { Clock, GitCommit, ChevronRight, Home, PlayCircle, History as HistoryIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PromptEditor } from "@/components/prompt-editor";
@@ -11,6 +11,8 @@ import { UserPromptInput } from "@/components/user-prompt-input";
 import { ResponseViewer } from "@/components/response-viewer";
 import { DeployDialog } from "@/components/deploy-dialog";
 import { EditVersionDialog } from "@/components/edit-version-dialog";
+import { RunHistory } from "@/components/run-history";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 interface Version {
     id: string;
@@ -21,6 +23,20 @@ interface Version {
     createdBy?: string;
 }
 
+// Basic type structure matching PromptExecution from prisma
+interface Execution {
+    id: string;
+    promptId: string;
+    versionLabel?: string;
+    systemPrompt: string;
+    userPrompt: string;
+    model: string;
+    provider: string;
+    response: string;
+    createdAt: string;
+    createdBy: string;
+}
+
 interface Prompt {
     id: string;
     name: string;
@@ -29,6 +45,7 @@ interface Prompt {
     createdAt: string;
     updatedAt: string;
     createdById: string;
+    executions?: Execution[];
 }
 
 type AIProvider = 'mock' | 'openai' | 'anthropic';
@@ -40,6 +57,7 @@ export default function PromptWorkshop() {
     const [prompt, setPrompt] = useState<Prompt | null>(null);
     const [loading, setLoading] = useState(true);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [isRunHistoryOpen, setIsRunHistoryOpen] = useState(false);
 
     // --- Lifted State ---
     const [systemPrompt, setSystemPrompt] = useState('');
@@ -235,56 +253,78 @@ export default function PromptWorkshop() {
 
 
                     <div className="w-px h-4 bg-border mx-2" />
-                    <Button variant="ghost" size="sm" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
+                    <Button variant="ghost" size="sm" onClick={() => { setIsHistoryOpen(!isHistoryOpen); setIsRunHistoryOpen(false); }}>
                         <Clock className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setIsRunHistoryOpen(!isRunHistoryOpen); setIsHistoryOpen(false); }}>
+                        <PlayCircle className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setIsRunHistoryOpen(!isRunHistoryOpen)}>
+                        <HistoryIcon className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
 
-            {/* Main Workspace - 2 Columns */}
-            <div className="flex-1 flex flex-row overflow-hidden">
+            {/* Main Workspace - Resizable Grid */}
+            <div className="flex-1 overflow-hidden relative">
+                <div className="absolute inset-0 flex">
+                    <PanelGroup direction="horizontal" className="h-full w-full">
 
-                {/* Left Column: Input + System Prompt (50%) */}
-                <div className="flex-1 flex flex-col border-r border-border/50 min-w-[400px] overflow-hidden">
+                        {/* Left Column: Input + System Prompt (Resizable Width) */}
+                        <Panel defaultSize={50} minSize={20}>
+                            <PanelGroup direction="vertical">
 
-                    {/* Top Pane: User Prompt (Test Input) */}
-                    <div className="flex-1 min-h-0 border-b border-border/50">
-                        <UserPromptInput
-                            value={userPrompt}
-                            onChange={setUserPrompt}
-                            onRun={handleRunTest}
-                            isTesting={isRunning}
-                        />
-                    </div>
+                                {/* Top Pane: User Prompt (Resizable Height) */}
+                                <Panel defaultSize={40} minSize={20}>
+                                    <div className="h-full flex flex-col border-b border-border/50">
+                                        <UserPromptInput
+                                            value={userPrompt}
+                                            onChange={setUserPrompt}
+                                            onRun={handleRunTest}
+                                            isTesting={isRunning}
+                                        />
+                                    </div>
+                                </Panel>
 
-                    {/* Bottom Pane: System Prompt (Editor) */}
-                    <div className="flex-1 min-h-0">
-                        <PromptEditor
-                            systemPrompt={systemPrompt}
-                            onChange={setSystemPrompt}
-                            onSave={handleSaveVersion}
-                            // onDeploy={fetchPrompt} // TODO: Implement deploy/set live logic
-                            isLive={currentVersionId === prompt.liveVersionId}
-                            hasUnsavedChanges={
-                                !!(prompt.liveVersionId &&
-                                    prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
-                            }
-                        />
-                    </div>
+                                <PanelResizeHandle className="h-1 bg-border/50 hover:bg-primary/20 transition-colors w-full cursor-row-resize" />
+
+                                {/* Bottom Pane: System Prompt */}
+                                <Panel defaultSize={60} minSize={20}>
+                                    <div className="h-full flex flex-col">
+                                        <PromptEditor
+                                            systemPrompt={systemPrompt}
+                                            onChange={setSystemPrompt}
+                                            onSave={handleSaveVersion}
+                                            isLive={currentVersionId === prompt.liveVersionId}
+                                            hasUnsavedChanges={
+                                                !!(prompt.liveVersionId &&
+                                                    prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
+                                            }
+                                        />
+                                    </div>
+                                </Panel>
+                            </PanelGroup>
+                        </Panel>
+
+                        <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
+
+                        {/* Right Column: AI Response (Resizable Width) */}
+                        <Panel defaultSize={50} minSize={20}>
+                            <div className="h-full flex flex-col border-l border-border/50 bg-card">
+                                <ResponseViewer
+                                    output={aiOutput}
+                                    isTesting={isRunning}
+                                    provider={provider}
+                                    error={error}
+                                    model={usedModel}
+                                />
+                            </div>
+                        </Panel>
+
+                    </PanelGroup>
                 </div>
 
-                {/* Right Column: AI Response (50%) */}
-                <div className="flex-1 flex flex-col min-w-[400px] border-l border-border/50">
-                    <ResponseViewer
-                        output={aiOutput}
-                        isTesting={isRunning}
-                        provider={provider}
-                        error={error}
-                        model={usedModel}
-                    />
-                </div>
-
-                {/* Drawer Overlay */}
+                {/* History Drawer (Versions) */}
                 <div
                     className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
                 >
@@ -294,6 +334,27 @@ export default function PromptWorkshop() {
                             liveVersionId={prompt.liveVersionId}
                             onRestore={handleRestore}
                             onDeploy={setDeployTarget}
+                        />
+                    </div>
+                </div>
+
+                {/* Run History Drawer */}
+                <div
+                    className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isRunHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
+                >
+                    <div className="h-full overflow-y-auto">
+                        <RunHistory
+                            executions={prompt.executions ? prompt.executions.map(e => ({
+                                ...e,
+                                versionLabel: e.versionLabel || undefined
+                            })) : []}
+                            onSelect={(run) => {
+                                setAiOutput(run.response);
+                                setUserPrompt(run.userPrompt);
+                                // Optional: also show system prompt? User request said "see it in the ai response screen in the split screen"
+                                // We are setting the output, so the viewer shows it.
+                                setUsedModel(run.model);
+                            }}
                         />
                     </div>
                 </div>

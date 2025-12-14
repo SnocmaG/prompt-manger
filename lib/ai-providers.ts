@@ -62,7 +62,20 @@ export async function testWithOpenAI(
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || 'No response';
+
+    if (isNewModel) {
+        console.log('[OpenAI Debug] Response for', model, ':', JSON.stringify(data, null, 2));
+    }
+
+    const content = data.choices[0]?.message?.content;
+
+    if (!content) {
+        console.warn('OpenAI returned no content:', data);
+        if (data.error) return `Error: ${data.error.message}`;
+        return `[No content returned by API for model ${model}. Raw response logged.]`;
+    }
+
+    return content;
 }
 
 export async function testWithAnthropic(

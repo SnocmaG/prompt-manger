@@ -22,6 +22,7 @@ model Prompt {
   updatedBy     String
 
   versions      PromptVersion[]
+  executions    PromptExecution[]
   
   @@unique([clientId, name])
   @@index([clientId])
@@ -40,6 +41,26 @@ model PromptVersion {
   updatedBy       String
   
   prompt          Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  @@index([promptId])
+  @@index([createdAt])
+}
+
+model PromptExecution {
+  id            String   @id @default(uuid())
+  promptId      String
+  prompt        Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  versionLabel  String?  // verification reference e.g. "v2.0" or "Unsaved"
+  systemPrompt  String   @db.Text
+  userPrompt    String   @db.Text
+  
+  model         String
+  provider      String   // openai, anthropic, etc.
+  response      String   @db.Text
+  
+  createdAt     DateTime @default(now())
+  createdBy     String
   
   @@index([promptId])
   @@index([createdAt])

@@ -23,6 +23,10 @@ export async function GET(
                 versions: {
                     orderBy: { createdAt: 'desc' },
                 },
+                executions: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 20
+                }
             },
         });
 

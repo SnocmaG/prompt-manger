@@ -2,7 +2,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { History, Clock } from 'lucide-react';
+import { History as HistoryIcon, Clock } from 'lucide-react';
 
 interface Version {
     id: string;
@@ -49,12 +49,10 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }:
     return (
         <div className="flex flex-col h-full">
             <div className="p-4 border-b">
-                <div className="flex items-center gap-2 mb-1">
-                    <History className="h-4 w-4 text-muted-foreground" />
-                    <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                        History
-                    </h2>
-                </div>
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                    <HistoryIcon className="h-4 w-4 text-muted-foreground" />
+                    Version History
+                </h3>
                 <p className="text-xs text-muted-foreground">
                     {sortedVersions.length} version{sortedVersions.length !== 1 ? 's' : ''}
                 </p>
