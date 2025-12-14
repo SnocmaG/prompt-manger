@@ -1,10 +1,11 @@
-"use client";
-
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Key } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getUserInfo } from "@/lib/auth";
 
-export default function ApiDocsPage() {
+export default async function ApiDocsPage() {
+    const { isAdmin } = await getUserInfo();
+
     return (
         <div className="flex flex-col h-full overflow-y-auto bg-background p-6">
             <main className="container max-w-4xl py-10 mx-auto pb-24">
@@ -21,6 +22,45 @@ export default function ApiDocsPage() {
                 </div>
 
                 <div className="space-y-8">
+                    {/* SECTION: AUTHENTICATION */}
+                    <SectionTitle title="Authentication" description="How to authenticate your requests." />
+
+                    <div className="border rounded-xl bg-card overflow-hidden shadow-sm p-6 space-y-4">
+                        <p className="text-muted-foreground">
+                            Authenticate your requests using the <code>x-api-key</code> header.
+                            You can generate an API Key in <Link href="/settings/keys" className="text-primary hover:underline">Settings &gt; API Keys</Link>.
+                        </p>
+                        <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Example Header</h4>
+                            <code className="text-sm font-mono block mb-4">x-api-key: sk_live_12345...</code>
+
+                            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Try it in your terminal</h4>
+                            <pre className="text-xs font-mono bg-black/5 dark:bg-black/30 p-2 rounded border border-border">
+                                curl -H "x-api-key: sk_live_..." \
+                                https://prompt-manager.com/api/prompts
+                            </pre>
+                        </div>
+                    </div>
+
+                    {/* ADMIN SECTION (CONDITIONAL) */}
+                    {isAdmin && (
+                        <div className="rounded-xl border border-red-200 bg-red-50/50 dark:bg-red-900/10 p-6 space-y-4">
+                            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                                <ShieldAlert className="h-5 w-5" />
+                                <h3 className="text-lg font-bold">Admin Capabilities</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                                As an Admin (<strong>snircomag@gmail.com</strong> or <strong>snir@moonshot.com</strong>), you have special access privileges.
+                            </p>
+                            <div className="space-y-2">
+                                <h4 className="font-semibold text-sm">Global Data Access</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    Your <code>GET /api/prompts</code> requests will return <strong>ALL</strong> prompts from ALL workspaces/users,
+                                    ignoring the usual <code>clientId</code> filter.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* SECTION: FETCHING PROMPTS */}
                     <SectionTitle title="Fetching Prompts" description="How to get your prompts into your code." />

@@ -8,7 +8,8 @@ import {
     BookOpen,
     LayoutDashboard,
     PanelLeftClose,
-    PanelLeftOpen
+    PanelLeftOpen,
+    Key
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -106,10 +107,10 @@ export function AppSidebar() {
                         {!isCollapsed && <span className="truncate">Explore Library</span>}
                     </div>
                 </Link>
-                <Link href="/docs">
+                <Link href="/docs/api">
                     <div className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
-                        pathname === "/docs" && "bg-[#ffffff10] text-white",
+                        pathname === "/docs/api" && "bg-[#ffffff10] text-white",
                         isCollapsed && "justify-center px-2"
                     )} title={isCollapsed ? "Documentation" : undefined}>
                         <BookOpen className="h-4 w-4 shrink-0" />

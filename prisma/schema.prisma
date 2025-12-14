@@ -62,6 +62,19 @@ model PromptExecution {
   createdAt     DateTime @default(now())
   createdBy     String
   
-  @@index([promptId])
   @@index([createdAt])
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  name      String
+  clientId  String   // Workspace/tenant identifier (User ID or Org ID)
+  
+  createdAt DateTime @default(now())
+  lastUsed  DateTime?
+  
+  createdBy String   // User who created the key
+  
+  @@index([clientId])
 }

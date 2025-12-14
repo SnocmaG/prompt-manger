@@ -4,14 +4,16 @@ import { getUserInfo } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const { clientId } = await getUserInfo();
+        const { clientId, isAdmin } = await getUserInfo();
 
         if (!clientId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const where = isAdmin ? {} : { clientId };
+
         const prompts = await prisma.prompt.findMany({
-            where: { clientId },
+            where,
             include: {
                 _count: {
                     select: { versions: true }
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
 
         // Create prompt with initial version
         // We use a transaction to ensure both are created
-        const prompt = await prisma.$transaction(async (tx) => {
+        const prompt = await prisma.$transaction(async (tx: any) => {
             const newPrompt = await tx.prompt.create({
                 data: {
                     clientId,
