@@ -326,7 +326,7 @@ export default function PromptWorkshop() {
 
                 {/* History Drawer (Versions) */}
                 <div
-                    className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
+                    className={`fixed top-14 bottom-0 right-0 z-10 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'}`}
                 >
                     <div className="h-full overflow-y-auto">
                         <VersionHistory
@@ -334,13 +334,14 @@ export default function PromptWorkshop() {
                             liveVersionId={prompt.liveVersionId}
                             onRestore={handleRestore}
                             onDeploy={setDeployTarget}
+                            onClose={() => setIsHistoryOpen(false)}
                         />
                     </div>
                 </div>
 
                 {/* Run History Drawer */}
                 <div
-                    className={`fixed inset-y-0 right-0 z-30 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isRunHistoryOpen ? 'translate-x-0' : 'translate-x-full'} pt-14`}
+                    className={`fixed top-14 bottom-0 right-0 z-10 w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isRunHistoryOpen ? 'translate-x-0' : 'translate-x-full'}`}
                 >
                     <div className="h-full overflow-y-auto">
                         <RunHistory
@@ -355,6 +356,7 @@ export default function PromptWorkshop() {
                                 // We are setting the output, so the viewer shows it.
                                 setUsedModel(run.model);
                             }}
+                            onClose={() => setIsRunHistoryOpen(false)}
                         />
                     </div>
                 </div>

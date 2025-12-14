@@ -2,7 +2,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { History as HistoryIcon, Clock } from 'lucide-react';
+import { History as HistoryIcon, Clock, X } from 'lucide-react';
 
 interface Version {
     id: string;
@@ -18,9 +18,10 @@ interface VersionHistoryProps {
     liveVersionId: string | null;
     onRestore: (systemPrompt: string, userPrompt: string) => void;
     onDeploy: (version: Version) => void;
+    onClose?: () => void;
 }
 
-export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }: VersionHistoryProps) {
+export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, onClose }: VersionHistoryProps) {
     // They usually come sorted from API, but sort again to be safe
     const sortedVersions = [...versions].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -53,10 +54,16 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }:
                     <HistoryIcon className="h-4 w-4 text-muted-foreground" />
                     Version History
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                    {sortedVersions.length} version{sortedVersions.length !== 1 ? 's' : ''}
-                </p>
+                {onClose && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
+            <p className="text-xs text-muted-foreground">
+                {sortedVersions.length} version{sortedVersions.length !== 1 ? 's' : ''}
+            </p>
+
 
             <ScrollArea className="flex-1">
                 <div className="p-3 space-y-2">
@@ -120,6 +127,6 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }:
                     )}
                 </div>
             </ScrollArea>
-        </div>
+        </div >
     );
 }
