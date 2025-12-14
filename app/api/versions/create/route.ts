@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
         const newVersion = await prisma.promptVersion.create({
             data: {
                 promptId,
-                systemPrompt,
-                userPrompt: userPrompt || '',
+                systemPrompt: systemPrompt.replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
+                userPrompt: (userPrompt || '').replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
                 label,
                 createdBy: userName || userId,
                 updatedBy: userName || userId,

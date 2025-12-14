@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
             const initialVersion = await tx.promptVersion.create({
                 data: {
                     promptId: newPrompt.id,
-                    systemPrompt: '',
+                    systemPrompt: '', // Initial prompt is empty anyway, but good practice to allow future params
                     userPrompt: '',
                     label: 'Initial version',
                     createdBy: userName || userId,
