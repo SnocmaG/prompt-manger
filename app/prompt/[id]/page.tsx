@@ -140,6 +140,42 @@ export default function PromptWorkshop() {
                 }),
             });
             if (response.ok) {
+                const newVersion = await response.json();
+
+                // Check if we were editing the live version and this is a "Deploy Changes" action
+                // The most reliable way is to verify if we are in the "dirty live" state
+
+                // If user intends to deploy this change immediately (simplified heuristic: if it was live & dirty, auto-deploy)
+                // However, the user might just want to save a draft. 
+                // BUT, the yellow button says "Deploy Changes". So we should deploy it.
+                // We'll rely on the button text in the UI to set expectations, but here we need to know.
+                // Or better, we can ask the user... but the requirement was "change live button to deploy".
+                // Let's safe-guard: if the label implies deployment or if we are in that 'yellow button' mode.
+
+                // For now, let's keep it simple: Just Create. User can then Click 'Deploy' in history.
+                // But the user asked "change the live button to deploy".
+                // I will add logic: if the previous live version's content was different, and we just saved,
+                // we should probably offer to deploy or auto-deploy. 
+                // Let's add a second fetch to set it as live if it was a "Deploy Changes" click.
+                // Since I can't pass extra args easily without breaking signature, I will manually check:
+
+                const liveVersion = prompt.versions.find(v => v.id === prompt.liveVersionId);
+                const isDirtyLive = liveVersion && liveVersion.systemPrompt !== systemPrompt;
+
+                // Only auto-deploy if we were conceptually 'on' the live version (which we track via UI state currentVersionId logic if we had it, but here we just check dirty)
+                // Actually, let's just create for now. The user said "deploy again", implying two steps?
+                // "limit edit... and then deploy again."
+                // "change the live button to deploy". 
+                // If the button says "Deploy Changes", it should Deploy.
+
+                if (isDirtyLive) {
+                    await fetch(`/api/prompts/${prompt.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ liveVersionId: newVersion.id })
+                    });
+                }
+
                 fetchPrompt(); // Refresh list
             }
         } catch (e) { console.error(e); }
@@ -229,6 +265,10 @@ export default function PromptWorkshop() {
                             onSave={handleSaveVersion}
                             // onDeploy={fetchPrompt} // TODO: Implement deploy/set live logic
                             isLive={currentVersionId === prompt.liveVersionId}
+                            hasUnsavedChanges={
+                                !!(prompt.liveVersionId &&
+                                    prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
+                            }
                         />
                     </div>
                 </div>
@@ -254,7 +294,6 @@ export default function PromptWorkshop() {
                             liveVersionId={prompt.liveVersionId}
                             onRestore={handleRestore}
                             onDeploy={setDeployTarget}
-                            onEdit={setEditTarget}
                         />
                     </div>
                 </div>

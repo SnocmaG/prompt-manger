@@ -21,9 +21,10 @@ interface PromptEditorProps {
     onChange: (value: string) => void;
     onSave: (label: string) => Promise<void>;
     isLive: boolean;
+    hasUnsavedChanges?: boolean;
 }
 
-export function PromptEditor({ systemPrompt, onChange, onSave, isLive }: PromptEditorProps) {
+export function PromptEditor({ systemPrompt, onChange, onSave, isLive, hasUnsavedChanges }: PromptEditorProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [label, setLabel] = useState('');
     const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -44,8 +45,8 @@ export function PromptEditor({ systemPrompt, onChange, onSave, isLive }: PromptE
             <div className="flex items-center justify-between px-4 py-2 border-b shrink-0 h-14">
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm">System Prompt</span>
-                    {isLive && (
-                        <div className="flex items-center gap-1 bg-green-500/10 text-green-500 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider">
+                    {isLive && !hasUnsavedChanges && (
+                        <div className="flex items-center gap-1 bg-green-500/10 text-green-500 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-green-500/20">
                             <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
@@ -53,13 +54,21 @@ export function PromptEditor({ systemPrompt, onChange, onSave, isLive }: PromptE
                             Live
                         </div>
                     )}
+                    {hasUnsavedChanges && isLive && (
+                        <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider border border-yellow-500/20">
+                            Edited
+                        </div>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
                     <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
                         <DialogTrigger asChild>
-                            <Button size="sm" className="h-8 gap-2">
+                            <Button
+                                size="sm"
+                                className={`h-8 gap-2 ${hasUnsavedChanges && isLive ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+                            >
                                 <Save className="h-4 w-4" />
-                                Save Version
+                                {hasUnsavedChanges && isLive ? 'Deploy Changes' : 'Save Version'}
                             </Button>
                         </DialogTrigger>
                         <DialogContent>

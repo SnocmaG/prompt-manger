@@ -2,7 +2,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { History, Clock, Pencil } from 'lucide-react';
+import { History, Clock } from 'lucide-react';
 
 interface Version {
     id: string;
@@ -18,10 +18,9 @@ interface VersionHistoryProps {
     liveVersionId: string | null;
     onRestore: (systemPrompt: string, userPrompt: string) => void;
     onDeploy: (version: Version) => void;
-    onEdit: (version: Version) => void;
 }
 
-export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, onEdit }: VersionHistoryProps) {
+export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }: VersionHistoryProps) {
     // They usually come sorted from API, but sort again to be safe
     const sortedVersions = [...versions].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -110,16 +109,7 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, o
                                     className="flex-1 text-xs h-7"
                                     onClick={() => onRestore(version.systemPrompt, version.userPrompt)}
                                 >
-                                    Restore
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => onEdit(version)}
-                                    title="Edit Label"
-                                >
-                                    <Pencil className="h-3 w-3" />
+                                    Edit
                                 </Button>
                             </div>
                         </div>
