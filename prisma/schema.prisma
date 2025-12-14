@@ -16,6 +16,7 @@ model Prompt {
   clientId      String   // Workspace/tenant identifier
   name          String   // e.g., "support_email_prompt"
   liveVersionId String?  // Current live version
+  defaultModel  String?  // e.g. "gpt-4o", "gpt-4o-mini"
   
   createdAt     DateTime @default(now())
   createdBy     String

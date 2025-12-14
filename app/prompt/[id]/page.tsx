@@ -41,6 +41,7 @@ interface Prompt {
     id: string;
     name: string;
     liveVersionId: string | null;
+    defaultModel?: string | null;
     versions: Version[];
     createdAt: string;
     updatedAt: string;
@@ -85,7 +86,7 @@ export default function PromptWorkshop() {
         try {
             const response = await fetch(`/api/prompts/${promptId}`);
             if (response.ok) {
-                const data = await response.json();
+                const data: Prompt = await response.json();
                 setPrompt(data);
 
                 // If it's the first load or we have no inputs yet, load the latest/live version
@@ -94,6 +95,11 @@ export default function PromptWorkshop() {
                     const head = data.versions[0]; // Ordered by desc
                     setSystemPrompt(head.systemPrompt);
                     setUserPrompt(head.userPrompt || '');
+                }
+
+                // Initial model from DB
+                if (data.defaultModel) {
+                    setCustomModel(data.defaultModel);
                 }
             }
         } catch (e) {
@@ -134,6 +140,19 @@ export default function PromptWorkshop() {
             if (response.ok) {
                 setAiOutput(data.output);
                 setUsedModel(data.model);
+
+                // Update default model if changed
+                if (prompt && prompt.defaultModel !== customModel) {
+                    // Fire and forget update
+                    fetch(`/api/prompts/${prompt.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ defaultModel: customModel })
+                    });
+                    // Optimistic update
+                    setPrompt({ ...prompt, defaultModel: customModel });
+                }
+
             } else {
                 setError(data.error || 'Test failed');
                 setUsedModel(undefined);

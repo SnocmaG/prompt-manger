@@ -13,6 +13,7 @@ interface Prompt {
     id: string;
     name: string;
     liveVersionId: string | null;
+    defaultModel: string | null;
     updatedAt: string;
     _count: {
         versions: number;
@@ -99,6 +100,8 @@ export default function Dashboard() {
                                 updatedAt={prompt.updatedAt}
                                 liveVersionId={prompt.liveVersionId}
                                 versionCount={prompt._count.versions}
+                                defaultModel={prompt.defaultModel}
+                                onDuplicate={fetchPrompts}
                             />
                         ))}
                     </div>

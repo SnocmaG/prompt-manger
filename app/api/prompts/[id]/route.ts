@@ -67,6 +67,7 @@ export async function PATCH(
             data: {
                 ...(name && { name }),
                 ...(liveVersionId && { liveVersionId }),
+                ...(body.defaultModel && { defaultModel: body.defaultModel }),
                 updatedBy: userName || userId,
             },
         });
