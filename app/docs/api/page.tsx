@@ -36,8 +36,8 @@ export default async function ApiDocsPage() {
 
                             <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Try it in your terminal</h4>
                             <pre className="text-xs font-mono bg-black/5 dark:bg-black/30 p-2 rounded border border-border">
-                                curl -H "x-api-key: sk_live_..." \
-                                https://prompt-manager.com/api/prompts
+                                {`curl -H "x-api-key: sk_live_..." \\
+     https://prompt-manager.com/api/prompts`}
                             </pre>
                         </div>
                     </div>
