@@ -3,7 +3,8 @@ import { ArrowRight, Book, GitBranch, Terminal, Zap } from "lucide-react";
 
 export default function DocsPage() {
     return (
-        <div className="flex flex-col min-h-screen bg-background p-6">
+        // Fix scrolling: Ensure the container handles overflow if nested in a fixed parent
+        <div className="flex flex-col h-full overflow-y-auto bg-background p-6">
             <main className="container max-w-4xl py-10 mx-auto">
 
                 <div className="text-center mb-16">

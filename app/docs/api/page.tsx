@@ -1,162 +1,255 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function ApiDocsPage() {
     return (
-        <div className="flex flex-col min-h-screen bg-background p-6">
-            <main className="container max-w-4xl py-10 mx-auto">
+        <div className="flex flex-col h-full overflow-y-auto bg-background p-6">
+            <main className="container max-w-4xl py-10 mx-auto pb-24">
                 <div className="mb-8">
-                    <Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2 mb-4">
+                    <Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2 mb-4 transition-colors">
                         <ArrowLeft className="h-4 w-4" />
                         Back to User Guide
                     </Link>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">API Reference</h1>
-                    <p className="text-lg text-muted-foreground">
-                        Detailed documentation for Prompt Manager SDK and API endpoints.
+                    <h1 className="text-4xl font-extrabold tracking-tight mb-4">API Reference</h1>
+                    <p className="text-lg text-muted-foreground leading-relaxed">
+                        Welcome to the Prompt Manager API. This documentation is designed to be <strong>extremely easy to understand</strong>.
+                        We&apos;ll show you exactly how to fetch your prompts, run tests, and manage versions using code.
                     </p>
                 </div>
 
-                <div className="space-y-6">
-                    {/* GET /api/prompts */}
-                    <details className="group border rounded-lg bg-card open:ring-1 open:ring-primary/20">
-                        <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <span className="px-2 py-1 text-xs font-bold bg-blue-500/10 text-blue-500 rounded uppercase">GET</span>
-                                <span className="font-mono text-sm font-semibold">/api/prompts</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground italic group-open:not-italic group-open:text-foreground">List all prompts</span>
-                        </summary>
-                        <div className="p-4 pt-0 border-t border-muted/50 mt-4">
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Retrieves a list of all prompts associated with the current user/organization.
-                            </p>
+                <div className="space-y-8">
 
-                            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Response</h4>
-                            <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto">
-                                {`[
-  {
-    "id": "cm...',
-    "name": "Product Description",
-    "updatedAt": "2023-10-...",
-    "_count": { "branches": 2 }
-  }
-]`}
-                            </pre>
-                        </div>
-                    </details>
+                    {/* SECTION: FETCHING PROMPTS */}
+                    <SectionTitle title="Fetching Prompts" description="How to get your prompts into your code." />
 
                     {/* GET /api/v1/get_current_prompt */}
-                    <details className="group border rounded-lg bg-card open:ring-1 open:ring-primary/20">
-                        <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <span className="px-2 py-1 text-xs font-bold bg-blue-500/10 text-blue-500 rounded uppercase">GET</span>
-                                <span className="font-mono text-sm font-semibold">/api/v1/get_current_prompt</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground italic group-open:not-italic group-open:text-foreground">Get Live Prompt</span>
-                        </summary>
-                        <div className="p-4 pt-0 border-t border-muted/50 mt-4">
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Fetches the currently deployed (&quot;Live&quot;) version of a prompt. Useful for SDK integration.
-                            </p>
+                    <EndpointBlock
+                        method="GET"
+                        path="/api/v1/get_current_prompt"
+                        title="Get Live Prompt (Best for Integration)"
+                        description="This is the main endpoint you will use in your app. It fetches the 'Live' version of a prompt. If you update the prompt in the dashboard, this endpoint will automatically return the new version without any code changes."
+                    >
+                        <ParamSection title="Query Parameters (URL)">
+                            <ParamRow name="promptId" type="string" required description="The unique ID of the prompt you want to fetch. You can copy this from the URL of the prompt in the dashboard." />
+                        </ParamSection>
 
-                            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Query Parameters</h4>
-                            <div className="grid grid-cols-[120px_1fr] gap-2 text-sm mb-4">
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded">promptId</code>
-                                <span className="text-muted-foreground">The ID of the prompt to fetch.</span>
-                            </div>
+                        <ExampleSection
+                            title="Example Request (JavaScript/Fetch)"
+                            code={`const promptId = "cm4..."; // Your Prompt ID\n\nconst response = await fetch(\`/api/v1/get_current_prompt?promptId=\${promptId}\`);\nconst data = await response.json();\n\nconsole.log(data.systemPrompt); // "You are a helpful assistant..."`}
+                        />
 
-                            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Response</h4>
-                            <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto">
-                                {`{
-  "promptId": "cm...",
-  "name": "Marketing Email",
-  "versionId": "...",
-  "systemPrompt": "You are a helpful assistant...",
-  "userPrompt": "Draft an email about...",
-  "label": "v1.2",
-  "createdAt": "..."
+                        <ResponseSection
+                            code={`{
+  "promptId": "cm47...",
+  "name": "Customer Support Bot",
+  "versionId": "cm47...v1",
+  "systemPrompt": "You are a helpful customer support agent...",
+  "userPrompt": "",
+  "label": "v1.0 - Initial Release",
+  "createdAt": "2023-12-14T00:00:00.000Z"
 }`}
-                            </pre>
-                        </div>
-                    </details>
+                        />
+                    </EndpointBlock>
 
-                    {/* POST /api/ai/test */}
-                    <details className="group border rounded-lg bg-card open:ring-1 open:ring-primary/20">
-                        <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <span className="px-2 py-1 text-xs font-bold bg-green-500/10 text-green-500 rounded uppercase">POST</span>
-                                <span className="font-mono text-sm font-semibold">/api/ai/test</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground italic group-open:not-italic group-open:text-foreground">Run AI Test</span>
-                        </summary>
-                        <div className="p-4 pt-0 border-t border-muted/50 mt-4">
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Execute a prompt against an AI provider (OpenAI, Anthropic) or Mock.
-                            </p>
 
-                            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Body Parameters</h4>
-                            <div className="grid grid-cols-[120px_1fr] gap-y-2 text-sm mb-4">
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">provider</code>
-                                <span className="text-muted-foreground">&quot;openai&quot; | &quot;anthropic&quot; | &quot;mock&quot;</span>
+                    {/* SECTION: MANAGEMENT */}
+                    <SectionTitle title="Management API" description="Advanced endpoints for managing prompts and versions programmatically." />
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">model</code>
-                                <span className="text-muted-foreground">
-                                    Model identifier (e.g., <code>gpt-4o</code>, <code>gpt-5-preview</code>).
-                                    <br />
-                                    <span className="text-xs text-yellow-500">Note: Newer models (GPT-5, o1) automatically use `max_completion_tokens`.</span>
-                                </span>
+                    {/* GET /api/prompts */}
+                    <EndpointBlock
+                        method="GET"
+                        path="/api/prompts"
+                        title="List All Prompts"
+                        description="Get a list of all prompt containers in your workspace."
+                    >
+                        <ResponseSection
+                            code={`[
+  {
+    "id": "cm47...",
+    "name": "Email Generator",
+    "updatedAt": "2023-12-14...",
+    "_count": { "versions": 5 }
+  },
+  {
+    "id": "cm48...",
+    "name": "SQL Helper",
+    "updatedAt": "2023-12-13...",
+    "_count": { "versions": 12 }
+  }
+]`}
+                        />
+                    </EndpointBlock>
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">testInput</code>
-                                <span className="text-muted-foreground">User input string to append to the system prompt.</span>
+                    {/* GET /api/prompts/[id]/live */}
+                    <EndpointBlock
+                        method="GET"
+                        path="/api/prompts/[id]/live"
+                        title="Check Live Version Status"
+                        description="Check which version is currently live for a specific prompt ID."
+                    >
+                        <ParamSection title="URL Parameters">
+                            <ParamRow name="id" type="string" required description="The unique ID of the prompt container." />
+                        </ParamSection>
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">promptContent</code>
-                                <span className="text-muted-foreground">(Optional) Override the prompt content (e.g., from editor state).</span>
-                            </div>
-
-                            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Response</h4>
-                            <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-x-auto">
-                                {`{
-  "success": true,
-  "output": "Here is the AI response...",
-  "provider": "openai"
+                        <ResponseSection
+                            code={`{
+  "id": "cm47...",
+  "name": "Email Generator",
+  "version": {
+    "id": "cm47...v3",
+    "label": "v2.0 - Production",
+    "systemPrompt": "You are an expert email copywriter...",
+    "createdAt": "2023-12-14..."
+  }
 }`}
-                            </pre>
-                        </div>
-                    </details>
+                        />
+                    </EndpointBlock>
 
                     {/* POST /api/versions/create */}
-                    <details className="group border rounded-lg bg-card open:ring-1 open:ring-primary/20">
-                        <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <span className="px-2 py-1 text-xs font-bold bg-green-500/10 text-green-500 rounded uppercase">POST</span>
-                                <span className="font-mono text-sm font-semibold">/api/versions/create</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground italic group-open:not-italic group-open:text-foreground">Save Version</span>
-                        </summary>
-                        <div className="p-4 pt-0 border-t border-muted/50 mt-4">
-                            <p className="text-sm text-muted-foreground mb-4">
-                                Save a new immutable version of a prompt on a specific branch.
-                            </p>
+                    <EndpointBlock
+                        method="POST"
+                        path="/api/versions/create"
+                        title="Create New Version"
+                        description="Save a new snapshot of a prompt. Useful if you are building your own editor interface."
+                    >
+                        <ParamSection title="Body Parameters (JSON)">
+                            <ParamRow name="promptId" type="string" required description="The ID of the prompt container." />
+                            <ParamRow name="systemPrompt" type="string" required description="The main instructions for the AI." />
+                            <ParamRow name="userPrompt" type="string" optional description="Accessory user input (often used for testing)." />
+                            <ParamRow name="label" type="string" optional description="A human-readable name for this version (e.g. 'v1.5')." />
+                        </ParamSection>
 
-                            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Body Parameters</h4>
-                            <div className="grid grid-cols-[120px_1fr] gap-y-2 text-sm mb-4">
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">promptId</code>
-                                <span className="text-muted-foreground">ID of the prompt to save version for.</span>
+                        <ExampleSection
+                            title="Example Request"
+                            code={`await fetch('/api/versions/create', {
+  method: 'POST',
+  body: JSON.stringify({
+    promptId: "cm47...",
+    systemPrompt: "You are a pirate...",
+    label: "Pirate Version"
+  })
+});`}
+                        />
+                    </EndpointBlock>
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">systemPrompt</code>
-                                <span className="text-muted-foreground">The system instructions.</span>
+                    {/* PATCH /api/prompts/[id] */}
+                    <EndpointBlock
+                        method="PATCH"
+                        path="/api/prompts/[id]"
+                        title="Deploy Version"
+                        description="Set a specific version as 'Live'. This is how you deploy changes programmatically."
+                    >
+                        <ParamSection title="URL Parameters">
+                            <ParamRow name="id" type="string" required description="The ID of the prompt container." />
+                        </ParamSection>
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">userPrompt</code>
-                                <span className="text-muted-foreground">The user prompt (test input).</span>
+                        <ParamSection title="Body Parameters (JSON)">
+                            <ParamRow name="liveVersionId" type="string" required description="The ID of the version you want to trigger live." />
+                        </ParamSection>
 
-                                <code className="text-xs bg-muted px-1 py-0.5 rounded w-fit">label</code>
-                                <span className="text-muted-foreground">Human-readable version label.</span>
-                            </div>
-                        </div>
-                    </details>
+                        <ExampleSection
+                            title="Example Deployment"
+                            code={`await fetch('/api/prompts/cm47...', {
+  method: 'PATCH',
+  body: JSON.stringify({
+    liveVersionId: "cm49...new-version-id"
+  })
+});`}
+                        />
+                    </EndpointBlock>
 
                 </div>
             </main>
         </div>
+    );
+}
+
+// --- Helper Components ---
+
+function SectionTitle({ title, description }: { title: string, description: string }) {
+    return (
+        <div className="pt-8 pb-4 border-b border-border/40">
+            <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+            <p className="text-muted-foreground mt-1">{description}</p>
+        </div>
+    );
+}
+
+function EndpointBlock({ method, path, title, description, children }: { method: string, path: string, title: string, description: string, children?: React.ReactNode }) {
+    const colorClass =
+        method === "GET" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+            method === "POST" ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                method === "PATCH" ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
+                    "bg-gray-500/10 text-gray-500";
+
+    return (
+        <div className="border rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div className="p-6 border-b bg-muted/30">
+                <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <span className={cn("px-3 py-1 text-xs font-bold rounded-full border", colorClass)}>
+                        {method}
+                    </span>
+                    <span className="font-mono text-sm font-semibold selection:bg-primary/20">{path}</span>
+                </div>
+                <h3 className="text-xl font-bold mb-2">{title}</h3>
+                <p className="text-muted-foreground">{description}</p>
+            </div>
+            <div className="p-6 space-y-6">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function ParamSection({ title, children }: { title: string, children: React.ReactNode }) {
+    return (
+        <div>
+            <h4 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mb-3">{title}</h4>
+            <div className="border rounded-lg divide-y bg-background">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function ParamRow({ name, type, required = false, optional = false, description }: { name: string, type: string, required?: boolean, optional?: boolean, description: string }) {
+    return (
+        <div className="p-3 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 text-sm">
+            <div className="min-w-[140px] pt-0.5">
+                <code className="text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{name}</code>
+            </div>
+            <div className="min-w-[80px] pt-0.5 text-xs text-muted-foreground font-mono">
+                {type}
+            </div>
+            <div className="min-w-[80px] pt-0.5">
+                {required && <span className="text-[10px] font-bold text-red-500 uppercase border border-red-500/30 px-1 rounded">Required</span>}
+                {optional && <span className="text-[10px] font-bold text-muted-foreground uppercase border border-border px-1 rounded">Optional</span>}
+            </div>
+            <div className="flex-1 text-muted-foreground leading-relaxed">
+                {description}
+            </div>
+        </div>
+    );
+}
+
+function ExampleSection({ title, code }: { title: string, code: string }) {
+    return (
+        <div>
+            <h4 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mb-3">{title}</h4>
+            <div className="relative group">
+                <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-lg text-xs font-mono overflow-x-auto border border-zinc-800 leading-relaxed">
+                    {code}
+                </pre>
+            </div>
+        </div>
+    );
+}
+
+function ResponseSection({ code }: { code: string }) {
+    return (
+        <ExampleSection title="Typical JSON Response" code={code} />
     );
 }
