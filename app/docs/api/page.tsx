@@ -330,7 +330,7 @@ TABLE "LivePrompt" (
                 <p className="text-sm text-muted-foreground">
                     Use the Postgres Node. Set <strong>Operation</strong> to <code>Execute Query</code>.
                     <br />
-                    Query: <code>SELECT * FROM "LivePrompt" WHERE "clientId" = '...'</code>
+                    Query: <code>{`SELECT * FROM "LivePrompt" WHERE "clientId" = '...'`}</code>
                 </p>
             </div>
         </EndpointBlock>
