@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -78,4 +79,17 @@ model ApiKey {
   isAdmin   Boolean  @default(false)
   
   @@index([clientId])
+}
+
+view LivePrompt {
+  id            String   @id
+  name          String
+  clientId      String
+  versionId     String
+  versionLabel  String
+  systemPrompt  String
+  userPrompt    String
+  deployedAt    DateTime
+
+  @@unique([id])
 }

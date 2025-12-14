@@ -205,6 +205,10 @@ export default async function ApiDocsPage() {
                         />
                     </EndpointBlock>
 
+                    {/* SECTION: SQL VIEWS */}
+                    <SectionTitle title="Direct Database Access" description="For high-performance or BI use cases." />
+                    <SqlViewSection />
+
                 </div>
             </main>
         </div>
@@ -295,5 +299,40 @@ function ExampleSection({ title, code }: { title: string, code: string }) {
 function ResponseSection({ code }: { code: string }) {
     return (
         <ExampleSection title="Typical JSON Response" code={code} />
+    );
+}
+
+function SqlViewSection() {
+    return (
+        <EndpointBlock
+            method="SQL"
+            path='SELECT * FROM "LivePrompt"'
+            title="Live Prompts View (SQL)"
+            description="We provide a dedicated SQL View for easy integration with tools like n8n, Retool, or BI dashboards. This view is automatically kept in sync with deployment actions."
+        >
+            <ExampleSection
+                title='Table Schema (public."LivePrompt")'
+                code={`
+-- This view contains ONLY currently deployed prompts.
+TABLE "LivePrompt" (
+  "id"           text,      -- Prompt ID
+  "name"         text,      -- Prompt Name
+  "clientId"     text,      -- Workspace ID
+  "versionId"    text,      -- Deployed Version ID
+  "versionLabel" text,      -- e.g. "v1.0"
+  "systemPrompt" text,      -- The actual system instruction
+  "userPrompt"   text,      -- The user prompt (if any)
+  "deployedAt"   timestamp  -- When this version was created
+);`}
+            />
+            <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg mt-4">
+                <h5 className="text-yellow-500 font-bold text-sm mb-1 uppercase">How to use in n8n</h5>
+                <p className="text-sm text-muted-foreground">
+                    Use the Postgres Node. Set <strong>Operation</strong> to <code>Execute Query</code>.
+                    <br />
+                    Query: <code>SELECT * FROM "LivePrompt" WHERE "clientId" = '...'</code>
+                </p>
+            </div>
+        </EndpointBlock>
     );
 }
