@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider, SignedIn } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider"
 import { AppSidebar } from '@/components/app-sidebar';
+import { MobileNav } from "@/components/mobile-nav";
 import "./globals.css";
 
 const inter = Inter({
@@ -47,6 +48,9 @@ export default function RootLayout({
 
                             {/* Main Content Area */}
                             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                                <SignedIn>
+                                    <MobileNav />
+                                </SignedIn>
                                 {children}
                             </div>
                         </div>
