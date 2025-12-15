@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
@@ -18,8 +19,10 @@ export async function GET(request: NextRequest) {
 
             const result = allPrompts
                 .filter(p => p.liveVersionId) // Only those with live versions
-                .map(p => {
-                    const liveVersion = p.versions.find(v => v.id === p.liveVersionId);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .map((p: any) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const liveVersion = p.versions.find((v: any) => v.id === p.liveVersionId);
                     if (!liveVersion) return null;
 
                     return {

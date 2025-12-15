@@ -44,14 +44,23 @@ export default function RootLayout({
                         enableSystem
                         disableTransitionOnChange
                     >
-                        <div className="flex h-screen overflow-hidden bg-background">
+                        <div className="flex h-screen overflow-hidden bg-background relative">
+                            {/* Cheerful Background Gradient */}
+                            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-3xl" />
+                                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/5 blur-3xl" />
+                                <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-purple-400/5 blur-3xl animate-pulse delay-1000 duration-[4000ms]" />
+                            </div>
+
                             {/* Sidebar only visible when authenticated - wrapper check handled inside Sidebar or we wrap children */}
                             <SignedIn>
-                                <AppSidebar />
+                                <div className="relative z-10 h-full">
+                                    <AppSidebar />
+                                </div>
                             </SignedIn>
 
                             {/* Main Content Area */}
-                            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                            <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
                                 <SignedIn>
                                     <MobileNav />
                                 </SignedIn>

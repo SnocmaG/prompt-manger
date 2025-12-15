@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { cn } from "@/lib/utils";
 import { Copy, Check } from "lucide-react";
 
@@ -10,14 +10,7 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ code, className }: CodeBlockProps) {
-    const [isCopied, setIsCopied] = useState(false);
 
-    const handleCopy = () => {
-        if (!code) return;
-        navigator.clipboard.writeText(code);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-    };
 
     // Basic JSON syntax highlighting
     const highlightJson = (jsonValues: string) => {
