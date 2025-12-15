@@ -1,6 +1,4 @@
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PlayCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PromptExecution {
@@ -20,10 +18,9 @@ interface RunHistoryProps {
     executions: PromptExecution[];
     onSelect: (execution: PromptExecution) => void;
     selectedId?: string | null;
-    onClose?: () => void;
 }
 
-export function RunHistory({ executions, onSelect, selectedId, onClose }: RunHistoryProps) {
+export function RunHistory({ executions, onSelect, selectedId }: RunHistoryProps) {
     if (!executions || executions.length === 0) {
         return (
             <div className="flex flex-col h-full bg-card">

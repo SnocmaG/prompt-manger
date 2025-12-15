@@ -2,7 +2,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { History as HistoryIcon, Clock, X } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface Version {
     id: string;
@@ -18,10 +18,9 @@ interface VersionHistoryProps {
     liveVersionId: string | null;
     onRestore: (systemPrompt: string, userPrompt: string) => void;
     onDeploy: (version: Version) => void;
-    onClose?: () => void;
 }
 
-export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, onClose }: VersionHistoryProps) {
+export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }: VersionHistoryProps) {
     // They usually come sorted from API, but sort again to be safe
     const sortedVersions = [...versions].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
