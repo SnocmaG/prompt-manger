@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserInfo } from '@/lib/auth';
 import { testPrompt, AIProvider } from '@/lib/ai-providers';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     try {
         const { clientId, userId, name } = await getUserInfo();

@@ -16,6 +16,8 @@ interface Prompt {
     name: string
 }
 
+import { Logo } from "@/components/logo"
+
 export function MobileNav() {
     const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
@@ -51,7 +53,9 @@ export function MobileNav() {
 
     return (
         <div className="h-14 border-b bg-[#171717] flex items-center px-4 justify-between shrink-0 md:hidden z-20 sticky top-0 w-full">
-            <div className="font-semibold text-white">Prompt Manager</div>
+            <div onClick={() => router.push('/')} className="cursor-pointer text-white">
+                <Logo />
+            </div>
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(true)} className="text-white hover:bg-[#ffffff10]">
                 <Menu className="h-5 w-5" />
             </Button>

@@ -1,7 +1,10 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserInfo } from '@/lib/auth';
 import { randomBytes } from 'crypto';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
@@ -35,7 +38,7 @@ export async function GET() {
             const fullKey = await prisma.apiKey.findUnique({ where: { id: k.id }, select: { key: true } });
             return {
                 ...k,
-                maskedKey: fullKey?.key ? `${fullKey.key.substring(0, 7)}...${fullKey.key.substring(fullKey.key.length - 4)}` : '***'
+                maskedKey: fullKey?.key ? `${fullKey.key.substring(0, 7)}...${fullKey.key.substring(fullKey.key.length - 4)} ` : '***'
             }
         }));
 
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
 
         // Generate Key: sk_live_<random>
         const randomStr = randomBytes(24).toString('hex');
-        const key = `sk_live_${randomStr}`;
+        const key = `sk_live_${randomStr} `;
 
         const newKey = await prisma.apiKey.create({
             data: {

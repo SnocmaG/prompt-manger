@@ -23,6 +23,8 @@ interface Prompt {
     name: string
 }
 
+import { Logo } from "@/components/logo"
+
 export function AppSidebar() {
     const pathname = usePathname()
     const router = useRouter()
@@ -60,7 +62,16 @@ export function AppSidebar() {
             )}
         >
             {/* Header / New Prompt */}
-            <div className={cn("p-3 mb-2 flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
+            <div className={cn("p-4 flex items-center mb-2", isCollapsed ? "justify-center" : "justify-between")}>
+                <div
+                    onClick={() => router.push('/')}
+                    className={cn("cursor-pointer transition-opacity text-white", isCollapsed ? "" : "hover:opacity-80")}
+                >
+                    <Logo collapsed={isCollapsed} iconClassName="h-5 w-5" />
+                </div>
+            </div>
+
+            <div className={cn("px-3 mb-2 flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
                 {!isCollapsed && (
                     <Button
                         variant="default"

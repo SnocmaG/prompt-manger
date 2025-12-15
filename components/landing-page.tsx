@@ -1,9 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { GitBranch, Zap, Terminal, Code2, Cpu, ArrowRight, ShieldCheck } from "lucide-react";
+import { GitBranch, Zap, Terminal, Code2, Cpu, ArrowRight, ShieldCheck, BookOpen } from "lucide-react";
 import { SignInButton } from "@clerk/nextjs";
 import { motion } from "framer-motion";
+import Link from "next/link";
+
+import { Logo } from "@/components/logo";
 
 export function LandingPage() {
     return (
@@ -11,12 +14,7 @@ export function LandingPage() {
             {/* Header */}
             <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between px-4 md:px-8">
-                    <div className="flex items-center gap-2">
-                        <div className="p-1 rounded bg-primary/10">
-                            <GitBranch className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="font-bold text-lg tracking-tight">Prompt Manager</span>
-                    </div>
+                    <Logo />
                     <div className="flex items-center gap-4">
                         <SignInButton mode="modal">
                             <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
@@ -24,7 +22,7 @@ export function LandingPage() {
                             </Button>
                         </SignInButton>
                         <SignInButton mode="modal">
-                            <Button size="sm" className="font-medium shadow-lg shadow-primary/20">Get Started</Button>
+                            <Button size="sm" className="font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">Get Started</Button>
                         </SignInButton>
                     </div>
                 </div>
@@ -65,8 +63,9 @@ export function LandingPage() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             className="mt-6 max-w-[700px] text-lg md:text-xl text-muted-foreground leading-relaxed"
                         >
-                            Bring engineering discipline to your prompt engineering.
-                            Version, test, and deploy prompts like code—without the messy config files.
+                            Stop treating prompts like magic strings.
+                            <br className="hidden md:inline" />
+                            Version, test, and deploy with the same rigor you apply to code.
                         </motion.p>
 
                         <motion.div
@@ -76,14 +75,17 @@ export function LandingPage() {
                             className="flex flex-col sm:flex-row gap-4 mt-8"
                         >
                             <SignInButton mode="modal">
-                                <Button size="lg" className="h-12 px-8 text-lg font-medium shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all">
+                                <Button size="lg" className="h-12 px-8 text-lg font-medium shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-105 active:scale-95">
                                     Start Building Free
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </SignInButton>
-                            <Button variant="outline" size="lg" className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm">
-                                View Documentation
-                            </Button>
+                            <Link href="/docs">
+                                <Button variant="outline" size="lg" className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all">
+                                    <BookOpen className="mr-2 h-4 w-4" />
+                                    Read Documentation
+                                </Button>
+                            </Link>
                         </motion.div>
 
                         {/* Code Snippet / Visual */}
@@ -91,7 +93,7 @@ export function LandingPage() {
                             initial={{ opacity: 0, y: 40 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.4 }}
-                            className="mt-16 w-full max-w-4xl rounded-xl border bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden"
+                            className="mt-16 w-full max-w-4xl rounded-xl border bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden group hover:border-primary/50 transition-colors duration-500"
                         >
                             <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/50">
                                 <div className="flex gap-1.5">
@@ -99,10 +101,10 @@ export function LandingPage() {
                                     <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                                     <div className="w-3 h-3 rounded-full bg-green-500/80" />
                                 </div>
-                                <div className="text-xs text-muted-foreground font-mono ml-2">prompt-workflow.ts</div>
+                                <div className="text-xs text-muted-foreground font-mono ml-2">production-flow.ts</div>
                             </div>
                             <div className="p-6 text-left overflow-x-auto">
-                                <pre className="text-sm font-mono leading-relaxed text-muted-foreground">
+                                <pre className="text-sm font-mono leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors duration-300">
                                     <code>
                                         <span className="text-purple-400">const</span> prompt = <span className="text-purple-400">await</span> client.getPrompt(<span className="text-green-400">&quot;customer-support-v2&quot;</span>);{"\n"}
                                         {"\n"}
@@ -123,10 +125,10 @@ export function LandingPage() {
                     <div className="container px-4 md:px-6">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground/90">
-                                Built for high-velocity teams
+                                Engineering-Grade Infrastructure
                             </h2>
                             <p className="text-lg text-muted-foreground">
-                                Everything you need to manage the prompt lifecycle, from initial idea to production at scale.
+                                Built for teams who refuse to compromise on quality or velocity.
                             </p>
                         </div>
 
@@ -134,68 +136,68 @@ export function LandingPage() {
                             {/* Feature 1 */}
                             <motion.div
                                 whileHover={{ y: -5 }}
-                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md md:col-span-2"
+                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md md:col-span-2 hover:border-primary/50"
                             >
                                 <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                                     <GitBranch className="h-32 w-32 text-primary rotate-12" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                                     <GitBranch className="h-5 w-5 text-primary" />
-                                    Git-based Versioning
+                                    True Git-based Versioning
                                 </h3>
                                 <p className="text-muted-foreground max-w-md">
-                                    Treat prompts as code. Create branches, commit changes, and rollback instantly if something breaks. No more &quot;final_final_v3.txt&quot;.
+                                    Treat prompts with the respect they deserve. Branch, commit, and rollback instantly. No more mystery changes or broken prods.
                                 </p>
                             </motion.div>
 
                             {/* Feature 2 */}
                             <motion.div
                                 whileHover={{ y: -5 }}
-                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md"
+                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md hover:border-blue-500/50"
                             >
                                 <div className="absolute bottom-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
                                     <Terminal className="h-24 w-24 text-blue-500" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                                     <Terminal className="h-5 w-5 text-blue-500" />
-                                    Developer API
+                                    Typed SDK & API
                                 </h3>
                                 <p className="text-muted-foreground">
-                                    Fetch prompts via a typed SDK or raw REST API. Perfect for Next.js, Python, or n8n workflows.
+                                    Consume prompts via a typesafe SDK. Catch errors at compile time, not runtime.
                                 </p>
                             </motion.div>
 
                             {/* Feature 3 */}
                             <motion.div
                                 whileHover={{ y: -5 }}
-                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md"
+                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md hover:border-orange-500/50"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
                                     <Cpu className="h-24 w-24 text-orange-500" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                                     <Cpu className="h-5 w-5 text-orange-500" />
-                                    Multi-Model Testing
+                                    Cross-Model Validation
                                 </h3>
                                 <p className="text-muted-foreground">
-                                    Compare output across GPT-4o, Claude 3.5, and Gemini instantly. Validate before you ship.
+                                    A/B test across providers instantly. Is GPT-4o worth the cost? Prove it with data.
                                 </p>
                             </motion.div>
 
                             {/* Feature 4 */}
                             <motion.div
                                 whileHover={{ y: -5 }}
-                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md md:col-span-2"
+                                className="group relative overflow-hidden rounded-2xl border bg-background p-8 shadow-sm transition-all hover:shadow-md md:col-span-2 hover:border-green-500/50"
                             >
                                 <div className="absolute bottom-0 right-0 p-8 opacity-10 group-hover:opacity-30 transition-opacity">
                                     <ShieldCheck className="h-32 w-32 text-green-500 -rotate-12" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                                     <ShieldCheck className="h-5 w-5 text-green-500" />
-                                    Production Safety
+                                    Deploy with Confidence
                                 </h3>
                                 <p className="text-muted-foreground max-w-lg">
-                                    Tag versions as &quot;Live&quot; to safely rollout changes. Your app always fetches the stable `live` tag, while you iterate on `latest` in the background.
+                                    Decouple prompt updates from code deploys. Rollout new versions to a subset of users, monitor, and promote to Live only when ready.
                                 </p>
                             </motion.div>
                         </div>
@@ -205,42 +207,49 @@ export function LandingPage() {
                 {/* Workflow Section */}
                 <section className="py-24 bg-background">
                     <div className="container px-4 md:px-6 flex flex-col items-center">
-                        <h2 className="text-3xl font-bold tracking-tight mb-12 text-center">Seamless Integration</h2>
-                        <div className="relative flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-700">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center border">
-                                    <Zap className="h-8 w-8 text-yellow-500" />
+                        <h2 className="text-3xl font-bold tracking-tight mb-12 text-center text-foreground/80">Integrates with your stack</h2>
+                        <div className="relative flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-70 hover:opacity-100 transition-all duration-700">
+                            {/* Icons remain same but with better hover effect group */}
+                            <div className="flex flex-col items-center gap-3 group cursor-default">
+                                <div className="h-20 w-20 rounded-2xl bg-muted/50 flex items-center justify-center border group-hover:border-yellow-500/50 group-hover:bg-yellow-500/10 transition-all">
+                                    <Zap className="h-10 w-10 text-yellow-500" />
                                 </div>
-                                <span className="font-semibold text-sm">n8n / Zapier</span>
+                                <span className="font-semibold text-sm text-muted-foreground group-hover:text-foreground">n8n / Zapier</span>
                             </div>
-                            <ArrowRight className="text-muted-foreground/30 hidden md:block" />
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center border">
-                                    <Code2 className="h-8 w-8 text-blue-500" />
+                            <ArrowRight className="text-muted-foreground/20 hidden md:block" />
+                            <div className="flex flex-col items-center gap-3 group cursor-default">
+                                <div className="h-20 w-20 rounded-2xl bg-muted/50 flex items-center justify-center border group-hover:border-blue-500/50 group-hover:bg-blue-500/10 transition-all">
+                                    <Code2 className="h-10 w-10 text-blue-500" />
                                 </div>
-                                <span className="font-semibold text-sm">Next.js / React</span>
+                                <span className="font-semibold text-sm text-muted-foreground group-hover:text-foreground">Next.js / React</span>
                             </div>
-                            <ArrowRight className="text-muted-foreground/30 hidden md:block" />
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center border">
-                                    <Terminal className="h-8 w-8 text-foreground" />
+                            <ArrowRight className="text-muted-foreground/20 hidden md:block" />
+                            <div className="flex flex-col items-center gap-3 group cursor-default">
+                                <div className="h-20 w-20 rounded-2xl bg-muted/50 flex items-center justify-center border group-hover:border-purple-500/50 group-hover:bg-purple-500/10 transition-all">
+                                    <Terminal className="h-10 w-10 text-foreground" />
                                 </div>
-                                <span className="font-semibold text-sm">Python / Node</span>
+                                <span className="font-semibold text-sm text-muted-foreground group-hover:text-foreground">Python / Node</span>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {/* CTA */}
-                <section className="py-24 border-t bg-gradient-to-b from-muted/20 to-background">
+                <section className="py-24 border-t bg-gradient-to-b from-muted to-background">
                     <div className="container px-4 flex flex-col items-center text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to upgrade your workflow?</h2>
+                        <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Stop hardcoding prompts.</h2>
+                        <p className="text-xl text-muted-foreground mb-10 max-w-2xl">
+                            Join thousands of engineers who have upgraded their AI workflow.
+                        </p>
                         <SignInButton mode="modal">
-                            <Button size="lg" className="h-14 px-10 text-xl font-semibold shadow-lg shadow-primary/20">
-                                Get Started for Free
+                            <Button size="lg" className="h-14 px-10 text-xl font-semibold shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105">
+                                Start Building for Free
                             </Button>
                         </SignInButton>
-                        <p className="mt-4 text-sm text-muted-foreground">No credit card required. Open source.</p>
+                        <p className="mt-6 text-sm text-muted-foreground font-medium">
+                            <ShieldCheck className="inline h-4 w-4 mr-1 text-green-500" />
+                            Enterprise-grade security. Open Source.
+                        </p>
                     </div>
                 </section>
             </main>
