@@ -1,8 +1,6 @@
-'use client';
-
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Clock } from 'lucide-react';
+import { Clock, Trash2, XCircle } from 'lucide-react';
 
 interface Version {
     id: string;
@@ -18,9 +16,11 @@ interface VersionHistoryProps {
     liveVersionId: string | null;
     onRestore: (systemPrompt: string, userPrompt: string) => void;
     onDeploy: (version: Version) => void;
+    onDelete: (id: string) => void;
+    onClearAll: () => void;
 }
 
-export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }: VersionHistoryProps) {
+export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, onDelete, onClearAll }: VersionHistoryProps) {
     // They usually come sorted from API, but sort again to be safe
     const sortedVersions = [...versions].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -49,19 +49,46 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy }:
     return (
         <div className="flex flex-col h-full">
 
-            <p className="text-xs text-muted-foreground">
-                {sortedVersions.length} version{sortedVersions.length !== 1 ? 's' : ''}
-            </p>
-
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/20 border-b">
+                <p className="text-xs text-muted-foreground">
+                    {sortedVersions.length} version{sortedVersions.length !== 1 ? 's' : ''}
+                </p>
+                {sortedVersions.length > 1 && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-[10px] text-muted-foreground hover:text-destructive px-2"
+                        onClick={() => {
+                            if (confirm('Delete all versions except the live one?')) onClearAll();
+                        }}
+                    >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Clear Old
+                    </Button>
+                )}
+            </div>
 
             <ScrollArea className="flex-1">
                 <div className="p-3 space-y-2">
                     {sortedVersions.map((version) => (
                         <div
                             key={version.id}
-                            className={`border rounded-lg p-3 hover:bg-accent/50 transition-colors ${version.id === liveVersionId ? 'border-primary/50' : ''}`}
+                            className={`group relative border rounded-lg p-3 hover:bg-accent/50 transition-colors ${version.id === liveVersionId ? 'border-primary/50' : ''}`}
                         >
-                            <div className="flex items-start justify-between gap-2 mb-2">
+                            {version.id !== liveVersionId && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Delete this version?')) onDelete(version.id);
+                                    }}
+                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                    title="Delete version"
+                                >
+                                    <XCircle className="h-3.5 w-3.5" />
+                                </button>
+                            )}
+
+                            <div className="flex items-start justify-between gap-2 mb-2 pr-4">
                                 <div className="flex-1 min-w-0">
                                     <div className="font-medium text-sm mb-1 truncate">
                                         {version.label}

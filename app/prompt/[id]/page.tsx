@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useUser, useOrganization } from "@clerk/nextjs";
 import { GitCommit, ChevronRight, Home, History as HistoryIcon } from "lucide-react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { PromptEditor } from "@/components/prompt-editor";
 import { VersionHistory } from "@/components/version-history";
 import { UserPromptInput } from "@/components/user-prompt-input";
@@ -11,8 +12,9 @@ import { ResponseViewer } from "@/components/response-viewer";
 import { DeployDialog } from "@/components/deploy-dialog";
 import { EditVersionDialog } from "@/components/edit-version-dialog";
 import { RunHistory } from "@/components/run-history";
-import { RightSidebar } from "@/components/right-sidebar";
+import { RightActionStrip } from "@/components/right-action-strip";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Button } from "@/components/ui/button";
 import { PlayCircle } from "lucide-react";
 
 interface Version {
@@ -137,6 +139,7 @@ export default function PromptWorkshop() {
 
     // 1. Run Test
     const handleRunTest = async () => {
+        if (!prompt) return;
         setIsRunning(true);
         setError(undefined);
         setAiOutput('');
@@ -149,7 +152,8 @@ export default function PromptWorkshop() {
                     testInput: userPrompt,
                     provider,
                     model: customModel,
-                    overrideContent: systemPrompt
+                    overrideContent: systemPrompt,
+                    promptId: prompt.id
                 }),
             });
 
@@ -159,7 +163,7 @@ export default function PromptWorkshop() {
                 setUsedModel(data.model);
 
                 // Update default model if changed
-                if (prompt && prompt.defaultModel !== customModel) {
+                if (prompt.defaultModel !== customModel) {
                     // Fire and forget update
                     fetch(`/api/prompts/${prompt.id}`, {
                         method: 'PATCH',
@@ -221,6 +225,52 @@ export default function PromptWorkshop() {
         setActiveRightTab(null);
     };
 
+    // 3. Delete History Logic
+    const handleDeleteRun = async (id: string) => {
+        try {
+            await fetch(`/api/history?id=${id}`, { method: 'DELETE' });
+            // Optimistic update
+            if (prompt && prompt.executions) {
+                const updated = prompt.executions.filter(e => e.id !== id);
+                setPrompt({ ...prompt, executions: updated });
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    const handleClearHistory = async () => {
+        if (!prompt) return;
+        try {
+            await fetch(`/api/history?promptId=${prompt.id}&all=true`, { method: 'DELETE' });
+            setPrompt({ ...prompt, executions: [] });
+        } catch (e) { console.error(e); }
+    };
+
+    // 4. Delete Version Logic
+    const handleDeleteVersion = async (id: string) => {
+        try {
+            const res = await fetch(`/api/versions/delete?id=${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                // Optimistic update
+                if (prompt) {
+                    const updated = prompt.versions.filter(v => v.id !== id);
+                    setPrompt({ ...prompt, versions: updated });
+                }
+            } else {
+                alert('Failed to delete version (Cannot delete live version)');
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    const handleClearVersions = async () => {
+        if (!prompt) return;
+        try {
+            const res = await fetch(`/api/versions/delete?promptId=${prompt.id}&all=true`, { method: 'DELETE' });
+            if (res.ok) {
+                fetchPrompt(); // Safer to refetch here to ensure we know exactly what was deleted (non-live)
+            }
+        } catch (e) { console.error(e); }
+    };
+
     if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
     if (!prompt) return <div>Not Found</div>;
 
@@ -231,11 +281,11 @@ export default function PromptWorkshop() {
             {/* Header / Context Bar */}
             <div className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0 z-20">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground overflow-hidden whitespace-nowrap">
-                    <div className="flex items-center hover:text-foreground transition-colors cursor-pointer">
+                    <Link href="/" className="flex items-center hover:text-foreground transition-colors cursor-pointer">
                         <Home className="h-4 w-4 mr-1" />
                         <span className="font-medium hidden sm:inline">{organization ? organization.name : (user?.primaryEmailAddress?.emailAddress || 'Personal')}</span>
                         <span className="font-medium sm:hidden">Home</span>
-                    </div>
+                    </Link>
                     <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
                     <div className="flex items-center font-semibold text-foreground truncate max-w-[150px] sm:max-w-none">
                         {prompt.name}
@@ -276,99 +326,53 @@ export default function PromptWorkshop() {
 
             {/* Main Workspace + Sidebar */}
             <div className="flex-1 flex overflow-hidden relative">
-                {/* Editor Area */}
-                <div className="flex-1 flex flex-col min-w-0 relative">
 
-                    {/* Mobile Tab Nav */}
-                    <div className="md:hidden flex items-center border-b bg-muted/20 shrink-0">
-                        <button
-                            onClick={() => setActiveMobileTab('input')}
-                            className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${activeMobileTab === 'input' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
-                        >
-                            Input
-                        </button>
-                        <button
-                            onClick={() => setActiveMobileTab('system')}
-                            className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${activeMobileTab === 'system' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
-                        >
-                            System
-                        </button>
-                        <button
-                            onClick={() => setActiveMobileTab('response')}
-                            className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${activeMobileTab === 'response' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
-                        >
-                            Response
-                        </button>
-                    </div>
+                {/* Resizable Area: Main Content + Right Drawer */}
+                <div className="flex-1 flex min-w-0">
+                    <PanelGroup direction="horizontal" className="h-full w-full">
 
-                    {/* Mobile Content Area */}
-                    <div className="md:hidden flex-1 relative overflow-hidden">
-                        {activeMobileTab === 'input' && (
-                            <div className="absolute inset-0 flex flex-col">
-                                <UserPromptInput
-                                    value={userPrompt}
-                                    onChange={setUserPrompt}
-                                    onRun={() => {
-                                        handleRunTest();
-                                        setActiveMobileTab('response'); // Auto switch
-                                    }}
-                                    isTesting={isRunning}
-                                />
-                            </div>
-                        )}
-                        {activeMobileTab === 'system' && (
-                            <div className="absolute inset-0 flex flex-col">
-                                <PromptEditor
-                                    systemPrompt={systemPrompt}
-                                    onChange={setSystemPrompt}
-                                    onSave={handleSaveVersion}
-                                    isLive={currentVersionId === prompt.liveVersionId}
-                                    hasUnsavedChanges={
-                                        !!(prompt.liveVersionId &&
-                                            prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
-                                    }
-                                />
-                            </div>
-                        )}
-                        {activeMobileTab === 'response' && (
-                            <div className="absolute inset-0 flex flex-col bg-card">
-                                <ResponseViewer
-                                    output={aiOutput}
-                                    isTesting={isRunning}
-                                    provider={provider}
-                                    error={error}
-                                    model={usedModel}
-                                />
-                            </div>
-                        )}
-                    </div>
+                        {/* Main Editor Content (Always Visible) */}
+                        <Panel defaultSize={activeRightTab ? 75 : 100} minSize={30}>
+                            <div className="flex flex-col h-full relative">
+                                {/* Mobile Tab Nav */}
+                                <div className="md:hidden flex items-center border-b bg-muted/20 shrink-0">
+                                    <button
+                                        onClick={() => setActiveMobileTab('input')}
+                                        className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${activeMobileTab === 'input' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
+                                    >
+                                        Input
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveMobileTab('system')}
+                                        className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${activeMobileTab === 'system' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
+                                    >
+                                        System
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveMobileTab('response')}
+                                        className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${activeMobileTab === 'response' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
+                                    >
+                                        Response
+                                    </button>
+                                </div>
 
-
-                    {/* Desktop Resizable Grid - Hidden on Mobile */}
-                    <div className="hidden md:flex absolute inset-0">
-                        <PanelGroup direction="horizontal" className="h-full w-full">
-
-                            {/* Left Column: Input + System Prompt (Resizable Width) */}
-                            <Panel defaultSize={50} minSize={20}>
-                                <PanelGroup direction="vertical">
-
-                                    {/* Top Pane: User Prompt (Resizable Height) */}
-                                    <Panel defaultSize={40} minSize={20}>
-                                        <div className="h-full flex flex-col border-b border-border/50">
+                                {/* Mobile Content Area */}
+                                <div className="md:hidden flex-1 relative overflow-hidden">
+                                    {activeMobileTab === 'input' && (
+                                        <div className="absolute inset-0 flex flex-col">
                                             <UserPromptInput
                                                 value={userPrompt}
                                                 onChange={setUserPrompt}
-                                                onRun={handleRunTest}
+                                                onRun={() => {
+                                                    handleRunTest();
+                                                    setActiveMobileTab('response'); // Auto switch
+                                                }}
                                                 isTesting={isRunning}
                                             />
                                         </div>
-                                    </Panel>
-
-                                    <PanelResizeHandle className="h-1 bg-border/50 hover:bg-primary/20 transition-colors w-full cursor-row-resize" />
-
-                                    {/* Bottom Pane: System Prompt */}
-                                    <Panel defaultSize={60} minSize={20}>
-                                        <div className="h-full flex flex-col">
+                                    )}
+                                    {activeMobileTab === 'system' && (
+                                        <div className="absolute inset-0 flex flex-col">
                                             <PromptEditor
                                                 systemPrompt={systemPrompt}
                                                 onChange={setSystemPrompt}
@@ -380,31 +384,134 @@ export default function PromptWorkshop() {
                                                 }
                                             />
                                         </div>
-                                    </Panel>
-                                </PanelGroup>
-                            </Panel>
-
-                            <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
-
-                            {/* Right Column: AI Response (Resizable Width) */}
-                            <Panel defaultSize={50} minSize={20}>
-                                <div className="h-full flex flex-col border-l border-border/50 bg-card">
-                                    <ResponseViewer
-                                        output={aiOutput}
-                                        isTesting={isRunning}
-                                        provider={provider}
-                                        error={error}
-                                        model={usedModel}
-                                    />
+                                    )}
+                                    {activeMobileTab === 'response' && (
+                                        <div className="absolute inset-0 flex flex-col bg-card">
+                                            <ResponseViewer
+                                                output={aiOutput}
+                                                isTesting={isRunning}
+                                                provider={provider}
+                                                error={error}
+                                                model={usedModel}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                            </Panel>
 
-                        </PanelGroup>
-                    </div>
+                                {/* Desktop Resizable Grid - Hidden on Mobile */}
+                                <div className="hidden md:flex flex-1 h-full">
+                                    <PanelGroup direction="horizontal" className="h-full w-full">
 
+                                        {/* Left Column: Input + System Prompt (Resizable Width) */}
+                                        <Panel defaultSize={50} minSize={20}>
+                                            <PanelGroup direction="vertical">
+
+                                                {/* Top Pane: User Prompt (Resizable Height) */}
+                                                <Panel defaultSize={40} minSize={20}>
+                                                    <div className="h-full flex flex-col border-b border-border/50">
+                                                        <UserPromptInput
+                                                            value={userPrompt}
+                                                            onChange={setUserPrompt}
+                                                            onRun={handleRunTest}
+                                                            isTesting={isRunning}
+                                                        />
+                                                    </div>
+                                                </Panel>
+
+                                                <PanelResizeHandle className="h-1 bg-border/50 hover:bg-primary/20 transition-colors w-full cursor-row-resize" />
+
+                                                {/* Bottom Pane: System Prompt */}
+                                                <Panel defaultSize={60} minSize={20}>
+                                                    <div className="h-full flex flex-col">
+                                                        <PromptEditor
+                                                            systemPrompt={systemPrompt}
+                                                            onChange={setSystemPrompt}
+                                                            onSave={handleSaveVersion}
+                                                            isLive={currentVersionId === prompt.liveVersionId}
+                                                            hasUnsavedChanges={
+                                                                !!(prompt.liveVersionId &&
+                                                                    prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
+                                                            }
+                                                        />
+                                                    </div>
+                                                </Panel>
+                                            </PanelGroup>
+                                        </Panel>
+
+                                        <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
+
+                                        {/* Right Column: AI Response (Resizable Width) */}
+                                        <Panel defaultSize={50} minSize={20}>
+                                            <div className="h-full flex flex-col border-l border-border/50 bg-card">
+                                                <ResponseViewer
+                                                    output={aiOutput}
+                                                    isTesting={isRunning}
+                                                    provider={provider}
+                                                    error={error}
+                                                    model={usedModel}
+                                                />
+                                            </div>
+                                        </Panel>
+
+                                    </PanelGroup>
+                                </div>
+                            </div>
+                        </Panel>
+
+                        {/* Right Drawer Panel (Conditionally rendered) */}
+                        {activeRightTab && (
+                            <>
+                                <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
+                                <Panel defaultSize={25} minSize={15} maxSize={40} className="bg-card">
+                                    <div className="h-full flex flex-col border-l">
+                                        {/* Header */}
+                                        <div className="h-14 flex items-center justify-between px-4 border-b shrink-0 bg-muted/10">
+                                            <span className="font-semibold text-sm flex items-center gap-2">
+                                                {activeRightTab === 'history' && <HistoryIcon className="h-4 w-4" />}
+                                                {activeRightTab === 'runs' && <PlayCircle className="h-4 w-4" />}
+                                                {activeRightTab === 'history' ? 'Version History' : 'Run History'}
+                                            </span>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setActiveRightTab(null)}>
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="flex-1 overflow-hidden relative">
+                                            {activeRightTab === 'history' && prompt && (
+                                                <VersionHistory
+                                                    versions={prompt.versions}
+                                                    liveVersionId={prompt.liveVersionId}
+                                                    onRestore={handleRestore}
+                                                    onDeploy={setDeployTarget}
+                                                    onDelete={handleDeleteVersion}
+                                                    onClearAll={handleClearVersions}
+                                                />
+                                            )}
+                                            {activeRightTab === 'runs' && prompt && (
+                                                <RunHistory
+                                                    executions={prompt.executions ? prompt.executions.map(e => ({
+                                                        ...e,
+                                                        versionLabel: e.versionLabel || undefined
+                                                    })) : []}
+                                                    onSelect={(run) => {
+                                                        setAiOutput(run.response);
+                                                        setUserPrompt(run.userPrompt);
+                                                        setUsedModel(run.model);
+                                                        setActiveMobileTab('response');
+                                                    }}
+                                                    onDelete={handleDeleteRun}
+                                                    onClearAll={handleClearHistory}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                </Panel>
+                            </>
+                        )}
+                    </PanelGroup>
                 </div>
 
-                <RightSidebar
+                {/* Fixed Right Action Strip */}
+                <RightActionStrip
                     activeTab={activeRightTab}
                     onTabChange={setActiveRightTab}
                     tabs={[
@@ -412,34 +519,13 @@ export default function PromptWorkshop() {
                             id: 'history',
                             label: 'Version History',
                             icon: <HistoryIcon className="h-5 w-5" />,
-                            content: prompt && (
-                                <VersionHistory
-                                    versions={prompt.versions}
-                                    liveVersionId={prompt.liveVersionId}
-                                    onRestore={handleRestore}
-                                    onDeploy={setDeployTarget}
-                                />
-                            )
+                            content: null // Not used here anymore
                         },
                         {
                             id: 'runs',
                             label: 'Run History',
                             icon: <PlayCircle className="h-5 w-5" />,
-                            content: prompt && (
-                                <RunHistory
-                                    executions={prompt.executions ? prompt.executions.map(e => ({
-                                        ...e,
-                                        versionLabel: e.versionLabel || undefined
-                                    })) : []}
-                                    onSelect={(run) => {
-                                        setAiOutput(run.response);
-                                        setUserPrompt(run.userPrompt);
-                                        setUsedModel(run.model);
-                                        setActiveMobileTab('response');
-                                        setActiveRightTab(null);
-                                    }}
-                                />
-                            )
+                            content: null
                         }
                     ]}
                 />

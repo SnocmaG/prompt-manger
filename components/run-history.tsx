@@ -1,4 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Trash2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PromptExecution {
@@ -17,14 +19,15 @@ interface PromptExecution {
 interface RunHistoryProps {
     executions: PromptExecution[];
     onSelect: (execution: PromptExecution) => void;
+    onDelete: (id: string) => void;
+    onClearAll: () => void;
     selectedId?: string | null;
 }
 
-export function RunHistory({ executions, onSelect, selectedId }: RunHistoryProps) {
+export function RunHistory({ executions, onSelect, onDelete, onClearAll, selectedId }: RunHistoryProps) {
     if (!executions || executions.length === 0) {
         return (
             <div className="flex flex-col h-full bg-card">
-
                 <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground p-4 text-center">
                     <p className="text-sm">No run history yet.</p>
                     <p className="text-xs mt-1 text-muted-foreground/60">Run a test to see logs here.</p>
@@ -35,6 +38,20 @@ export function RunHistory({ executions, onSelect, selectedId }: RunHistoryProps
 
     return (
         <div className="flex flex-col h-full bg-card">
+            <div className="p-2 border-b flex justify-end">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to clear all history?')) onClearAll();
+                    }}
+                >
+                    <Trash2 className="h-3 w-3" />
+                    Clear All
+                </Button>
+            </div>
 
             <ScrollArea className="flex-1">
                 <div className="flex flex-col divide-y">
@@ -43,36 +60,52 @@ export function RunHistory({ executions, onSelect, selectedId }: RunHistoryProps
                         const formattedDate = date.toISOString().slice(0, 19).replace('T', ' '); // yyyy-mm-dd hh:mm:ss
 
                         return (
-                            <button
+                            <div
                                 key={run.id}
-                                onClick={() => onSelect(run)}
                                 className={cn(
-                                    "flex flex-col items-start gap-1 p-4 text-left hover:bg-muted/50 transition-colors w-full",
+                                    "group flex flex-col items-start gap-1 p-4 text-left hover:bg-muted/50 transition-colors w-full relative",
                                     selectedId === run.id && "bg-muted"
                                 )}
                             >
-                                <div className="flex items-center justify-between w-full mb-1">
+                                <div
+                                    className="absolute inset-0 cursor-pointer"
+                                    onClick={() => onSelect(run)}
+                                />
+
+                                <div className="flex items-center justify-between w-full mb-1 pointer-events-none relative z-10">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                         <span>{formattedDate}</span>
                                     </div>
-                                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/5 text-primary">
-                                        {run.model}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/5 text-primary">
+                                            {run.model}
+                                        </span>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDelete(run.id);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5 rounded-sm hover:bg-muted ml-1 pointer-events-auto"
+                                            title="Delete run"
+                                        >
+                                            <XCircle className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {run.versionLabel && (
-                                    <div className="text-xs font-medium text-blue-500 mb-1">
+                                    <div className="text-xs font-medium text-blue-500 mb-1 pointer-events-none">
                                         {run.versionLabel}
                                     </div>
                                 )}
 
-                                <div className="text-sm font-medium line-clamp-1 w-full text-foreground/90">
+                                <div className="text-sm font-medium line-clamp-1 w-full text-foreground/90 pointer-events-none">
                                     {run.userPrompt || '<Empty Input>'}
                                 </div>
-                                <div className="text-xs text-muted-foreground line-clamp-2 w-full font-mono mt-1 opacity-80">
+                                <div className="text-xs text-muted-foreground line-clamp-2 w-full font-mono mt-1 opacity-80 pointer-events-none">
                                     {run.response}
                                 </div>
-                            </button>
+                            </div>
                         );
                     })}
                 </div>
