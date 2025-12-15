@@ -27,17 +27,7 @@ export function RunHistory({ executions, onSelect, selectedId, onClose }: RunHis
     if (!executions || executions.length === 0) {
         return (
             <div className="flex flex-col h-full bg-card">
-                <div className="p-4 border-b flex items-center justify-between shrink-0 h-14">
-                    <h3 className="font-semibold text-sm flex items-center gap-2">
-                        <PlayCircle className="h-4 w-4" />
-                        Run History
-                    </h3>
-                    {onClose && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
+
                 <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground p-4 text-center">
                     <p className="text-sm">No run history yet.</p>
                     <p className="text-xs mt-1 text-muted-foreground/60">Run a test to see logs here.</p>
@@ -48,17 +38,7 @@ export function RunHistory({ executions, onSelect, selectedId, onClose }: RunHis
 
     return (
         <div className="flex flex-col h-full bg-card">
-            <div className="p-4 border-b flex items-center justify-between shrink-0 h-14">
-                <h3 className="font-semibold text-sm flex items-center gap-2">
-                    <PlayCircle className="h-4 w-4" />
-                    Run History
-                </h3>
-                {onClose && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
-                        <X className="h-4 w-4" />
-                    </Button>
-                )}
-            </div>
+
             <ScrollArea className="flex-1">
                 <div className="flex flex-col divide-y">
                     {executions.map((run) => {

@@ -12,7 +12,9 @@ import { ResponseViewer } from "@/components/response-viewer";
 import { DeployDialog } from "@/components/deploy-dialog";
 import { EditVersionDialog } from "@/components/edit-version-dialog";
 import { RunHistory } from "@/components/run-history";
+import { RightSidebar } from "@/components/right-sidebar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { PlayCircle } from "lucide-react";
 
 interface Version {
     id: string;
@@ -57,8 +59,7 @@ export default function PromptWorkshop() {
 
     const [prompt, setPrompt] = useState<Prompt | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const [isRunHistoryOpen, setIsRunHistoryOpen] = useState(false);
+    const [activeRightTab, setActiveRightTab] = useState<string | null>(null);
 
     // --- Lifted State ---
     const [systemPrompt, setSystemPrompt] = useState('');
@@ -71,6 +72,7 @@ export default function PromptWorkshop() {
     // AI Config State
     const [provider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
+    const [availableModels, setAvailableModels] = useState<{ id: string }[]>([]);
 
     const [deployTarget, setDeployTarget] = useState<Version | null>(null);
     const [editTarget, setEditTarget] = useState<Version | null>(null);
@@ -107,164 +109,178 @@ export default function PromptWorkshop() {
         } finally {
             setLoading(false);
         }
+        setLoading(false);
+    }
     }, [promptId]);
 
-    // ... Auth Effect ...
-    useEffect(() => {
-        if (!isLoaded) return;
-        fetchPrompt();
-    }, [isLoaded, user, promptId, fetchPrompt]);
-
-
-    // --- Actions ---
-
-    // 1. Run Test
-    const handleRunTest = async () => {
-        setIsRunning(true);
-        setError(undefined);
-        setAiOutput('');
-
+// Fetch available models
+useEffect(() => {
+    const fetchModels = async () => {
         try {
-            const response = await fetch('/api/ai/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    testInput: userPrompt,
-                    provider,
-                    model: customModel,
-                    overrideContent: systemPrompt
-                }),
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                setAiOutput(data.output);
-                setUsedModel(data.model);
-
-                // Update default model if changed
-                if (prompt && prompt.defaultModel !== customModel) {
-                    // Fire and forget update
-                    fetch(`/api/prompts/${prompt.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ defaultModel: customModel })
-                    });
-                    // Optimistic update
-                    setPrompt({ ...prompt, defaultModel: customModel });
-                }
-
-            } else {
-                setError(data.error || 'Test failed');
-                setUsedModel(undefined);
+            const res = await fetch('/api/models');
+            if (res.ok) {
+                const data = await res.json();
+                setAvailableModels(data);
             }
-        } catch {
-            setError('Network error');
-        } finally {
-            setIsRunning(false);
+        } catch (e) {
+            console.error("Failed to fetch models", e);
         }
     };
+    fetchModels();
+}, []);
 
-    // 2. Save System Prompt (Version)
-    const handleSaveVersion = async (label: string) => {
-        if (!prompt) return;
-        try {
-            const response = await fetch('/api/versions/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    promptId: prompt.id,
-                    systemPrompt,
-                    userPrompt,
-                    label,
-                }),
-            });
-            if (response.ok) {
-                const newVersion = await response.json();
+// ... Auth Effect ...
+useEffect(() => {
+    if (!isLoaded) return;
+    fetchPrompt();
+}, [isLoaded, user, promptId, fetchPrompt]);
 
-                // Check if we were editing the live version and this is a "Deploy Changes" action
-                const liveVersion = prompt.versions.find(v => v.id === prompt.liveVersionId);
-                const isDirtyLive = liveVersion && liveVersion.systemPrompt !== systemPrompt;
 
-                if (isDirtyLive) {
-                    await fetch(`/api/prompts/${prompt.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ liveVersionId: newVersion.id })
-                    });
-                }
+// --- Actions ---
 
-                fetchPrompt(); // Refresh list
+// 1. Run Test
+const handleRunTest = async () => {
+    setIsRunning(true);
+    setError(undefined);
+    setAiOutput('');
+
+    try {
+        const response = await fetch('/api/ai/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                testInput: userPrompt,
+                provider,
+                model: customModel,
+                overrideContent: systemPrompt
+            }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            setAiOutput(data.output);
+            setUsedModel(data.model);
+
+            // Update default model if changed
+            if (prompt && prompt.defaultModel !== customModel) {
+                // Fire and forget update
+                fetch(`/api/prompts/${prompt.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ defaultModel: customModel })
+                });
+                // Optimistic update
+                setPrompt({ ...prompt, defaultModel: customModel });
             }
-        } catch (e) { console.error(e); }
-    };
 
-    const handleRestore = (sys: string, user: string) => {
-        setSystemPrompt(sys);
-        setUserPrompt(user);
-        setIsHistoryOpen(false);
-    };
+        } else {
+            setError(data.error || 'Test failed');
+            setUsedModel(undefined);
+        }
+    } catch {
+        setError('Network error');
+    } finally {
+        setIsRunning(false);
+    }
+};
 
-    if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
-    if (!prompt) return <div>Not Found</div>;
+// 2. Save System Prompt (Version)
+const handleSaveVersion = async (label: string) => {
+    if (!prompt) return;
+    try {
+        const response = await fetch('/api/versions/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                promptId: prompt.id,
+                systemPrompt,
+                userPrompt,
+                label,
+            }),
+        });
+        if (response.ok) {
+            const newVersion = await response.json();
 
-    const currentVersionId = prompt.versions?.[0]?.id; // Simplification: "Current" is just latest for editing context usually
+            // Check if we were editing the live version and this is a "Deploy Changes" action
+            const liveVersion = prompt.versions.find(v => v.id === prompt.liveVersionId);
+            const isDirtyLive = liveVersion && liveVersion.systemPrompt !== systemPrompt;
 
-    return (
-        <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
-            {/* Header / Context Bar */}
-            <div className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0 z-20">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground overflow-hidden whitespace-nowrap">
-                    <div className="flex items-center hover:text-foreground transition-colors cursor-pointer">
-                        <Home className="h-4 w-4 mr-1" />
-                        <span className="font-medium hidden sm:inline">{organization ? organization.name : (user?.primaryEmailAddress?.emailAddress || 'Personal')}</span>
-                        <span className="font-medium sm:hidden">Home</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-                    <div className="flex items-center font-semibold text-foreground truncate max-w-[150px] sm:max-w-none">
-                        {prompt.name}
-                        <div className="ml-3 flex items-center gap-1.5 text-xs font-normal text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
-                            <GitCommit className="h-3 w-3" />
-                            {prompt.versions.length}
-                        </div>
-                    </div>
+            if (isDirtyLive) {
+                await fetch(`/api/prompts/${prompt.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ liveVersionId: newVersion.id })
+                });
+            }
+
+            fetchPrompt(); // Refresh list
+        }
+    } catch (e) { console.error(e); }
+};
+
+const handleRestore = (sys: string, user: string) => {
+    setSystemPrompt(sys);
+    setUserPrompt(user);
+    setActiveRightTab(null);
+};
+
+if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
+if (!prompt) return <div>Not Found</div>;
+
+const currentVersionId = prompt.versions?.[0]?.id; // Simplification: "Current" is just latest for editing context usually
+
+return (
+    <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
+        {/* Header / Context Bar */}
+        <div className="h-14 border-b bg-card flex items-center justify-between px-4 shrink-0 z-20">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground overflow-hidden whitespace-nowrap">
+                <div className="flex items-center hover:text-foreground transition-colors cursor-pointer">
+                    <Home className="h-4 w-4 mr-1" />
+                    <span className="font-medium hidden sm:inline">{organization ? organization.name : (user?.primaryEmailAddress?.emailAddress || 'Personal')}</span>
+                    <span className="font-medium sm:hidden">Home</span>
                 </div>
-
-                {/* AI Config Bar (Top Right) */}
-                <div className="flex items-center gap-2">
-                    <span className="hidden sm:inline-block">
-                        <select
-                            value={customModel}
-                            onChange={e => setCustomModel(e.target.value)}
-                            className="h-7 text-xs bg-background border rounded px-2 min-w-[140px]"
-                        >
-                            <optgroup label="GPT-5 (Preview)">
-                                <option value="gpt-5-preview">GPT-5 Preview</option>
-                                <option value="gpt-5">GPT-5</option>
-                            </optgroup>
-                            <optgroup label="GPT-4 Checkpoints">
-                                <option value="gpt-4o">GPT-4o</option>
-                                <option value="gpt-4o-mini">GPT-4o Mini</option>
-                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                                <option value="gpt-4">GPT-4</option>
-                            </optgroup>
-                            <optgroup label="GPT-3.5">
-                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                            </optgroup>
-                        </select>
-                    </span>
-
-                    <div className="w-px h-4 bg-border mx-2 hidden sm:block" />
-                    <Button variant="ghost" size="sm" onClick={() => { setIsHistoryOpen(!isHistoryOpen); setIsRunHistoryOpen(false); }}>
-                        <Clock className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setIsRunHistoryOpen(!isRunHistoryOpen)}>
-                        <HistoryIcon className="h-4 w-4" />
-                    </Button>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                <div className="flex items-center font-semibold text-foreground truncate max-w-[150px] sm:max-w-none">
+                    {prompt.name}
+                    <div className="ml-3 flex items-center gap-1.5 text-xs font-normal text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                        <GitCommit className="h-3 w-3" />
+                        {prompt.versions.length}
+                    </div>
                 </div>
             </div>
 
-            {/* Main Workspace */}
-            <div className="flex-1 overflow-hidden relative flex flex-col">
+            {/* AI Config Bar (Top Right) */}
+            <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-block">
+                    <select
+                        value={customModel}
+                        onChange={e => setCustomModel(e.target.value)}
+                        className="h-7 text-xs bg-background border rounded px-2 min-w-[140px] max-w-[200px]"
+                    >
+                        {availableModels.length > 0 ? (
+                            availableModels.map(model => (
+                                <option key={model.id} value={model.id}>
+                                    {model.id}
+                                </option>
+                            ))
+                        ) : (
+                            // Fallback if API fails
+                            <>
+                                <option value="gpt-4o">gpt-4o</option>
+                                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                                <option value="gpt-4-turbo">gpt-4-turbo</option>
+                            </>
+                        )}
+                    </select>
+                </span>
+
+            </div>
+        </div>
+
+        {/* Main Workspace + Sidebar */}
+        <div className="flex-1 flex overflow-hidden relative">
+            {/* Editor Area */}
+            <div className="flex-1 flex flex-col min-w-0 relative">
 
                 {/* Mobile Tab Nav */}
                 <div className="md:hidden flex items-center border-b bg-muted/20 shrink-0">
@@ -389,71 +405,77 @@ export default function PromptWorkshop() {
                     </PanelGroup>
                 </div>
 
-                {/* History Drawer (Versions) */}
-                <div
-                    className={`fixed top-14 bottom-0 right-0 z-10 w-full sm:w-80 bg-card border-l shadow-2xl transition-transform duration-300 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                >
-                    <div className="h-full overflow-y-auto">
-                        <VersionHistory
-                            versions={prompt.versions}
-                            liveVersionId={prompt.liveVersionId}
-                            onRestore={handleRestore}
-                            onDeploy={setDeployTarget}
-                            onClose={() => setIsHistoryOpen(false)}
-                        />
-                    </div>
-                </div>
-
-                {/* Run History Drawer */}
-                <div
-                    className={`fixed top-14 bottom-0 right-0 z-10 w-full sm:w-96 bg-card border-l shadow-2xl transition-transform duration-300 ${isRunHistoryOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                >
-                    <div className="h-full overflow-y-auto">
-                        <RunHistory
-                            executions={prompt.executions ? prompt.executions.map(e => ({
-                                ...e,
-                                versionLabel: e.versionLabel || undefined
-                            })) : []}
-                            onSelect={(run) => {
-                                setAiOutput(run.response);
-                                setUserPrompt(run.userPrompt);
-                                setUsedModel(run.model);
-                                setActiveMobileTab('response');
-                                setIsRunHistoryOpen(false);
-                            }}
-                            onClose={() => setIsRunHistoryOpen(false)}
-                        />
-                    </div>
-                </div>
-
             </div>
 
-            {deployTarget && (
-                <DeployDialog
-                    open={!!deployTarget}
-                    onOpenChange={(open) => !open && setDeployTarget(null)}
-                    promptId={prompt.id}
-                    versionId={deployTarget.id}
-                    versionLabel={deployTarget.label}
-                    onSuccess={() => {
-                        setDeployTarget(null);
-                        fetchPrompt();
-                    }}
-                />
-            )}
-
-            {editTarget && (
-                <EditVersionDialog
-                    open={!!editTarget}
-                    onOpenChange={(open) => !open && setEditTarget(null)}
-                    versionId={editTarget.id}
-                    currentLabel={editTarget.label}
-                    onSuccess={() => {
-                        setEditTarget(null);
-                        fetchPrompt();
-                    }}
-                />
-            )}
+            <RightSidebar
+                activeTab={activeRightTab}
+                onTabChange={setActiveRightTab}
+                tabs={[
+                    {
+                        id: 'history',
+                        label: 'Version History',
+                        icon: <HistoryIcon className="h-5 w-5" />,
+                        content: prompt && (
+                            <VersionHistory
+                                versions={prompt.versions}
+                                liveVersionId={prompt.liveVersionId}
+                                onRestore={handleRestore}
+                                onDeploy={setDeployTarget}
+                                onClose={() => setActiveRightTab(null)}
+                            />
+                        )
+                    },
+                    {
+                        id: 'runs',
+                        label: 'Run History',
+                        icon: <PlayCircle className="h-5 w-5" />,
+                        content: prompt && (
+                            <RunHistory
+                                executions={prompt.executions ? prompt.executions.map(e => ({
+                                    ...e,
+                                    versionLabel: e.versionLabel || undefined
+                                })) : []}
+                                onSelect={(run) => {
+                                    setAiOutput(run.response);
+                                    setUserPrompt(run.userPrompt);
+                                    setUsedModel(run.model);
+                                    setActiveMobileTab('response');
+                                    setActiveRightTab(null);
+                                }}
+                                onClose={() => setActiveRightTab(null)}
+                            />
+                        )
+                    }
+                ]}
+            />
         </div>
-    );
+
+        {deployTarget && (
+            <DeployDialog
+                open={!!deployTarget}
+                onOpenChange={(open) => !open && setDeployTarget(null)}
+                promptId={prompt.id}
+                versionId={deployTarget.id}
+                versionLabel={deployTarget.label}
+                onSuccess={() => {
+                    setDeployTarget(null);
+                    fetchPrompt();
+                }}
+            />
+        )}
+
+        {editTarget && (
+            <EditVersionDialog
+                open={!!editTarget}
+                onOpenChange={(open) => !open && setEditTarget(null)}
+                versionId={editTarget.id}
+                currentLabel={editTarget.label}
+                onSuccess={() => {
+                    setEditTarget(null);
+                    fetchPrompt();
+                }}
+            />
+        )}
+    </div>
+);
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CreatePromptDialog } from '@/components/create-prompt-dialog';
@@ -26,6 +27,8 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
+    const searchParams = useSearchParams();
+
     useEffect(() => {
         if (isLoaded && user) {
             fetchPrompts();
@@ -33,6 +36,17 @@ export default function Dashboard() {
             setLoading(false);
         }
     }, [isLoaded, user]);
+
+    // Check for ?create=true to open dialog
+    useEffect(() => {
+        if (searchParams.get('create') === 'true') {
+            setIsCreateDialogOpen(true);
+            // Optional: Cleanup URL
+            // const newUrl = new URL(window.location.href);
+            // newUrl.searchParams.delete('create');
+            // window.history.replaceState({}, '', newUrl.toString());
+        }
+    }, [searchParams]);
 
     const fetchPrompts = async () => {
         try {

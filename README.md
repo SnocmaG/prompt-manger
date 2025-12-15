@@ -6,10 +6,11 @@ A production-ready SaaS application for managing AI prompts with a Git-like bran
 
 - 🌿 **Git-like Branching**: Create branches from live, edit safely, and deploy when ready
 - 📝 **Version History**: Full audit trail with immutable versions
-- 🚀 **One-Click Deploy**: Switch live branches instantly
-- 🧪 **Test Before Deploy**: Test prompts before making them live
-- 🔐 **Secure Authentication**: Google OAuth via Clerk
-- 🌐 **External API**: Fetch live prompts from n8n or other automations
+- 🚀 **Advanced Deployment**: Deploy to multiple environments (Production, Staging)
+- 📊 **Observability**: Track token usage, cost, and latency for every run
+- ⚖️ **Evaluations**: Create datasets and run batch tests against your prompts
+- 🔐 **Secure Authentication**: Google OAuth via Clerk + API Key management
+- 🌐 **LLM Gateway**: Drop-in OpenAI-compatible API proxy
 - 💎 **Premium UI**: Modern dashboard with shadcn/ui components
 
 ## Tech Stack
@@ -171,6 +172,9 @@ curl -H "x-api-key: your-secret-key" \
 - `POST /api/versions/create` - Save new version
 - `POST /api/branches/deploy` - Deploy branch to live
 - `POST /api/branches/test` - Test branch with input
+- `GET /api/models` - List available OpenAI models
+- `POST /api/v1/gateway` - LLM Proxy Gateway
+- `POST /api/evaluations` - Manage evaluation datasets
 
 ## Architecture
 

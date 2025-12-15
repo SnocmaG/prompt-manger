@@ -49,17 +49,7 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, o
 
     return (
         <div className="flex flex-col h-full">
-            <div className="p-4 border-b">
-                <h3 className="font-semibold text-sm flex items-center gap-2">
-                    <HistoryIcon className="h-4 w-4 text-muted-foreground" />
-                    Version History
-                </h3>
-                {onClose && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
-                        <X className="h-4 w-4" />
-                    </Button>
-                )}
-            </div>
+
             <p className="text-xs text-muted-foreground">
                 {sortedVersions.length} version{sortedVersions.length !== 1 ? 's' : ''}
             </p>

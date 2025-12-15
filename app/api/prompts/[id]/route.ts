@@ -77,9 +77,19 @@ export async function PATCH(
         });
 
         // 2. Handle Deployments (Environments)
-        // New way: { deployment: { slug: 'staging', versionId: '...' } }
+        // 2. Handle Deployments (Environments)
         if (deployment) {
             const { slug, versionId } = deployment;
+
+            // Check current prompt to see if we need to update liveVersionId (backward compat)
+            // If deploying to 'production', we consider this the "live" version
+            if (slug === 'production') {
+                await prisma.prompt.update({
+                    where: { id },
+                    data: { liveVersionId: versionId }
+                });
+            }
+
             await prisma.promptEnvironment.upsert({
                 where: {
                     promptId_slug: { promptId: id, slug }
@@ -89,8 +99,13 @@ export async function PATCH(
             });
         }
 
-        // Backward compatibility: liveVersionId -> 'production'
+        // Backward compatibility: liveVersionId param -> 'production' + update liveVersionId column
         if (liveVersionId) {
+            await prisma.prompt.update({
+                where: { id },
+                data: { liveVersionId }
+            });
+
             await prisma.promptEnvironment.upsert({
                 where: {
                     promptId_slug: { promptId: id, slug: 'production' }

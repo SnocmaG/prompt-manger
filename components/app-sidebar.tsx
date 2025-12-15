@@ -78,7 +78,7 @@ export function AppSidebar() {
                     <Button
                         variant="default"
                         className="w-full justify-start gap-2 shadow-sm font-semibold from-primary to-primary/80 bg-gradient-to-r text-primary-foreground hover:opacity-90 transition-all border-0 truncate"
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push('/?create=true')}
                     >
                         <Plus className="h-4 w-4 shrink-0" />
                         <span className="text-sm truncate">New Prompt</span>
@@ -89,7 +89,7 @@ export function AppSidebar() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-white"
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push('/?create=true')}
                         title="New Prompt"
                     >
                         <Plus className="h-4 w-4" />

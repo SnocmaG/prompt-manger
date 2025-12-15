@@ -209,6 +209,53 @@ export default async function ApiDocsPage() {
                         />
                     </EndpointBlock>
 
+                    {/* SECTION: UTILITIES */}
+                    <SectionTitle title="Utilities & Gateway" description="Helper endpoints for building AI applications." />
+
+                    {/* POST /api/v1/gateway */}
+                    <EndpointBlock
+                        method="POST"
+                        path="/api/v1/gateway"
+                        title="LLM Gateway (Proxy)"
+                        description="A drop-in replacement for OpenAI's chat completions API. Proxies requests to the provider while logging metadata for observability."
+                    >
+                        <ParamSection title="Body Parameters">
+                            <ParamRow name="model" type="string" required description="Target model (e.g., 'gpt-4o')." />
+                            <ParamRow name="messages" type="array" required description="Standard OpenAI message array." />
+                            <ParamRow name="provider" type="string" optional description="'openai' (default) or 'anthropic'." />
+                        </ParamSection>
+
+                        <ExampleSection
+                            title="Example Proxy Request"
+                            code={`await fetch('/api/v1/gateway', {
+  method: 'POST',
+  headers: { 
+    'Content-Type': 'application/json',
+    'x-api-key': 'your-key' 
+  },
+  body: JSON.stringify({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: "Hello!" }]
+  })
+});`}
+                        />
+                    </EndpointBlock>
+
+                    {/* GET /api/models */}
+                    <EndpointBlock
+                        method="GET"
+                        path="/api/models"
+                        title="List Available Models"
+                        description="Fetch a dynamic list of available AI models from the configured providers (OpenAI)."
+                    >
+                        <ResponseSection
+                            code={`[
+  { "id": "gpt-4o", "object": "model", "created": 1715367049, "owned_by": "system" },
+  { "id": "gpt-4-turbo", "object": "model", "created": 1712361441, "owned_by": "system" }
+]`}
+                        />
+                    </EndpointBlock>
+
                     {/* SECTION: SQL VIEWS */}
                     <SectionTitle title="Direct Database Access" description="Query deployed prompts directly via SQL." />
                     <SqlViewSection />
