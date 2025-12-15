@@ -112,12 +112,33 @@ export function PromptCard({ id, name, updatedAt, liveVersionId, versionCount, d
                 </div>
             </CardContent>
 
-            <CardFooter className="pt-3 pb-3 border-t bg-muted/10 relative mt-auto z-0 pointer-events-none">
+            <CardFooter className="pt-3 pb-3 border-t bg-muted/10 relative mt-auto z-0 relative">
                 <div className="flex items-center justify-between w-full text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
                     <div className="flex items-center gap-1.5">
                         <Clock className="h-3 text-primary/60 w-3" />
                         <span>Updated {date}</span>
                     </div>
+
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation(); // Stop card click
+                            navigator.clipboard.writeText(id);
+                            // Visual feedback could be added here, but keep it subtle as requested
+                            // Maybe change text to "Copied" for a split second?
+                            const btn = e.currentTarget;
+                            const originalContent = btn.innerHTML;
+                            btn.innerHTML = `<svg class="h-3 w-3 text-green-500 mr-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
+                            setTimeout(() => {
+                                btn.innerHTML = originalContent;
+                            }, 1500);
+                        }}
+                        className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer group/id"
+                        title="Copy Prompt ID"
+                    >
+                        <span className="group-hover/id:underline decoration-dotted underline-offset-2">ID</span>
+                        <Copy className="h-3 w-3 opacity-50 group-hover/id:opacity-100 transition-opacity" />
+                    </button>
                 </div>
             </CardFooter>
         </Card>
