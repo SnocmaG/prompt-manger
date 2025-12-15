@@ -7,8 +7,25 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 import { Logo } from "@/components/logo";
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
 
 export function LandingPage() {
+    const [isCopied, setIsCopied] = useState(false);
+    const codeSnippet = `const prompt = await client.getPrompt("customer-support-v2");
+
+// Execute with live variables
+const response = await prompt.run({
+  inputs: { query: "Where is my order?" },
+  model: "gpt-4o"
+});`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(codeSnippet);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    };
+
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary/20">
             {/* Header */}
@@ -30,7 +47,7 @@ export function LandingPage() {
                             </Button>
                         </SignInButton>
                         <SignInButton mode="modal">
-                            <Button size="sm" className="font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">Get Started</Button>
+                            <Button size="sm" className="font-medium shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white transition-all hover:scale-105 active:scale-95">Get Started</Button>
                         </SignInButton>
                     </div>
                 </div>
@@ -83,7 +100,7 @@ export function LandingPage() {
                             className="flex flex-col sm:flex-row gap-4 mt-8"
                         >
                             <SignInButton mode="modal">
-                                <Button size="lg" className="h-12 px-8 text-lg font-medium shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-105 active:scale-95">
+                                <Button size="lg" className="h-12 px-8 text-lg font-medium shadow-xl shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white transition-all hover:scale-105 active:scale-95">
                                     Start Building Free
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
@@ -103,13 +120,22 @@ export function LandingPage() {
                             transition={{ duration: 0.7, delay: 0.4 }}
                             className="mt-16 w-full max-w-4xl rounded-xl border bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden group hover:border-primary/50 transition-colors duration-500"
                         >
-                            <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/50">
-                                <div className="flex gap-1.5">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                            <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                                        <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                                        <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground font-mono">production-flow.ts</div>
                                 </div>
-                                <div className="text-xs text-muted-foreground font-mono ml-2">production-flow.ts</div>
+                                <button
+                                    onClick={handleCopy}
+                                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+                                >
+                                    {isCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                    {isCopied ? <span className="text-green-500 font-medium">Copied</span> : <span>Copy</span>}
+                                </button>
                             </div>
                             <div className="p-6 text-left overflow-x-auto">
                                 <pre className="text-sm font-mono leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors duration-300">
@@ -250,7 +276,7 @@ export function LandingPage() {
                             Join thousands of engineers who have upgraded their AI workflow.
                         </p>
                         <SignInButton mode="modal">
-                            <Button size="lg" className="h-14 px-10 text-xl font-semibold shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105">
+                            <Button size="lg" className="h-14 px-10 text-xl font-semibold shadow-2xl shadow-indigo-500/30 bg-indigo-600 hover:bg-indigo-700 text-white transition-all hover:scale-105">
                                 Start Building for Free
                             </Button>
                         </SignInButton>
