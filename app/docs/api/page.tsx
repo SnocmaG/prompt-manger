@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUserInfo } from "@/lib/auth";
+import { EndpointBlock } from "@/components/api-endpoint-block";
 
 export default async function ApiDocsPage() {
     const { isAdmin } = await getUserInfo();
@@ -277,31 +278,7 @@ function SectionTitle({ title, description }: { title: string, description: stri
     );
 }
 
-function EndpointBlock({ method, path, title, description, children }: { method: string, path: string, title: string, description: string, children?: React.ReactNode }) {
-    const colorClass =
-        method === "GET" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
-            method === "POST" ? "bg-green-500/10 text-green-500 border-green-500/20" :
-                method === "PATCH" ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
-                    "bg-gray-500/10 text-gray-500";
 
-    return (
-        <div className="border rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-            <div className="p-6 border-b bg-muted/30">
-                <div className="flex flex-wrap items-center gap-3 mb-3">
-                    <span className={cn("px-3 py-1 text-xs font-bold rounded-full border", colorClass)}>
-                        {method}
-                    </span>
-                    <span className="font-mono text-sm font-semibold selection:bg-primary/20">{path}</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">{title}</h3>
-                <p className="text-muted-foreground">{description}</p>
-            </div>
-            <div className="p-6 space-y-6">
-                {children}
-            </div>
-        </div>
-    );
-}
 
 function ParamSection({ title, children }: { title: string, children: React.ReactNode }) {
     return (
