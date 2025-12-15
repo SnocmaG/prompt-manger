@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
         // Generate Key: sk_live_<random>
         const randomStr = randomBytes(24).toString('hex');
-        const key = `sk_live_${randomStr} `;
+        const key = `sk_live_${randomStr}`;
 
         const newKey = await prisma.apiKey.create({
             data: {

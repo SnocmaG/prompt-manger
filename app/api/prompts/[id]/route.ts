@@ -23,6 +23,7 @@ export async function GET(
                 versions: {
                     orderBy: { createdAt: 'desc' },
                 },
+                environments: true, // Include deployments
                 executions: {
                     orderBy: { createdAt: 'desc' },
                     take: 20
@@ -57,8 +58,9 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { name, liveVersionId } = body;
+        const { name, liveVersionId, deployment, defaultModel } = body;
 
+        // 1. Update basic prompt fields
         const updatedPrompt = await prisma.prompt.update({
             where: {
                 id,
@@ -66,11 +68,37 @@ export async function PATCH(
             },
             data: {
                 ...(name && { name }),
-                ...(liveVersionId && { liveVersionId }),
-                ...(body.defaultModel && { defaultModel: body.defaultModel }),
+                ...(defaultModel && { defaultModel }),
                 updatedBy: userName || userId,
             },
+            include: {
+                environments: true
+            }
         });
+
+        // 2. Handle Deployments (Environments)
+        // New way: { deployment: { slug: 'staging', versionId: '...' } }
+        if (deployment) {
+            const { slug, versionId } = deployment;
+            await prisma.promptEnvironment.upsert({
+                where: {
+                    promptId_slug: { promptId: id, slug }
+                },
+                update: { versionId },
+                create: { promptId: id, slug, versionId }
+            });
+        }
+
+        // Backward compatibility: liveVersionId -> 'production'
+        if (liveVersionId) {
+            await prisma.promptEnvironment.upsert({
+                where: {
+                    promptId_slug: { promptId: id, slug: 'production' }
+                },
+                update: { versionId: liveVersionId },
+                create: { promptId: id, slug: 'production', versionId: liveVersionId }
+            });
+        }
 
         return NextResponse.json(updatedPrompt);
     } catch (error) {

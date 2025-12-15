@@ -8,7 +8,9 @@ import {
     BookOpen,
     LayoutDashboard,
     PanelLeftClose,
-    PanelLeftOpen
+    PanelLeftOpen,
+    BarChart2,
+    FlaskConical
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -117,6 +119,27 @@ export function AppSidebar() {
                         {!isCollapsed && <span className="truncate">Explore Library</span>}
                     </div>
                 </Link>
+
+                <Link href="/analytics">
+                    <div className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
+                        pathname === "/analytics" && "bg-[#ffffff10] text-white",
+                        isCollapsed && "justify-center px-2"
+                    )} title={isCollapsed ? "Analytics" : undefined}>
+                        <BarChart2 className="h-4 w-4 shrink-0" />
+                        {!isCollapsed && <span className="truncate">Analytics</span>}
+                    </div>
+                </Link>
+                <Link href="/evaluations">
+                    <div className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
+                        pathname.startsWith("/evaluations") && "bg-[#ffffff10] text-white",
+                        isCollapsed && "justify-center px-2"
+                    )} title={isCollapsed ? "Evaluations" : undefined}>
+                        <FlaskConical className="h-4 w-4 shrink-0" />
+                        {!isCollapsed && <span className="truncate">Evaluations</span>}
+                    </div>
+                </Link>
                 <Link href="/docs/api">
                     <div className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
@@ -127,22 +150,24 @@ export function AppSidebar() {
                         {!isCollapsed && <span className="truncate">Documentation</span>}
                     </div>
                 </Link>
-            </div>
+            </div >
 
             {/* Search */}
-            {!isCollapsed && (
-                <div className="px-3 py-2">
-                    <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
-                        <Input
-                            placeholder="Search..."
-                            className="h-8 pl-8 bg-[#2f2f2f] border-none text-xs text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-gray-600"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+            {
+                !isCollapsed && (
+                    <div className="px-3 py-2">
+                        <div className="relative">
+                            <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+                            <Input
+                                placeholder="Search..."
+                                className="h-8 pl-8 bg-[#2f2f2f] border-none text-xs text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-gray-600"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Prompt List (Scrollable) */}
             <div className="flex-1 overflow-hidden mt-2">
@@ -201,6 +226,6 @@ export function AppSidebar() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

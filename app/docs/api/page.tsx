@@ -72,16 +72,17 @@ export default async function ApiDocsPage() {
                     <EndpointBlock
                         method="GET"
                         path="/api/v1/get_current_prompt"
-                        title="Get Live Prompt (Best for Integration)"
-                        description="This is the main endpoint you will use in your app. It fetches the 'Live' version of a prompt. If you update the prompt in the dashboard, this endpoint will automatically return the new version without any code changes."
+                        title="Get Live Prompt (Environment Aware)"
+                        description="Fetch the active version for a specific environment (e.g., production, staging). Defaults to 'production' if no environment is specified."
                     >
                         <ParamSection title="Query Parameters (URL)">
-                            <ParamRow name="promptId" type="string" required description="The unique ID of the prompt you want to fetch. You can copy this from the URL of the prompt in the dashboard." />
+                            <ParamRow name="promptId" type="string" required description="The unique ID of the prompt container." />
+                            <ParamRow name="env" type="string" optional description="Target environment slug (e.g., 'production', 'staging'). Defaults to 'production'." />
                         </ParamSection>
 
                         <ExampleSection
                             title="Example Request (JavaScript/Fetch)"
-                            code={`const promptId = "cm4..."; // Your Prompt ID\n\nconst response = await fetch(\`/api/v1/get_current_prompt?promptId=\${promptId}\`);\nconst data = await response.json();\n\nconsole.log(data.systemPrompt); // "You are a helpful assistant..."`}
+                            code={`const promptId = "cm4...";\nconst env = "staging"; // Optional\n\nconst response = await fetch(\`/api/v1/get_current_prompt?promptId=\${promptId}&env=\${env}\`);\nconst data = await response.json();\n\nconsole.log(data.systemPrompt); // Returns the version deployed to Staging`}
                         />
 
                         <ResponseSection
@@ -90,8 +91,8 @@ export default async function ApiDocsPage() {
   "name": "Customer Support Bot",
   "versionId": "cm47...v1",
   "systemPrompt": "You are a helpful customer support agent...",
-  "userPrompt": "",
-  "label": "v1.0 - Initial Release",
+  "env": "staging",
+  "label": "v1.0 - RC1",
   "createdAt": "2023-12-14T00:00:00.000Z"
 }`}
                         />
@@ -106,7 +107,7 @@ export default async function ApiDocsPage() {
                         method="GET"
                         path="/api/prompts"
                         title="List All Prompts"
-                        description="Get a list of all prompt containers in your workspace."
+                        description="Get a list of all prompt containers in your workspace, including their deployed environments."
                     >
                         <ResponseSection
                             code={`[
@@ -114,13 +115,10 @@ export default async function ApiDocsPage() {
     "id": "cm47...",
     "name": "Email Generator",
     "updatedAt": "2023-12-14...",
-    "_count": { "versions": 5 }
-  },
-  {
-    "id": "cm48...",
-    "name": "SQL Helper",
-    "updatedAt": "2023-12-13...",
-    "_count": { "versions": 12 }
+    "environments": [
+      { "slug": "production", "versionId": "..." },
+      { "slug": "staging", "versionId": "..." }
+    ]
   }
 ]`}
                         />
@@ -184,29 +182,35 @@ export default async function ApiDocsPage() {
                         method="PATCH"
                         path="/api/prompts/[id]"
                         title="Deploy Version"
-                        description="Set a specific version as 'Live'. This is how you deploy changes programmatically."
+                        description="Deploy a specific version to an environment (Production, Staging, etc.)."
                     >
                         <ParamSection title="URL Parameters">
                             <ParamRow name="id" type="string" required description="The ID of the prompt container." />
                         </ParamSection>
 
                         <ParamSection title="Body Parameters (JSON)">
-                            <ParamRow name="liveVersionId" type="string" required description="The ID of the version you want to trigger live." />
+                            <ParamRow name="deployment" type="object" required description="Deployment configuration object." />
+                            <ParamRow name="deployment.slug" type="string" required description="Target environment slug (e.g., 'production')." />
+                            <ParamRow name="deployment.versionId" type="string" required description="The ID of the version to deploy." />
                         </ParamSection>
 
                         <ExampleSection
                             title="Example Deployment"
                             code={`await fetch('/api/prompts/cm47...', {
   method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    liveVersionId: "cm49...new-version-id"
+    deployment: {
+      slug: "production",
+      versionId: "cm49...new-version-id"
+    }
   })
 });`}
                         />
                     </EndpointBlock>
 
                     {/* SECTION: SQL VIEWS */}
-                    <SectionTitle title="Direct Database Access" description="For high-performance or BI use cases." />
+                    <SectionTitle title="Direct Database Access" description="Query deployed prompts directly via SQL." />
                     <SqlViewSection />
 
                 </div>
@@ -306,32 +310,33 @@ function SqlViewSection() {
     return (
         <EndpointBlock
             method="SQL"
-            path='SELECT * FROM "LivePrompt"'
-            title="Live Prompts View (SQL)"
-            description="We provide a dedicated SQL View for easy integration with tools like n8n, Retool, or BI dashboards. This view is automatically kept in sync with deployment actions."
+            path='SELECT * FROM "PromptEnvironment"'
+            title="Deployed Environments Table"
+            description="Query the PromptEnvironment table to see which versions are live in which environments."
         >
             <ExampleSection
-                title='Table Schema (public."LivePrompt")'
+                title='Table Schema (public."PromptEnvironment")'
                 code={`
--- This view contains ONLY currently deployed prompts.
-TABLE "LivePrompt" (
-  "id"           text,      -- Prompt ID
-  "name"         text,      -- Prompt Name
-  "clientId"     text,      -- Workspace ID
-  "versionId"    text,      -- Deployed Version ID
-  "versionLabel" text,      -- e.g. "v1.0"
-  "systemPrompt" text,      -- The actual system instruction
-  "userPrompt"   text,      -- The user prompt (if any)
-  "deployedAt"   timestamp  -- When this version was created
+-- This table tracks all active deployments
+TABLE "PromptEnvironment" (
+  "promptId"   text,      -- Prompt Reference
+  "slug"       text,      -- Environment name: 'production', 'staging'
+  "versionId"  text,      -- Deployed Version ID
+  "updatedAt"  timestamp  -- Time of deployment
 );`}
             />
             <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg mt-4">
-                <h5 className="text-yellow-500 font-bold text-sm mb-1 uppercase">How to use in n8n</h5>
-                <p className="text-sm text-muted-foreground">
-                    Use the Postgres Node. Set <strong>Operation</strong> to <code>Execute Query</code>.
-                    <br />
-                    Query: <code>{`SELECT * FROM "LivePrompt" WHERE "clientId" = '...'`}</code>
+                <h5 className="text-yellow-500 font-bold text-sm mb-1 uppercase">Sample Query</h5>
+                <p className="text-sm text-muted-foreground mb-2">
+                    Get the production version for &quot;My Prompt&quot;:
                 </p>
+                <code className="block bg-black/20 p-2 rounded text-xs font-mono">
+                    {`SELECT pe."versionId", pv."systemPrompt" 
+FROM "PromptEnvironment" pe
+JOIN "PromptVersion" pv ON pe."versionId" = pv."id"
+JOIN "Prompt" p ON pe."promptId" = p."id"
+WHERE p."name" = 'My Prompt' AND pe."slug" = 'production'`}
+                </code>
             </div>
         </EndpointBlock>
     );

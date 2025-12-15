@@ -24,7 +24,7 @@ export async function testWithOpenAI(
     testInput?: string,
     model: string = 'gpt-4o-mini'
 ): Promise<string> {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
 
     if (!apiKey) {
         throw new Error('OpenAI API key not configured');

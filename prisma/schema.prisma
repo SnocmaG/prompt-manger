@@ -25,9 +25,27 @@ model Prompt {
 
   versions      PromptVersion[]
   executions    PromptExecution[]
+  environments  PromptEnvironment[]
   
   @@unique([clientId, name])
   @@index([clientId])
+}
+
+model PromptEnvironment {
+  id        String   @id @default(uuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  slug      String   // "production", "staging"
+  color     String?  // UI color helper e.g. "red", "green"
+  
+  versionId String
+  version   PromptVersion @relation(fields: [versionId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([promptId, slug])
 }
 
 model PromptVersion {
@@ -43,6 +61,8 @@ model PromptVersion {
   updatedBy       String
   
   prompt          Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  deployments     PromptEnvironment[]
+  evaluationRuns  EvaluationRun[]
   
   @@index([promptId])
   @@index([createdAt])
@@ -64,6 +84,12 @@ model PromptExecution {
   createdAt     DateTime @default(now())
   createdBy     String
   
+  // Observability
+  durationMs    Int?
+  tokensIn      Int?
+  tokensOut     Int?
+  cost          Float?
+  
   @@index([createdAt])
 }
 
@@ -82,15 +108,63 @@ model ApiKey {
   @@index([clientId])
 }
 
-view LivePrompt {
-  id            String   @id
-  name          String
-  clientId      String
-  versionId     String
-  versionLabel  String
-  systemPrompt  String
-  userPrompt    String
-  deployedAt    DateTime
+// --- Evaluations & Testing ---
 
-  @@unique([id])
+model Evaluation {
+  id        String   @id @default(uuid())
+  clientId  String
+  name      String   // e.g. "Support Golden Dataset"
+  
+  items     EvaluationItem[]
+  runs      EvaluationRun[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([clientId])
+}
+
+model EvaluationItem {
+  id            String     @id @default(uuid())
+  evaluationId  String
+  evaluation    Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  
+  // JSON string of variables: { "customer": "John", "topic": "Refund" }
+  input         String     @db.Text 
+  expectedOutput String?   @db.Text
+  
+  createdAt     DateTime   @default(now())
+  
+  results       EvaluationResult[]
+}
+
+model EvaluationRun {
+  id              String         @id @default(uuid())
+  evaluationId    String
+  evaluation      Evaluation     @relation(fields: [evaluationId], references: [id])
+  
+  promptVersionId String
+  promptVersion   PromptVersion  @relation(fields: [promptVersionId], references: [id])
+  
+  results         EvaluationResult[]
+  
+  score           Float?         // 0-100%
+  status          String         @default("running") // running, completed, error
+  
+  createdAt       DateTime       @default(now())
+}
+
+model EvaluationResult {
+  id               String         @id @default(uuid())
+  evaluationRunId  String
+  evaluationRun    EvaluationRun  @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+  
+  evaluationItemId String
+  evaluationItem   EvaluationItem @relation(fields: [evaluationItemId], references: [id])
+  
+  output           String         @db.Text
+  passed           Boolean?
+  score            Float?         // 0-1 if graded by LLM
+  
+  createdAt        DateTime       @default(now())
 }

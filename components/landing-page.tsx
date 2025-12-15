@@ -15,6 +15,14 @@ export function LandingPage() {
             <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between px-4 md:px-8">
                     <Logo />
+
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+                        <Link href="/docs" className="transition-colors hover:text-foreground">Documentation</Link>
+                        <Link href="#features" className="transition-colors hover:text-foreground">Features</Link>
+                        <a href="https://github.com/SnocmaG/prompt-manger" target="_blank" rel="noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
+                    </nav>
+
                     <div className="flex items-center gap-4">
                         <SignInButton mode="modal">
                             <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">

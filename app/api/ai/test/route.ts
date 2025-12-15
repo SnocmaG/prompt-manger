@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserInfo } from '@/lib/auth';
 import { testPrompt, AIProvider } from '@/lib/ai-providers';
 
+import { prisma } from '@/lib/prisma';
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
@@ -44,26 +46,16 @@ export async function POST(request: NextRequest) {
         // Save execution history (Fire and forget or await? Await to ensure safety)
         if (promptId && result.success) {
             try {
-                // We need to import prisma from lib if not already imported, but it usually is in these files?
-                // Checking imports... 'import { getUserInfo } from '@/lib/auth';' 
-                // We need 'import { prisma } from '@/lib/prisma';'
-                // Let's assume I fix imports in a separate/block.
-                // Actually replace_file_content replaces block. I need to make sure prisma is available.
-                // The file imports `prisma`? No, viewed file didn't show it. It showed getUserInfo and testPrompt. 
-                // I will add prisma import.
-
-                await import('@/lib/prisma').then(async ({ prisma }) => {
-                    await prisma.promptExecution.create({
-                        data: {
-                            promptId,
-                            systemPrompt: overrideContent,
-                            userPrompt: testInput || '',
-                            model: result.model || model || provider,
-                            provider: result.provider,
-                            response: result.output,
-                            createdBy: name || userId || 'system',
-                        }
-                    });
+                await prisma.promptExecution.create({
+                    data: {
+                        promptId,
+                        systemPrompt: overrideContent,
+                        userPrompt: testInput || '',
+                        model: result.model || model || provider,
+                        provider: result.provider,
+                        response: result.output,
+                        createdBy: name || userId || 'system',
+                    }
                 });
             } catch (err) {
                 console.error('Failed to save execution history:', err);
