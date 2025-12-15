@@ -2,6 +2,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ExpressionText } from '@/components/expression-text';
 
 interface PromptExecution {
     id: string;
@@ -100,7 +101,7 @@ export function RunHistory({ executions, onSelect, onDelete, onClearAll, selecte
                                 )}
 
                                 <div className="text-sm font-medium line-clamp-1 w-full text-foreground/90 pointer-events-none">
-                                    {run.userPrompt || '<Empty Input>'}
+                                    <ExpressionText text={run.userPrompt || '<Empty Input>'} />
                                 </div>
                                 <div className="text-xs text-muted-foreground line-clamp-2 w-full font-mono mt-1 opacity-80 pointer-events-none">
                                     {run.response}

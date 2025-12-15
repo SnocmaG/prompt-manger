@@ -1,7 +1,7 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Clock, Trash2, X } from 'lucide-react';
-
+import { ExpressionText } from '@/components/expression-text';
 interface Version {
     id: string;
     systemPrompt: string;
@@ -111,7 +111,9 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, o
 
                             <div className="text-xs bg-muted/50 p-2 rounded max-h-20 overflow-hidden mb-2">
                                 <span className="font-semibold text-[10px] uppercase text-muted-foreground block mb-1">System</span>
-                                <div className="line-clamp-2 font-mono">{version.systemPrompt}</div>
+                                <div className="line-clamp-2 font-mono">
+                                    <ExpressionText text={version.systemPrompt} />
+                                </div>
                             </div>
 
                             <div className="flex gap-2">
