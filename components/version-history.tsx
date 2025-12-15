@@ -73,7 +73,7 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, o
                     {sortedVersions.map((version) => (
                         <div
                             key={version.id}
-                            className={`group relative border rounded-lg p-3 hover:bg-accent/50 transition-colors ${version.id === liveVersionId ? 'border-primary/50' : ''}`}
+                            className={`group relative border rounded-lg p-3 hover:bg-muted/50 transition-all ${version.id === liveVersionId ? 'border-primary/50 bg-primary/5' : 'bg-card'}`}
                         >
                             {version.id !== liveVersionId && (
                                 <button
