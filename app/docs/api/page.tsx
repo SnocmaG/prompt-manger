@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { getUserInfo } from "@/lib/auth";
 import { EndpointBlock } from "@/components/api-endpoint-block";
 

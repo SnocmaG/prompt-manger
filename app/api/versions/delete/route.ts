@@ -56,7 +56,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: 'Failed to delete version' }, { status: 500 });
     }
 }

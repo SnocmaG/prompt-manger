@@ -37,7 +37,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to delete history' }, { status: 500 });
+    } catch {
+        return NextResponse.json({ error: 'Failed to delete execution' }, { status: 500 });
     }
 }
