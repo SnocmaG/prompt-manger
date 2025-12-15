@@ -9,7 +9,33 @@ export async function GET(request: NextRequest) {
         const promptId = searchParams.get('promptId');
 
         if (!promptId) {
-            return NextResponse.json({ error: 'Missing promptId' }, { status: 400 });
+            // Return all prompts with their live versions
+            const allPrompts = await prisma.prompt.findMany({
+                include: {
+                    versions: true // We need this to find the live version content
+                }
+            });
+
+            const result = allPrompts
+                .filter(p => p.liveVersionId) // Only those with live versions
+                .map(p => {
+                    const liveVersion = p.versions.find(v => v.id === p.liveVersionId);
+                    if (!liveVersion) return null;
+
+                    return {
+                        promptId: p.id,
+                        name: p.name,
+                        versionId: liveVersion.id,
+                        systemPrompt: liveVersion.systemPrompt,
+                        userPrompt: liveVersion.userPrompt,
+                        label: liveVersion.label,
+                        createdAt: liveVersion.createdAt,
+                        env: 'production' // Default to production for this legacy-style endpoint compatibility
+                    };
+                })
+                .filter(Boolean); // Remove nulls
+
+            return NextResponse.json(result);
         }
 
         const targetPrompt = await prisma.prompt.findUnique({

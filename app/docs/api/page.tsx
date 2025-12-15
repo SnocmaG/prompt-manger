@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
 import { getUserInfo } from "@/lib/auth";
 import { EndpointBlock } from "@/components/api-endpoint-block";
+import { CodeBlock } from "@/components/code-block";
 
 export default async function ApiDocsPage() {
     const { isAdmin } = await getUserInfo();
@@ -314,11 +315,7 @@ function ExampleSection({ title, code }: { title: string, code: string }) {
     return (
         <div>
             <h4 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mb-3">{title}</h4>
-            <div className="relative group">
-                <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-lg text-xs font-mono overflow-x-auto border border-zinc-800 leading-relaxed">
-                    {code}
-                </pre>
-            </div>
+            <CodeBlock code={code} />
         </div>
     );
 }
