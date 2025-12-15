@@ -25,6 +25,17 @@ export async function getUserInfo() {
     const apiKey = headersList.get('x-api-key');
 
     if (apiKey) {
+        // 0. Check for Environment Variable Admin Key (Fast path, no DB)
+        if (process.env.ADMIN_API_KEY && apiKey === process.env.ADMIN_API_KEY) {
+            return {
+                userId: 'admin',
+                clientId: 'admin',
+                email: 'admin@system',
+                name: 'System Admin',
+                isAdmin: true
+            };
+        }
+
         const keyRecord = await prisma.apiKey.findUnique({
             where: { key: apiKey }
         });

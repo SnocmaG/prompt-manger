@@ -50,7 +50,14 @@ export function CodeBlock({ code, className }: CodeBlockProps) {
         );
     };
 
+    const [isCopied, setIsCopied] = React.useState(false);
 
+    const handleCopy = () => {
+        if (!code) return;
+        navigator.clipboard.writeText(code);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    };
 
     return (
         <div className={cn("relative group border border-border/20 rounded-lg overflow-hidden", className)}>

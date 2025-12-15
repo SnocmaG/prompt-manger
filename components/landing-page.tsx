@@ -47,7 +47,7 @@ const response = await prompt.run({
                             </Button>
                         </SignInButton>
                         <SignInButton mode="modal">
-                            <Button size="sm" className="font-medium shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white transition-all hover:scale-105 active:scale-95">Get Started</Button>
+                            <Button size="sm" className="font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">Get Started</Button>
                         </SignInButton>
                     </div>
                 </div>
@@ -100,7 +100,7 @@ const response = await prompt.run({
                             className="flex flex-col sm:flex-row gap-4 mt-8"
                         >
                             <SignInButton mode="modal">
-                                <Button size="lg" className="h-12 px-8 text-lg font-medium shadow-xl shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white transition-all hover:scale-105 active:scale-95">
+                                <Button size="lg" className="h-12 px-8 text-lg font-medium shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-105 active:scale-95">
                                     Start Building Free
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
@@ -276,7 +276,7 @@ const response = await prompt.run({
                             Join thousands of engineers who have upgraded their AI workflow.
                         </p>
                         <SignInButton mode="modal">
-                            <Button size="lg" className="h-14 px-10 text-xl font-semibold shadow-2xl shadow-indigo-500/30 bg-indigo-600 hover:bg-indigo-700 text-white transition-all hover:scale-105">
+                            <Button size="lg" className="h-14 px-10 text-xl font-semibold shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105">
                                 Start Building for Free
                             </Button>
                         </SignInButton>
