@@ -136,7 +136,7 @@ export function PromptCard({ id, name, updatedAt, liveVersionId, versionCount, d
                         className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer group/id"
                         title="Copy Prompt ID"
                     >
-                        <span className="group-hover/id:underline decoration-dotted underline-offset-2">ID</span>
+                        <span className="group-hover/id:underline decoration-dotted underline-offset-2">Prompt ID</span>
                         <Copy className="h-3 w-3 opacity-50 group-hover/id:opacity-100 transition-opacity" />
                     </button>
                 </div>
