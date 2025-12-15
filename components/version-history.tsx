@@ -1,6 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Clock, Trash2, XCircle } from 'lucide-react';
+import { Clock, Trash2, X } from 'lucide-react';
 
 interface Version {
     id: string;
@@ -84,7 +84,7 @@ export function VersionHistory({ versions, liveVersionId, onRestore, onDeploy, o
                                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
                                     title="Delete version"
                                 >
-                                    <XCircle className="h-3.5 w-3.5" />
+                                    <X className="h-4 w-4" />
                                 </button>
                             )}
 
