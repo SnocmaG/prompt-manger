@@ -27,8 +27,12 @@ export async function getUserInfo() {
     // Check Authorization header fallback (Bearer)
     if (!apiKey) {
         const authHeader = headersList.get('authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            apiKey = authHeader.replace('Bearer ', '').trim();
+        if (authHeader) {
+            // Case-insensitive match for "Bearer "
+            const match = authHeader.match(/^Bearer\s+(.+)$/i);
+            if (match) {
+                apiKey = match[1].trim();
+            }
         }
     }
 
