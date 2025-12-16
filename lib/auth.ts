@@ -34,7 +34,9 @@ export async function getUserInfo() {
 
     if (apiKey) {
         // 0. Check for Environment Variable Admin Key (Fast path, no DB)
-        if (process.env.ADMIN_API_KEY && apiKey === process.env.ADMIN_API_KEY) {
+        // Support both ADMIN_API_KEY and the legacy API_SECRET_KEY from Render
+        const systemKey = process.env.ADMIN_API_KEY || process.env.API_SECRET_KEY;
+        if (systemKey && apiKey === systemKey) {
             return {
                 userId: 'admin',
                 clientId: 'admin',
