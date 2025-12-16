@@ -22,7 +22,15 @@ export async function getClientId() {
 export async function getUserInfo() {
     // 1. Check for API Key first
     const headersList = await headers();
-    const apiKey = headersList.get('x-api-key');
+    let apiKey = headersList.get('x-api-key');
+
+    // Check Authorization header fallback (Bearer)
+    if (!apiKey) {
+        const authHeader = headersList.get('authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            apiKey = authHeader.replace('Bearer ', '').trim();
+        }
+    }
 
     if (apiKey) {
         // 0. Check for Environment Variable Admin Key (Fast path, no DB)

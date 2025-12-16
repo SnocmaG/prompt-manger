@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
+import { getUserInfo } from '@/lib/auth'; // Import auth helper
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+    const user = await getUserInfo();
+    if (!user.isAdmin && !user.clientId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const promptId = searchParams.get('promptId');
