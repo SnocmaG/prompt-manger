@@ -137,29 +137,31 @@ DATABASE_URL="your-render-db-url" npx prisma db seed
 
 ### External API (for n8n)
 
-**Endpoint**: `GET /api/prompts/live`
+**Endpoint**: `GET /api/v1/get_current_prompt`
 
 **Headers**:
 - `x-api-key`: Your API_SECRET_KEY
+- OR `Authorization`: `Bearer <your-key>`
 
 **Query Parameters**:
-- `clientId`: Workspace identifier
-- `name`: Prompt name
+- `promptId`: The unique ID of the prompt
+- `env`: (Optional) 'production' or 'staging' (defaults to production)
 
 **Example**:
 ```bash
 curl -H "x-api-key: your-secret-key" \
-  "https://your-app.onrender.com/api/prompts/live?clientId=demo-client&name=welcome_email"
+  "https://your-app.onrender.com/api/v1/get_current_prompt?promptId=cm47..."
 ```
 
 **Response**:
 ```json
 {
-  "content": "Your prompt content...",
-  "branchLabel": "Main",
-  "versionLabel": "v3 – shorter intro",
-  "updatedAt": "2024-01-15T10:30:00Z",
-  "updatedBy": "john@example.com"
+  "promptId": "cm47...",
+  "versionId": "...",
+  "systemPrompt": "Your prompt content...",
+  "userPrompt": "...",
+  "label": "v3 – shorter intro",
+  "env": "production"
 }
 ```
 

@@ -1,7 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 const isPublicRoute = createRouteMatcher([
-    '/api/prompts/live(.*)', // External API for n8n
     '/api/v1(.*)', // Allow API v1 routes to handle their own auth
 ]);
 
