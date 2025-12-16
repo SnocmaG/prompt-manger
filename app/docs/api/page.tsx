@@ -28,7 +28,7 @@ export default async function ApiDocsPage() {
 
                     <div className="border rounded-xl bg-card overflow-hidden shadow-sm p-6 space-y-4">
                         <p className="text-muted-foreground">
-                            Authenticate your requests using the <code>x-api-key</code> header.
+                            Authenticate your requests using the <code>x-api-key</code> header or standard <code>Authorization: Bearer &lt;key&gt;</code>.
                             You can generate an API Key in <Link href="/settings/keys" className="text-primary hover:underline">Settings &gt; API Keys</Link>.
                         </p>
                         <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
@@ -77,8 +77,8 @@ export default async function ApiDocsPage() {
                         description="Fetch the active version for a specific environment (e.g., production, staging). Defaults to 'production' if no environment is specified."
                     >
                         <ParamSection title="Query Parameters (URL)">
-                            <ParamRow name="promptId" type="string" required description="The unique ID of the prompt container." />
-                            <ParamRow name="env" type="string" optional description="Target environment slug (e.g., 'production', 'staging'). Defaults to 'production'." />
+                            <ParamRow name="promptId" type="string" optional description="The unique ID of the prompt. If omitted, returns ALL prompts with live versions." />
+                            <ParamRow name="env" type="string" optional description="Target environment slug (e.g., 'production'). Defaults to 'production'." />
                         </ParamSection>
 
                         <ExampleSection
@@ -95,6 +95,31 @@ export default async function ApiDocsPage() {
   "env": "staging",
   "label": "v1.0 - RC1",
   "createdAt": "2023-12-14T00:00:00.000Z"
+}`}
+                        />
+                    </EndpointBlock>
+
+
+                    {/* GET /api/v1/get_prompt */}
+                    <EndpointBlock
+                        method="GET"
+                        path="/api/v1/get_prompt"
+                        title="Get Prompt Details (Metadata)"
+                        description="Fetch metadata and version history for a specific prompt container."
+                    >
+                        <ParamSection title="Query Parameters (URL)">
+                            <ParamRow name="promptId" type="string" required description="The unique ID of the prompt container." />
+                        </ParamSection>
+
+                        <ResponseSection
+                            code={`{
+  "id": "cm47...",
+  "name": "Customer Support Bot",
+  "defaultModel": "gpt-4o",
+  "versions": [
+    { "id": "...", "label": "v1" },
+    { "id": "...", "label": "v2" }
+  ]
 }`}
                         />
                     </EndpointBlock>
@@ -232,7 +257,7 @@ export default async function ApiDocsPage() {
   method: 'POST',
   headers: { 
     'Content-Type': 'application/json',
-    'x-api-key': 'your-key' 
+    'x-api-key': 'your-key' // OR 'Authorization': 'Bearer sk-...'
   },
   body: JSON.stringify({
     model: "gpt-4o",
@@ -262,8 +287,8 @@ export default async function ApiDocsPage() {
                     <SqlViewSection />
 
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
 
