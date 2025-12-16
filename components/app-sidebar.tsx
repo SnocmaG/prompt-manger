@@ -10,7 +10,8 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
     BarChart2,
-    FlaskConical
+    FlaskConical,
+    Key
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -148,6 +149,16 @@ export function AppSidebar() {
                     )} title={isCollapsed ? "Documentation" : undefined}>
                         <BookOpen className="h-4 w-4 shrink-0" />
                         {!isCollapsed && <span className="truncate">Documentation</span>}
+                    </div>
+                </Link>
+                <Link href="/settings/keys">
+                    <div className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
+                        pathname === "/settings/keys" && "bg-[#ffffff10] text-white",
+                        isCollapsed && "justify-center px-2"
+                    )} title={isCollapsed ? "API Keys" : undefined}>
+                        <Key className="h-4 w-4 shrink-0" />
+                        {!isCollapsed && <span className="truncate">API Keys</span>}
                     </div>
                 </Link>
             </div >
