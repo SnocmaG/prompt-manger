@@ -7,9 +7,10 @@ import { Copy, Check } from "lucide-react";
 interface CodeBlockProps {
     code: string;
     className?: string;
+    language?: string;
 }
 
-export function CodeBlock({ code, className }: CodeBlockProps) {
+export function CodeBlock({ code, className, language = 'json' }: CodeBlockProps) {
 
 
     // Basic JSON syntax highlighting
@@ -21,6 +22,8 @@ export function CodeBlock({ code, className }: CodeBlockProps) {
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
+
+        if (language !== 'json') return json; // Return escaped text for non-JSON
 
         // Highlight
         return json.replace(
@@ -60,14 +63,17 @@ export function CodeBlock({ code, className }: CodeBlockProps) {
                     <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
                 </div>
-                <button
-                    onClick={handleCopy}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                    title="Copy code"
-                >
-                    {isCopied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-                    {isCopied ? <span className="text-green-500">Copied</span> : <span>Copy</span>}
-                </button>
+                <div className="flex items-center gap-3">
+                    {language && <span className="text-[10px] uppercase font-mono text-muted-foreground opacity-50">{language}</span>}
+                    <button
+                        onClick={handleCopy}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                        title="Copy code"
+                    >
+                        {isCopied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        {isCopied ? <span className="text-green-500">Copied</span> : <span>Copy</span>}
+                    </button>
+                </div>
             </div>
             <pre
                 className="bg-[#1a1a1a] text-zinc-100 p-6 pt-12 rounded-lg text-xs font-mono overflow-x-auto leading-relaxed shadow-inner"

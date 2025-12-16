@@ -24,22 +24,66 @@ export default async function ApiDocsPage() {
 
                 <div className="space-y-8">
                     {/* SECTION: AUTHENTICATION */}
-                    <SectionTitle title="Authentication" description="How to authenticate your requests." />
+                    <SectionTitle title="Authentication" description="How to verify your identity (API Key)." />
 
-                    <div className="border rounded-xl bg-card overflow-hidden shadow-sm p-6 space-y-4">
-                        <p className="text-muted-foreground">
-                            Authenticate your requests using the <code>x-api-key</code> header or standard <code>Authorization: Bearer &lt;key&gt;</code>.
-                            You can generate an API Key in <Link href="/settings/keys" className="text-primary hover:underline">Settings &gt; API Keys</Link>.
-                        </p>
-                        <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
-                            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Example Header</h4>
-                            <code className="text-sm font-mono block mb-4">x-api-key: sk_live_12345...</code>
+                    <div className="space-y-6">
+                        <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl">
+                            <p className="text-sm">
+                                <strong>Important:</strong> You have a secure <code>API_SECRET_KEY</code> defined in your environment variables.
+                                You must include this key in every request.
+                            </p>
+                        </div>
 
-                            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Try it in your terminal</h4>
-                            <pre className="text-xs font-mono bg-black/5 dark:bg-black/30 p-2 rounded border border-border">
-                                {`curl -H "x-api-key: sk_live_..." \\
-     https://prompt-manger.onrender.com/api/prompts`}
-                            </pre>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* TERMINAL GUIDE */}
+                            <div className="border rounded-xl p-6 bg-card">
+                                <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                                    <span className="bg-black text-white dark:bg-white dark:text-black w-6 h-6 rounded flex items-center justify-center text-xs">1</span>
+                                    Terminal / Curl
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Use the <code>-H</code> flag to send your key as a Header.
+                                </p>
+                                <CodeBlock
+                                    language="bash"
+                                    code={`curl -X GET "https://your-app.com/api/v1/get_current_prompt?promptId=..." \\
+  -H "Authorization: Bearer sk_live_..."`}
+                                />
+                                <div className="mt-4 text-xs text-muted-foreground">
+                                    You can also use <code>x-api-key: sk_live_...</code> if you prefer.
+                                </div>
+                            </div>
+
+                            {/* N8N GUIDE */}
+                            <div className="border rounded-xl p-6 bg-card relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <svg className="w-24 h-24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5 2.5 5 2.5 5-2.5-5-2.5z" /></svg>
+                                </div>
+                                <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                                    <span className="bg-[#ff6d5a] text-white w-6 h-6 rounded flex items-center justify-center text-xs">2</span>
+                                    n8n (HTTP Request)
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    In your <strong>HTTP Request</strong> node:
+                                </p>
+                                <ul className="space-y-3 text-sm">
+                                    <li className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                                        <span>Set <strong>Authentication</strong> to <code className="bg-muted px-1 rounded">Generic</code></span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                                        <span>Set <strong>Header Name</strong> to <code className="bg-muted px-1 rounded">Authorization</code></span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                                        <span>Set <strong>Value</strong> to <code className="bg-muted px-1 rounded">Bearer sk_live_...</code></span>
+                                    </li>
+                                </ul>
+                                <div className="mt-4 p-3 bg-muted/50 rounded text-xs text-muted-foreground">
+                                    <strong>Why Bearer?</strong> It&apos;s the standard for n8n. Make sure to include the word &quot;Bearer&quot; followed by a space!
+                                </div>
+                            </div>
                         </div>
                     </div>
 
