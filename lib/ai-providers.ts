@@ -32,7 +32,7 @@ export async function testWithOpenAI(
 
     console.log(`[OpenAI Debug] Testing model: ${model}`);
 
-    const isO1 = model.startsWith('o1') || model.startsWith('o3');
+    const isNewArchitecture = model.startsWith('o1') || model.startsWith('o3') || model.startsWith('gpt-5');
 
     // Chat Payload
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,7 +44,7 @@ export async function testWithOpenAI(
         ],
     };
 
-    if (isO1) {
+    if (isNewArchitecture) {
         chatBody.max_completion_tokens = 1000;
     } else {
         chatBody.max_tokens = 1000;
@@ -61,15 +61,18 @@ export async function testWithOpenAI(
     });
 
     let data;
+    let retried = false;
 
     if (!response.ok) {
-        const error = await response.json();
-        const errorMessage = error.error?.message || '';
+        const initialError = await response.json();
+        const initialErrorMessage = initialError.error?.message || '';
 
-        // Check if it's a "not a chat model" error
-        if (errorMessage.includes('This is not a chat model')) {
-            console.warn(`[OpenAI Debug] Model ${model} is not a chat model. Retrying with /completions...`);
+        console.warn(`[OpenAI Debug] Error with model ${model}: ${initialErrorMessage}`);
 
+        // Error Case 1: "Not a chat model" -> Retry with Completions API
+        if (initialErrorMessage.includes('This is not a chat model')) {
+            console.log(`[OpenAI Debug] Switching to /v1/completions for ${model}`);
+            retried = true;
             // Attempt 2: Completions
             const prompt = `${promptContent}\n\n${testInput || ''}`;
             const completionBody = {
@@ -86,19 +89,46 @@ export async function testWithOpenAI(
                 },
                 body: JSON.stringify(completionBody),
             });
+        }
+        // Error Case 2: "max_tokens is not supported" -> Retry with max_completion_tokens
+        else if (initialErrorMessage.includes("'max_tokens' is not supported")) {
+            console.log(`[OpenAI Debug] Retrying with max_completion_tokens for ${model}`);
+            retried = true;
 
-            if (!response.ok) {
-                const completionError = await response.json();
-                throw new Error(completionError.error?.message || 'OpenAI Completions API error');
+            // Remove max_tokens and add max_completion_tokens
+            delete chatBody.max_tokens;
+            chatBody.max_completion_tokens = 1000;
+
+            response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify(chatBody),
+            });
+        }
+
+        // Check response again after retry
+        if (!response.ok) {
+            // If we didn't retry, or if the retry failed
+            if (!retried) {
+                throw new Error(initialErrorMessage || 'OpenAI API error');
             }
 
-            data = await response.json();
-            return data.choices[0]?.text || '[No content returned]';
-        } else {
-            throw new Error(errorMessage || 'OpenAI API error');
+            // If we DID retry and it failed again:
+            const retryError = await response.json();
+            throw new Error(retryError.error?.message || 'OpenAI API retry error');
         }
     }
 
+    // If a retry to /completions was successful, handle its specific data structure
+    if (retried && response.url.includes('/completions')) {
+        data = await response.json();
+        return data.choices[0]?.text || '[No content returned]';
+    }
+
+    // Otherwise, handle chat completions data structure (either initial success or chat retry success)
     data = await response.json();
 
     const content = data.choices[0]?.message?.content;
