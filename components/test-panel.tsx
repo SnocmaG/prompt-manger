@@ -86,11 +86,10 @@ export function TestPanel({ branchId }: TestPanelProps) {
                                 className="h-6 w-48 text-xs bg-background/50"
                             />
                             {showModelDropdown && (
-                                <div className="absolute top-full left-0 w-full mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
-                                    <div className="max-h-[200px] overflow-y-auto py-1">
+                                <div className="absolute top-full left-0 w-[250px] mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
+                                    <div className="max-h-[145px] overflow-y-auto py-1">
                                         {OPENAI_MODELS
                                             .filter(m => m.toLowerCase().includes(customModel.toLowerCase()))
-                                            .slice(0, 7)
                                             .map((model) => (
                                                 <div
                                                     key={model}
@@ -99,6 +98,7 @@ export function TestPanel({ branchId }: TestPanelProps) {
                                                         setCustomModel(model);
                                                         setShowModelDropdown(false);
                                                     }}
+                                                    title={model}
                                                 >
                                                     {model}
                                                 </div>

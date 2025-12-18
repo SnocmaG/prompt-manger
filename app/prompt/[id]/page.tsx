@@ -320,11 +320,10 @@ export default function PromptWorkshop() {
                                 className="h-7 text-xs bg-background/50 w-[180px]"
                             />
                             {showModelDropdown && (
-                                <div className="absolute top-full right-0 w-[200px] mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
-                                    <div className="max-h-[300px] overflow-y-auto py-1">
+                                <div className="absolute top-full right-0 w-[250px] mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
+                                    <div className="max-h-[145px] overflow-y-auto py-1">
                                         {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
                                             .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase()))
-                                            .slice(0, 7)
                                             .map((model) => (
                                                 <div
                                                     key={model.id}
@@ -333,6 +332,7 @@ export default function PromptWorkshop() {
                                                         setCustomModel(model.id);
                                                         setShowModelDropdown(false);
                                                     }}
+                                                    title={model.id}
                                                 >
                                                     {model.id}
                                                 </div>
