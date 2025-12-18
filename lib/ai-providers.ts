@@ -30,10 +30,13 @@ export async function testWithOpenAI(
         throw new Error('OpenAI API key not configured');
     }
 
-    const isNewModel = model.startsWith('gpt-5') || model.startsWith('o1') || model.startsWith('o3');
+    console.log(`[OpenAI Debug] Testing model: ${model}`);
 
+    const isO1 = model.startsWith('o1') || model.startsWith('o3');
+
+    // Chat Payload
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body: any = {
+    const chatBody: any = {
         model: model,
         messages: [
             { role: 'system', content: promptContent },
@@ -41,31 +44,62 @@ export async function testWithOpenAI(
         ],
     };
 
-    if (isNewModel) {
-        body.max_completion_tokens = 500;
+    if (isO1) {
+        chatBody.max_completion_tokens = 1000;
     } else {
-        body.max_tokens = 500;
+        chatBody.max_tokens = 1000;
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Attempt 1: Chat Completions
+    let response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(chatBody),
     });
+
+    let data;
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error?.message || 'OpenAI API error');
+        const errorMessage = error.error?.message || '';
+
+        // Check if it's a "not a chat model" error
+        if (errorMessage.includes('This is not a chat model')) {
+            console.warn(`[OpenAI Debug] Model ${model} is not a chat model. Retrying with /completions...`);
+
+            // Attempt 2: Completions
+            const prompt = `${promptContent}\n\n${testInput || ''}`;
+            const completionBody = {
+                model: model,
+                prompt: prompt,
+                max_tokens: 1000,
+            };
+
+            response = await fetch('https://api.openai.com/v1/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify(completionBody),
+            });
+
+            if (!response.ok) {
+                const completionError = await response.json();
+                throw new Error(completionError.error?.message || 'OpenAI Completions API error');
+            }
+
+            data = await response.json();
+            return data.choices[0]?.text || '[No content returned]';
+        } else {
+            throw new Error(errorMessage || 'OpenAI API error');
+        }
     }
 
-    const data = await response.json();
-
-    if (isNewModel) {
-        console.log('[OpenAI Debug] Response for', model, ':', JSON.stringify(data, null, 2));
-    }
+    data = await response.json();
 
     const content = data.choices[0]?.message?.content;
 

@@ -16,6 +16,13 @@ import { RightActionStrip } from "@/components/right-action-strip";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "@/components/ui/button";
 import { PlayCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+const FALLBACK_MODELS = [
+    { id: 'gpt-4o' },
+    { id: 'gpt-4o-mini' },
+    { id: 'gpt-4-turbo' },
+];
 
 interface Version {
     id: string;
@@ -74,6 +81,7 @@ export default function PromptWorkshop() {
     const [provider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
     const [availableModels, setAvailableModels] = useState<{ id: string }[]>([]);
+    const [showModelDropdown, setShowModelDropdown] = useState(false);
 
     const [deployTarget, setDeployTarget] = useState<Version | null>(null);
     const [editTarget, setEditTarget] = useState<Version | null>(null);
@@ -299,26 +307,46 @@ export default function PromptWorkshop() {
                 {/* AI Config Bar (Top Right) */}
                 <div className="flex items-center gap-2">
                     <span className="hidden sm:inline-block">
-                        <select
-                            value={customModel}
-                            onChange={e => setCustomModel(e.target.value)}
-                            className="h-7 text-xs bg-background border rounded px-2 min-w-[140px] max-w-[200px]"
-                        >
-                            {availableModels.length > 0 ? (
-                                availableModels.map(model => (
-                                    <option key={model.id} value={model.id}>
-                                        {model.id}
-                                    </option>
-                                ))
-                            ) : (
-                                // Fallback if API fails
-                                <>
-                                    <option value="gpt-4o">gpt-4o</option>
-                                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                                    <option value="gpt-4-turbo">gpt-4-turbo</option>
-                                </>
+                        <div className="relative">
+                            <Input
+                                value={customModel}
+                                onChange={(e) => {
+                                    setCustomModel(e.target.value);
+                                    setShowModelDropdown(true);
+                                }}
+                                onFocus={() => setShowModelDropdown(true)}
+                                onBlur={() => setTimeout(() => setShowModelDropdown(false), 200)}
+                                placeholder="Model"
+                                className="h-7 text-xs bg-background/50 w-[180px]"
+                            />
+                            {showModelDropdown && (
+                                <div className="absolute top-full right-0 w-[200px] mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
+                                    <div className="max-h-[300px] overflow-y-auto py-1">
+                                        {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
+                                            .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase()))
+                                            .slice(0, 7)
+                                            .map((model) => (
+                                                <div
+                                                    key={model.id}
+                                                    className="px-2 py-1.5 text-xs hover:bg-muted cursor-pointer truncate"
+                                                    onClick={() => {
+                                                        setCustomModel(model.id);
+                                                        setShowModelDropdown(false);
+                                                    }}
+                                                >
+                                                    {model.id}
+                                                </div>
+                                            ))}
+                                        {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
+                                            .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase())).length === 0 && (
+                                                <div className="px-2 py-1.5 text-xs text-muted-foreground italic">
+                                                    No matching models
+                                                </div>
+                                            )}
+                                    </div>
+                                </div>
                             )}
-                        </select>
+                        </div>
                     </span>
 
                 </div>
