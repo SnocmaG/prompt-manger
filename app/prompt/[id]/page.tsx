@@ -16,13 +16,9 @@ import { RightActionStrip } from "@/components/right-action-strip";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "@/components/ui/button";
 import { PlayCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
-const FALLBACK_MODELS = [
-    { id: 'gpt-4o' },
-    { id: 'gpt-4o-mini' },
-    { id: 'gpt-4-turbo' },
-];
+
+
 
 interface Version {
     id: string;
@@ -81,7 +77,6 @@ export default function PromptWorkshop() {
     const [provider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
     const [availableModels, setAvailableModels] = useState<{ id: string }[]>([]);
-    const [showModelDropdown, setShowModelDropdown] = useState(false);
 
     const [deployTarget, setDeployTarget] = useState<Version | null>(null);
     const [editTarget, setEditTarget] = useState<Version | null>(null);
@@ -306,49 +301,7 @@ export default function PromptWorkshop() {
 
                 {/* AI Config Bar (Top Right) */}
                 <div className="flex items-center gap-2">
-                    <span className="hidden sm:inline-block">
-                        <div className="relative">
-                            <Input
-                                value={customModel}
-                                onChange={(e) => {
-                                    setCustomModel(e.target.value);
-                                    setShowModelDropdown(true);
-                                }}
-                                onFocus={() => setShowModelDropdown(true)}
-                                onBlur={() => setTimeout(() => setShowModelDropdown(false), 200)}
-                                placeholder="Model"
-                                className="h-7 text-xs bg-background/50 w-[180px]"
-                            />
-                            {showModelDropdown && (
-                                <div className="absolute top-full right-0 w-[250px] mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
-                                    <div className="max-h-[145px] overflow-y-auto py-1">
-                                        {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
-                                            .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase()))
-                                            .map((model) => (
-                                                <div
-                                                    key={model.id}
-                                                    className="px-2 py-1.5 text-xs hover:bg-muted cursor-pointer truncate"
-                                                    onClick={() => {
-                                                        setCustomModel(model.id);
-                                                        setShowModelDropdown(false);
-                                                    }}
-                                                    title={model.id}
-                                                >
-                                                    {model.id}
-                                                </div>
-                                            ))}
-                                        {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
-                                            .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase())).length === 0 && (
-                                                <div className="px-2 py-1.5 text-xs text-muted-foreground italic">
-                                                    No matching models
-                                                </div>
-                                            )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </span>
-
+                    {/* Model selector moved to ResponseViewer */}
                 </div>
             </div>
 
@@ -421,6 +374,9 @@ export default function PromptWorkshop() {
                                                 provider={provider}
                                                 error={error}
                                                 model={usedModel}
+                                                customModel={customModel}
+                                                setCustomModel={setCustomModel}
+                                                availableModels={availableModels}
                                             />
                                         </div>
                                     )}
@@ -477,6 +433,9 @@ export default function PromptWorkshop() {
                                                     provider={provider}
                                                     error={error}
                                                     model={usedModel}
+                                                    customModel={customModel}
+                                                    setCustomModel={setCustomModel}
+                                                    availableModels={availableModels}
                                                 />
                                             </div>
                                         </Panel>
