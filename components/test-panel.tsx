@@ -5,6 +5,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Loader2, Sparkles } from 'lucide-react';
 
+const OPENAI_MODELS = [
+    'gpt-4o',
+    'gpt-4o-mini',
+    'gpt-4-turbo',
+    'gpt-4',
+    'gpt-3.5-turbo',
+    'o1-preview',
+    'o1-mini',
+    'gpt-4o-realtime-preview',
+    'gpt-4o-audio-preview',
+];
+
 interface TestPanelProps {
     branchId: string;
 }
@@ -17,6 +29,7 @@ export function TestPanel({ branchId }: TestPanelProps) {
     const [testing, setTesting] = useState(false);
     const [provider, setProvider] = useState<AIProvider>('mock');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
+    const [showModelDropdown, setShowModelDropdown] = useState(false);
 
     // Remove unused Webhook persistence logic since it's removed globally? 
     // Wait, the user only removed it from the PAGE but TestPanel might still have some vestiges.
@@ -58,14 +71,47 @@ export function TestPanel({ branchId }: TestPanelProps) {
                     <Sparkles className="h-4 w-4" />
                     Test Playground
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative">
                     {provider === 'openai' && (
-                        <Input
-                            value={customModel}
-                            onChange={(e) => setCustomModel(e.target.value)}
-                            placeholder="Model"
-                            className="h-6 w-32 text-xs bg-background/50"
-                        />
+                        <div className="relative">
+                            <Input
+                                value={customModel}
+                                onChange={(e) => {
+                                    setCustomModel(e.target.value);
+                                    setShowModelDropdown(true);
+                                }}
+                                onFocus={() => setShowModelDropdown(true)}
+                                onBlur={() => setTimeout(() => setShowModelDropdown(false), 200)} // Delay to allow click
+                                placeholder="Model"
+                                className="h-6 w-48 text-xs bg-background/50"
+                            />
+                            {showModelDropdown && (
+                                <div className="absolute top-full left-0 w-full mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
+                                    <div className="max-h-[200px] overflow-y-auto py-1">
+                                        {OPENAI_MODELS
+                                            .filter(m => m.toLowerCase().includes(customModel.toLowerCase()))
+                                            .slice(0, 7)
+                                            .map((model) => (
+                                                <div
+                                                    key={model}
+                                                    className="px-2 py-1.5 text-xs hover:bg-muted cursor-pointer truncate"
+                                                    onClick={() => {
+                                                        setCustomModel(model);
+                                                        setShowModelDropdown(false);
+                                                    }}
+                                                >
+                                                    {model}
+                                                </div>
+                                            ))}
+                                        {OPENAI_MODELS.filter(m => m.toLowerCase().includes(customModel.toLowerCase())).length === 0 && (
+                                            <div className="px-2 py-1.5 text-xs text-muted-foreground italic">
+                                                No matching models
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     )}
                     <select
                         value={provider}
