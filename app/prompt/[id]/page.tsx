@@ -16,6 +16,7 @@ import { RightActionStrip } from "@/components/right-action-strip";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "@/components/ui/button";
 import { PlayCircle } from "lucide-react";
+import { downloadExperimentAsExcel } from "@/lib/export-utils";
 
 
 
@@ -73,6 +74,15 @@ export default function PromptWorkshop() {
     const [isRunning, setIsRunning] = useState(false);
     const [usedModel, setUsedModel] = useState<string | undefined>();
 
+    // Bulk State
+    const [isBulkMode, setIsBulkMode] = useState(false);
+    const [bulkInputs, setBulkInputs] = useState<{ id: string; value: string }[]>([
+        { id: '1', value: '' },
+        { id: '2', value: '' },
+        { id: '3', value: '' }
+    ]);
+    const [bulkOutputs, setBulkOutputs] = useState<{ inputId: string; output: string; model: string; status: 'pending' | 'running' | 'completed' | 'error' }[]>([]);
+
     // AI Config State
     const [provider] = useState<AIProvider>('openai');
     const [customModel, setCustomModel] = useState('gpt-4o-mini');
@@ -100,7 +110,10 @@ export default function PromptWorkshop() {
                 if (data.versions && data.versions.length > 0) {
                     const head = data.versions[0]; // Ordered by desc
                     setSystemPrompt(head.systemPrompt);
-                    setUserPrompt(head.userPrompt || '');
+                    // Single input load
+                    if (!isBulkMode) {
+                        setUserPrompt(head.userPrompt || '');
+                    }
                 }
 
                 // Initial model from DB
@@ -113,7 +126,7 @@ export default function PromptWorkshop() {
         } finally {
             setLoading(false);
         }
-    }, [promptId]);
+    }, [promptId, isBulkMode]);
 
     // Fetch available models
     useEffect(() => {
@@ -145,46 +158,107 @@ export default function PromptWorkshop() {
         if (!prompt) return;
         setIsRunning(true);
         setError(undefined);
-        setAiOutput('');
 
-        try {
-            const response = await fetch('/api/ai/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    testInput: userPrompt,
-                    provider,
-                    model: customModel,
-                    overrideContent: systemPrompt,
-                    promptId: prompt.id
-                }),
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                setAiOutput(data.output);
-                setUsedModel(data.model);
-
-                // Update default model if changed
-                if (prompt.defaultModel !== customModel) {
-                    // Fire and forget update
-                    fetch(`/api/prompts/${prompt.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ defaultModel: customModel })
-                    });
-                    // Optimistic update
-                    setPrompt({ ...prompt, defaultModel: customModel });
-                }
-
-            } else {
-                setError(data.error || 'Test failed');
-                setUsedModel(undefined);
+        if (isBulkMode) {
+            // BULK RUN LOGIC
+            const inputsToRun = bulkInputs.filter(i => i.value.trim().length > 0);
+            if (inputsToRun.length === 0) {
+                setError("Please enter at least one test case.");
+                setIsRunning(false);
+                return;
             }
-        } catch {
-            setError('Network error');
-        } finally {
+
+            // Reset outputs
+            setBulkOutputs(inputsToRun.map(i => ({
+                inputId: i.id,
+                output: '',
+                model: '',
+                status: 'pending'
+            })));
+
+            for (const input of inputsToRun) {
+                // Update status to running
+                setBulkOutputs(prev => prev.map(o => o.inputId === input.id ? { ...o, status: 'running' } : o));
+
+                try {
+                    const response = await fetch('/api/ai/test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            testInput: input.value,
+                            provider,
+                            model: customModel,
+                            overrideContent: systemPrompt,
+                            promptId: prompt.id
+                        }),
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        setBulkOutputs(prev => prev.map(o => o.inputId === input.id ? {
+                            ...o,
+                            output: data.output,
+                            model: data.model,
+                            status: 'completed'
+                        } : o));
+                    } else {
+                        setBulkOutputs(prev => prev.map(o => o.inputId === input.id ? {
+                            ...o,
+                            output: data.error || 'Failed',
+                            status: 'error'
+                        } : o));
+                    }
+                } catch (e) {
+                    setBulkOutputs(prev => prev.map(o => o.inputId === input.id ? {
+                        ...o,
+                        output: 'Network Error',
+                        status: 'error'
+                    } : o));
+                }
+            }
             setIsRunning(false);
+
+        } else {
+            // SINGLE RUN LOGIC (Existing)
+            setAiOutput('');
+            try {
+                const response = await fetch('/api/ai/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        testInput: userPrompt,
+                        provider,
+                        model: customModel,
+                        overrideContent: systemPrompt,
+                        promptId: prompt.id
+                    }),
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    setAiOutput(data.output);
+                    setUsedModel(data.model);
+
+                    // Update default model if changed
+                    if (prompt.defaultModel !== customModel) {
+                        // Fire and forget update
+                        fetch(`/api/prompts/${prompt.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ defaultModel: customModel })
+                        });
+                        // Optimistic update
+                        setPrompt({ ...prompt, defaultModel: customModel });
+                    }
+
+                } else {
+                    setError(data.error || 'Test failed');
+                    setUsedModel(undefined);
+                }
+            } catch {
+                setError('Network error');
+            } finally {
+                setIsRunning(false);
+            }
         }
     };
 
@@ -349,6 +423,12 @@ export default function PromptWorkshop() {
                                                     setActiveMobileTab('response'); // Auto switch
                                                 }}
                                                 isTesting={isRunning}
+                                                isBulkMode={isBulkMode}
+                                                onToggleBulk={setIsBulkMode}
+                                                bulkInputs={bulkInputs}
+                                                onBulkInputChange={(id, val) => setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i))}
+                                                onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: Date.now().toString(), value: '' }])}
+                                                onRemoveBulkInput={(id) => setBulkInputs(prev => prev.filter(i => i.id !== id))}
                                             />
                                         </div>
                                     )}
@@ -377,6 +457,19 @@ export default function PromptWorkshop() {
                                                 customModel={customModel}
                                                 setCustomModel={setCustomModel}
                                                 availableModels={availableModels}
+                                                onDownload={() => downloadExperimentAsExcel(
+                                                    systemPrompt,
+                                                    isBulkMode ? null : userPrompt,
+                                                    isBulkMode ? null : aiOutput,
+                                                    isBulkMode ? bulkOutputs.map(o => ({
+                                                        input: bulkInputs.find(i => i.id === o.inputId)?.value || '',
+                                                        output: o.output,
+                                                        model: o.model,
+                                                        status: o.status
+                                                    })) : undefined
+                                                )}
+                                                isBulkMode={isBulkMode}
+                                                bulkOutputs={bulkOutputs}
                                             />
                                         </div>
                                     )}
@@ -398,6 +491,12 @@ export default function PromptWorkshop() {
                                                             onChange={setUserPrompt}
                                                             onRun={handleRunTest}
                                                             isTesting={isRunning}
+                                                            isBulkMode={isBulkMode}
+                                                            onToggleBulk={setIsBulkMode}
+                                                            bulkInputs={bulkInputs}
+                                                            onBulkInputChange={(id, val) => setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i))}
+                                                            onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: Date.now().toString(), value: '' }])}
+                                                            onRemoveBulkInput={(id) => setBulkInputs(prev => prev.filter(i => i.id !== id))}
                                                         />
                                                     </div>
                                                 </Panel>
@@ -436,6 +535,17 @@ export default function PromptWorkshop() {
                                                     customModel={customModel}
                                                     setCustomModel={setCustomModel}
                                                     availableModels={availableModels}
+                                                    onDownload={() => downloadExperimentAsExcel(
+                                                        systemPrompt,
+                                                        isBulkMode ? null : userPrompt,
+                                                        isBulkMode ? null : aiOutput,
+                                                        isBulkMode ? bulkOutputs.map(o => ({
+                                                            input: bulkInputs.find(i => i.id === o.inputId)?.value || '',
+                                                            output: o.output,
+                                                            model: o.model,
+                                                            status: o.status
+                                                        })) : undefined
+                                                    )}
                                                 />
                                             </div>
                                         </Panel>

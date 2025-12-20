@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Download } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface ResponseViewerProps {
     output: string | null;
@@ -14,6 +15,10 @@ interface ResponseViewerProps {
     customModel?: string;
     setCustomModel?: (model: string) => void;
     availableModels?: { id: string }[];
+    onDownload?: () => void;
+    // Bulk Props
+    isBulkMode?: boolean;
+    bulkOutputs?: { inputId: string; output: string; model: string; status: 'pending' | 'running' | 'completed' | 'error' }[];
 }
 
 export function ResponseViewer({
@@ -24,17 +29,72 @@ export function ResponseViewer({
     model,
     customModel,
     setCustomModel,
-    availableModels = []
+    availableModels = [],
+    onDownload,
+    // Bulk Props
+    isBulkMode,
+    bulkOutputs = []
 }: ResponseViewerProps) {
     const [showModelDropdown, setShowModelDropdown] = useState(false);
 
-    // Fallback models should match page.tsx or be passed in. 
-    // Defining here briefly for safety if not passed, though ideally passed.
+    // Fallback models...
     const FALLBACK_MODELS = [
         { id: 'gpt-4o' },
         { id: 'gpt-4o-mini' },
         { id: 'gpt-4-turbo' },
     ];
+
+    // Helper to get status icon
+    const getStatusIcon = (status: 'pending' | 'running' | 'completed' | 'error') => {
+        switch (status) {
+            case 'running': return <Loader2 className="h-3 w-3 animate-spin text-primary" />;
+            case 'completed': return <div className="h-2 w-2 rounded-full bg-green-500" />;
+            case 'error': return <div className="h-2 w-2 rounded-full bg-red-500" />;
+            default: return <div className="h-2 w-2 rounded-full bg-muted" />;
+        }
+    };
+
+    if (isBulkMode) {
+        return (
+            <div className="flex flex-col h-full bg-card border-l border-border/50">
+                <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bulk Results ({bulkOutputs.filter(o => o.status === 'completed').length}/{bulkOutputs.length})</span>
+                    <div className="flex items-center gap-2">
+                        {onDownload && (
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDownload}>
+                                <Download className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+                <div className="flex-1 overflow-hidden bg-muted/10">
+                    <ScrollArea className="h-full w-full">
+                        <div className="p-4 space-y-3">
+                            {bulkOutputs.length === 0 && (
+                                <div className="text-center text-muted-foreground text-xs mt-10 italic">
+                                    Run tests to see results here
+                                </div>
+                            )}
+                            {bulkOutputs.map((output, idx) => (
+                                <div key={output.inputId} className="bg-background border rounded-md shadow-sm overflow-hidden flex flex-col">
+                                    <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            {getStatusIcon(output.status)}
+                                            <span className="text-xs font-medium truncate max-w-[200px]">Case #{idx + 1}</span>
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground uppercase">{output.model || '-'}</span>
+                                    </div>
+                                    <div className="p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-y-auto">
+                                        {output.output || <span className="text-muted-foreground italic">Pending...</span>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            </div>
+        );
+    }
 
     if (!output && !isTesting && !error) {
         return (
@@ -103,12 +163,25 @@ export function ResponseViewer({
                         )
                     )}
                 </div>
-                {isTesting && (
-                    <div className="flex items-center gap-2 text-primary text-xs animate-pulse">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Running {provider}...
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    {onDownload && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            onClick={onDownload}
+                            title="Download as Excel"
+                        >
+                            <Download className="h-4 w-4" />
+                        </Button>
+                    )}
+                    {isTesting && (
+                        <div className="flex items-center gap-2 text-primary text-xs animate-pulse">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Running {provider}...
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="flex-1 relative overflow-hidden">
                 <ScrollArea className="h-full w-full">
