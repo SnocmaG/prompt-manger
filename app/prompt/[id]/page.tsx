@@ -471,6 +471,7 @@ export default function PromptWorkshop() {
                                                 )}
                                                 isBulkMode={isBulkMode}
                                                 bulkOutputs={bulkOutputs}
+                                                bulkInputs={bulkInputs}
                                             />
                                         </div>
                                     )}
@@ -549,6 +550,7 @@ export default function PromptWorkshop() {
                                                     )}
                                                     isBulkMode={isBulkMode}
                                                     bulkOutputs={bulkOutputs}
+                                                    bulkInputs={bulkInputs}
                                                 />
                                             </div>
                                         </Panel>

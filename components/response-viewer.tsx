@@ -19,6 +19,7 @@ interface ResponseViewerProps {
     // Bulk Props
     isBulkMode?: boolean;
     bulkOutputs?: { inputId: string; output: string; model: string; status: 'pending' | 'running' | 'completed' | 'error' }[];
+    bulkInputs?: { id: string; value: string }[];
 }
 
 export function ResponseViewer({
@@ -33,7 +34,8 @@ export function ResponseViewer({
     onDownload,
     // Bulk Props
     isBulkMode,
-    bulkOutputs = []
+    bulkOutputs = [],
+    bulkInputs = []
 }: ResponseViewerProps) {
     const [showModelDropdown, setShowModelDropdown] = useState(false);
 
@@ -75,20 +77,48 @@ export function ResponseViewer({
                                     Run tests to see results here
                                 </div>
                             )}
-                            {bulkOutputs.map((output, idx) => (
-                                <div key={output.inputId} className="bg-background border rounded-md shadow-sm overflow-hidden flex flex-col">
-                                    <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b">
-                                        <div className="flex items-center gap-2 overflow-hidden">
-                                            {getStatusIcon(output.status)}
-                                            <span className="text-xs font-medium truncate max-w-[200px]">Case #{idx + 1}</span>
+                            {bulkOutputs.map((output, idx) => {
+                                const inputVal = bulkInputs.find(i => i.id === output.inputId)?.value || '';
+                                return (
+                                    <div key={output.inputId} className="bg-background border rounded-md shadow-sm overflow-hidden flex flex-col group">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                {getStatusIcon(output.status)}
+                                                <span className="text-xs font-medium truncate max-w-[200px]">Case #{idx + 1}</span>
+                                            </div>
+                                            <span className="text-[10px] text-muted-foreground uppercase">{output.model || '-'}</span>
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground uppercase">{output.model || '-'}</span>
+
+                                        {/* Input Preview (Hover for full) */}
+                                        <div className="relative px-3 py-2 border-b border-dashed bg-muted/5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] uppercase font-semibold text-muted-foreground shrink-0">Input:</span>
+                                                <div className="relative flex-1 group/tooltip">
+                                                    <p className="text-xs text-muted-foreground truncate max-w-[250px] cursor-help">
+                                                        {inputVal || <span className="italic opacity-50">Empty</span>}
+                                                    </p>
+
+                                                    {/* Custom Tooltip Box */}
+                                                    {inputVal && (
+                                                        <div className="absolute left-0 bottom-full mb-2 w-[300px] p-3 bg-popover text-popover-foreground text-xs rounded-md border shadow-lg z-50 opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 pointer-events-none">
+                                                            <div className="font-semibold mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Full Input</div>
+                                                            <div className="font-mono whitespace-pre-wrap break-words max-h-[200px] overflow-hidden">{inputVal}</div>
+                                                            {/* Arrow */}
+                                                            <div className="absolute left-4 -bottom-1 w-2 h-2 bg-popover border-r border-b transform rotate-45"></div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* AI Output */}
+                                        <div className="p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-y-auto">
+                                            {output.output || <span className="text-muted-foreground italic">Pending...</span>}
+                                        </div>
                                     </div>
-                                    <div className="p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-y-auto">
-                                        {output.output || <span className="text-muted-foreground italic">Pending...</span>}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </ScrollArea>
                 </div>
