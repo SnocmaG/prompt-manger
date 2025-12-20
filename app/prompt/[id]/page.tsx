@@ -208,6 +208,7 @@ export default function PromptWorkshop() {
                         } : o));
                     }
                 } catch (e) {
+                    console.error(e);
                     setBulkOutputs(prev => prev.map(o => o.inputId === input.id ? {
                         ...o,
                         output: 'Network Error',
@@ -546,6 +547,8 @@ export default function PromptWorkshop() {
                                                             status: o.status
                                                         })) : undefined
                                                     )}
+                                                    isBulkMode={isBulkMode}
+                                                    bulkOutputs={bulkOutputs}
                                                 />
                                             </div>
                                         </Panel>
