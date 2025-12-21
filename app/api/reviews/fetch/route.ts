@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
         const { ratings, types, limit = 10 } = body;
 
         // Build Where Clause
-        const where: any = {
+        const where: Prisma.ReviewWhereInput = {
             reviewText: {
                 not: '' // Ensure we get actual text
             }
