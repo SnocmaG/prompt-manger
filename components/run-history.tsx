@@ -1,6 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Trash2, X, AlertCircle, Layers, Timer, Coins, Zap } from 'lucide-react';
+import { Trash2, X, Layers, Timer, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExpressionText } from '@/components/expression-text';
 
