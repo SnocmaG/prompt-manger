@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             if (!Array.isArray(parsed)) {
                 throw new Error('Response is not an array');
             }
-        } catch (_e) {
+        } catch {
             console.error('Failed to parse AI response:', cleanResult);
             // Fallback: simple split by double newline if AI JSON fails
             parsed = text.split(/\n\s*\n/).filter(t => t.trim().length > 0);

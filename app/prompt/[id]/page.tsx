@@ -278,7 +278,7 @@ export default function PromptWorkshop() {
                 }),
             });
             if (response.ok) {
-                const newVersion = await response.json();
+                await response.json();
                 fetchPrompt(); // Refresh list
             }
         } catch (e) { console.error(e); }
