@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Import, Play } from "lucide-react";
+import { Plus, Trash2, Import, Play, Star, Tag, Hash, CloudDownload, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { SmartImportDialog } from "./smart-import-dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuCheckboxItem,
+    DropdownMenuTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
 
 interface UserPromptInputProps {
     value: string;
@@ -38,6 +48,61 @@ export function UserPromptInput({
 }: UserPromptInputProps) {
     const [isImportOpen, setIsImportOpen] = useState(false);
 
+    // Filter State
+    const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+    const [availableTypes, setAvailableTypes] = useState<string[]>([]);
+    const [limit, setLimit] = useState(10);
+    const [isFetching, setIsFetching] = useState(false);
+
+    // Fetch available review types on mount (if in bulk mode)
+    useEffect(() => {
+        if (isBulkMode) {
+            fetch('/api/reviews/types')
+                .then(res => res.ok ? res.json() : [])
+                .then(setAvailableTypes)
+                .catch(console.error);
+        }
+    }, [isBulkMode]);
+
+    const handleFetchReviews = async () => {
+        if (isFetching || !onImportBulkInputs) return;
+        setIsFetching(true);
+        try {
+            const res = await fetch('/api/reviews/fetch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ratings: selectedRatings,
+                    types: selectedTypes,
+                    limit
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.reviews && Array.isArray(data.reviews)) {
+                    onImportBulkInputs(data.reviews);
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsFetching(false);
+        }
+    };
+
+    const toggleRating = (r: number) => {
+        setSelectedRatings(prev =>
+            prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]
+        );
+    };
+
+    const toggleType = (t: string) => {
+        setSelectedTypes(prev =>
+            prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]
+        );
+    };
+
     if (isBulkMode) {
         return (
             <div className="flex flex-col h-full bg-card border-b border-border/40">
@@ -46,7 +111,94 @@ export function UserPromptInput({
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Bulk Inputs</span>
                         <Badge variant="outline" className="text-[10px] h-4">{bulkInputs.length} Cases</Badge>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+
+                        {/* Filters */}
+                        {onImportBulkInputs && (
+                            <div className="flex items-center gap-1 mr-2">
+                                {/* Rating Filter */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant={selectedRatings.length > 0 ? "secondary" : "ghost"} size="icon" className="h-6 w-6">
+                                            <Star className={`h-3 w-3 ${selectedRatings.length > 0 ? 'text-yellow-500 fill-current' : ''}`} />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Filter by Rating</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {[5, 4, 3, 2, 1].map(r => (
+                                            <DropdownMenuCheckboxItem
+                                                key={r}
+                                                checked={selectedRatings.includes(r)}
+                                                onCheckedChange={() => toggleRating(r)}
+                                            >
+                                                {r} Stars
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* Type Filter */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant={selectedTypes.length > 0 ? "secondary" : "ghost"} size="icon" className="h-6 w-6">
+                                            <Tag className={`h-3 w-3 ${selectedTypes.length > 0 ? 'text-blue-500' : ''}`} />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
+                                        <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {availableTypes.length === 0 ? (
+                                            <div className="p-2 text-xs text-muted-foreground">No types found</div>
+                                        ) : (
+                                            availableTypes.map(t => (
+                                                <DropdownMenuCheckboxItem
+                                                    key={t}
+                                                    checked={selectedTypes.includes(t)}
+                                                    onCheckedChange={() => toggleType(t)}
+                                                >
+                                                    {t}
+                                                </DropdownMenuCheckboxItem>
+                                            ))
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* Limit Filter */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                                            <Hash className="h-3 w-3" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Fetch Limit</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuRadioGroup value={limit.toString()} onValueChange={(v) => setLimit(parseInt(v))}>
+                                            {[10, 20, 50, 100].map(l => (
+                                                <DropdownMenuRadioItem key={l} value={l.toString()}>
+                                                    {l} Reviews
+                                                </DropdownMenuRadioItem>
+                                            ))}
+                                        </DropdownMenuRadioGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* Fetch Action */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-muted-foreground hover:text-primary"
+                                    onClick={handleFetchReviews}
+                                    disabled={isFetching}
+                                    title="Fetch Reviews from DB"
+                                >
+                                    {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <CloudDownload className="h-3 w-3" />}
+                                </Button>
+
+                                <div className="h-4 w-px bg-border/50 mx-1" />
+                            </div>
+                        )}
                         {onImportBulkInputs && (
                             <Button
                                 variant="ghost"
@@ -153,16 +305,6 @@ export function UserPromptInput({
                     <Badge variant="outline" className="text-[10px] h-4">Single Input</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                    {onToggleBulk && (
-                        <div className="flex items-center gap-2 mr-2">
-                            <Switch
-                                id="bulk-mode"
-                                checked={isBulkMode}
-                                onCheckedChange={onToggleBulk}
-                            />
-                            <Label htmlFor="bulk-mode" className="text-xs text-muted-foreground">Bulk Mode</Label>
-                        </div>
-                    )}
                     <Button
                         size="icon"
                         variant="default"
@@ -173,6 +315,17 @@ export function UserPromptInput({
                     >
                         <Play className="h-3 w-3 fill-current ml-0.5" />
                     </Button>
+
+                    {onToggleBulk && (
+                        <div className="flex items-center gap-2 ml-2">
+                            <Switch
+                                id="bulk-mode"
+                                checked={isBulkMode}
+                                onCheckedChange={onToggleBulk}
+                            />
+                            <Label htmlFor="bulk-mode" className="text-xs text-muted-foreground">Bulk Mode</Label>
+                        </div>
+                    )}
                 </div>
             </div>
             <Textarea

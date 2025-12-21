@@ -65,10 +65,10 @@ export function PromptEditor({ systemPrompt, onChange, onSave, isLive, hasUnsave
                         <DialogTrigger asChild>
                             <Button
                                 size="sm"
-                                className={`h-8 gap-2 ${hasUnsavedChanges && isLive ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+                                className="h-8 gap-2"
                             >
                                 <Save className="h-4 w-4" />
-                                {hasUnsavedChanges && isLive ? 'Deploy Changes' : 'Save Version'}
+                                Save New Version
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
