@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         );
 
         // Sanitize result to ensure valid JSON
-        let cleanResult = result.trim();
+        let cleanResult = result.content.trim();
         if (cleanResult.startsWith('```json')) {
             cleanResult = cleanResult.replace(/^```json/, '').replace(/```$/, '');
         } else if (cleanResult.startsWith('```')) {

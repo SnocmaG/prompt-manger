@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
             model: result.model,
             promptContent: overrideContent,
             testInput: testInput || null,
+            usage: result.usage,
+            latencyMs: result.latencyMs,
         });
     } catch (error) {
         console.error('Error testing with AI:', error);

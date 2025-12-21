@@ -73,6 +73,10 @@ export default function PromptWorkshop() {
     const [error, setError] = useState<string | undefined>();
     const [isRunning, setIsRunning] = useState(false);
     const [usedModel, setUsedModel] = useState<string | undefined>();
+    const [metrics, setMetrics] = useState<{
+        latencyMs?: number;
+        usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+    } | undefined>();
 
     // Bulk State
     const [isBulkMode, setIsBulkMode] = useState(false);
@@ -81,7 +85,14 @@ export default function PromptWorkshop() {
         { id: '2', value: '' },
         { id: '3', value: '' }
     ]);
-    const [bulkOutputs, setBulkOutputs] = useState<{ inputId: string; output: string; model: string; status: 'pending' | 'running' | 'completed' | 'error' }[]>([]);
+    const [bulkOutputs, setBulkOutputs] = useState<{
+        inputId: string;
+        output: string;
+        model: string;
+        status: 'pending' | 'running' | 'completed' | 'error';
+        usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+        latencyMs?: number;
+    }[]>([]);
 
     // AI Config State
     const [provider] = useState<AIProvider>('openai');
@@ -198,7 +209,9 @@ export default function PromptWorkshop() {
                             ...o,
                             output: data.output,
                             model: data.model,
-                            status: 'completed'
+                            status: 'completed',
+                            usage: data.usage,
+                            latencyMs: data.latencyMs
                         } : o));
                     } else {
                         setBulkOutputs(prev => prev.map(o => o.inputId === input.id ? {
@@ -238,6 +251,10 @@ export default function PromptWorkshop() {
                 if (response.ok) {
                     setAiOutput(data.output);
                     setUsedModel(data.model);
+                    setMetrics({
+                        latencyMs: data.latencyMs,
+                        usage: data.usage
+                    });
 
                     // Update default model if changed
                     if (prompt.defaultModel !== customModel) {
@@ -457,6 +474,7 @@ export default function PromptWorkshop() {
                                                 customModel={customModel}
                                                 setCustomModel={setCustomModel}
                                                 availableModels={availableModels}
+                                                metrics={metrics}
                                                 onDownload={() => downloadExperimentAsExcel(
                                                     systemPrompt,
                                                     isBulkMode ? null : userPrompt,
@@ -542,6 +560,7 @@ export default function PromptWorkshop() {
                                                     customModel={customModel}
                                                     setCustomModel={setCustomModel}
                                                     availableModels={availableModels}
+                                                    metrics={metrics}
                                                     onDownload={() => downloadExperimentAsExcel(
                                                         systemPrompt,
                                                         isBulkMode ? null : userPrompt,

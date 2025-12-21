@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, AlertCircle, Download } from "lucide-react";
+import { Loader2, AlertCircle, Download, Timer, Coins, Zap } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,20 @@ interface ResponseViewerProps {
     setCustomModel?: (model: string) => void;
     availableModels?: { id: string }[];
     onDownload?: () => void;
+    metrics?: {
+        latencyMs?: number;
+        usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+    };
     // Bulk Props
     isBulkMode?: boolean;
-    bulkOutputs?: { inputId: string; output: string; model: string; status: 'pending' | 'running' | 'completed' | 'error' }[];
+    bulkOutputs?: {
+        inputId: string;
+        output: string;
+        model: string;
+        status: 'pending' | 'running' | 'completed' | 'error';
+        usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+        latencyMs?: number;
+    }[];
     bulkInputs?: { id: string; value: string }[];
 }
 
@@ -32,12 +43,33 @@ export function ResponseViewer({
     setCustomModel,
     availableModels = [],
     onDownload,
+    metrics,
     // Bulk Props
     isBulkMode,
     bulkOutputs = [],
     bulkInputs = []
 }: ResponseViewerProps) {
     const [showModelDropdown, setShowModelDropdown] = useState(false);
+
+    const calculateCost = (model: string | undefined, usage: { prompt_tokens: number; completion_tokens: number } | undefined) => {
+        if (!usage || !model) return 0;
+
+        // Pricing per 1M tokens (approximate)
+        let inputPrice = 0.15; // gpt-4o-mini default
+        let outputPrice = 0.60;
+
+        if (model.includes('gpt-4o') && !model.includes('mini')) {
+            inputPrice = 2.50;
+            outputPrice = 10.00;
+        } else if (model.includes('gpt-4-turbo')) {
+            inputPrice = 10.00;
+            outputPrice = 30.00;
+        }
+
+        const inputCost = (usage.prompt_tokens / 1_000_000) * inputPrice;
+        const outputCost = (usage.completion_tokens / 1_000_000) * outputPrice;
+        return inputCost + outputCost;
+    };
 
     // Fallback models...
     const FALLBACK_MODELS = [
@@ -60,7 +92,22 @@ export function ResponseViewer({
         return (
             <div className="flex flex-col h-full bg-card border-l border-border/50">
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bulk Results ({bulkOutputs.filter(o => o.status === 'completed').length}/{bulkOutputs.length})</span>
+                    <div className="flex flex-col">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bulk Results ({bulkOutputs.filter(o => o.status === 'completed').length}/{bulkOutputs.length})</span>
+                        {/* Bulk Summary Analytics */}
+                        {bulkOutputs.some(o => o.usage) && (
+                            <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
+                                <span className="flex items-center gap-1" title="Total Tokens">
+                                    <Coins className="h-3 w-3" />
+                                    {bulkOutputs.reduce((acc, curr) => acc + (curr.usage?.total_tokens || 0), 0).toLocaleString()}
+                                </span>
+                                <span className="flex items-center gap-1" title="Total Estimated Cost">
+                                    <Zap className="h-3 w-3" />
+                                    ${bulkOutputs.reduce((acc, curr) => acc + calculateCost(curr.model, curr.usage), 0).toFixed(4)}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                     <div className="flex items-center gap-2">
                         {onDownload && (
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDownload}>
@@ -235,6 +282,29 @@ export function ResponseViewer({
                     </div>
                 </ScrollArea>
             </div>
+            {/* Single Mode Analytics Footer */}
+            {metrics && (
+                <div className="h-8 border-t bg-muted/10 flex items-center justify-end px-4 gap-4 text-[10px] text-muted-foreground shrink-0">
+                    {metrics.latencyMs && (
+                        <div className="flex items-center gap-1.5" title="Latency">
+                            <Timer className="h-3 w-3 opacity-70" />
+                            <span className="font-mono">{(metrics.latencyMs / 1000).toFixed(2)}s</span>
+                        </div>
+                    )}
+                    {metrics.usage && (
+                        <div className="flex items-center gap-1.5" title={`Prompt: ${metrics.usage.prompt_tokens} | Completion: ${metrics.usage.completion_tokens}`}>
+                            <Coins className="h-3 w-3 opacity-70" />
+                            <span className="font-mono">{metrics.usage.total_tokens} toks</span>
+                        </div>
+                    )}
+                    {metrics.usage && (
+                        <div className="flex items-center gap-1.5 text-green-600/80" title="Estimated Cost">
+                            <Zap className="h-3 w-3 opacity-70" />
+                            <span className="font-mono">${calculateCost(model || customModel, metrics.usage).toFixed(5)}</span>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

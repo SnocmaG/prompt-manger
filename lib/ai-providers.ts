@@ -15,15 +15,27 @@ interface AITestResponse {
     provider: AIProvider;
     error?: string;
     model?: string;
+    usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
+    latencyMs?: number;
 }
 
 
+
+interface TokenUsage {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+}
 
 export async function testWithOpenAI(
     promptContent: string,
     testInput?: string,
     model: string = 'gpt-4o-mini'
-): Promise<string> {
+): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
     const apiKey = process.env.OPENAI_API_KEY?.trim();
 
     if (!apiKey) {
@@ -50,82 +62,97 @@ export async function testWithOpenAI(
         chatBody.max_tokens = 1000;
     }
 
-    // Attempt 1: Chat Completions
-    let response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(chatBody),
-    });
-
-    let data;
+    const startTime = Date.now();
+    let response;
     let retried = false;
 
-    if (!response.ok) {
-        const initialError = await response.json();
-        const initialErrorMessage = initialError.error?.message || '';
+    try {
+        // Attempt 1: Chat Completions
+        response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(chatBody),
+        });
 
-        console.warn(`[OpenAI Debug] Error with model ${model}: ${initialErrorMessage}`);
-
-        // Error Case 1: "Not a chat model" -> Retry with Completions API
-        if (initialErrorMessage.includes('This is not a chat model')) {
-            console.log(`[OpenAI Debug] Switching to /v1/completions for ${model}`);
-            retried = true;
-            // Attempt 2: Completions
-            const prompt = `${promptContent}\n\n${testInput || ''}`;
-            const completionBody = {
-                model: model,
-                prompt: prompt,
-                max_tokens: 1000,
-            };
-
-            response = await fetch('https://api.openai.com/v1/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                },
-                body: JSON.stringify(completionBody),
-            });
-        }
-        // Error Case 2: "max_tokens is not supported" -> Retry with max_completion_tokens
-        else if (initialErrorMessage.includes("'max_tokens' is not supported")) {
-            console.log(`[OpenAI Debug] Retrying with max_completion_tokens for ${model}`);
-            retried = true;
-
-            // Remove max_tokens and add max_completion_tokens
-            delete chatBody.max_tokens;
-            chatBody.max_completion_tokens = 1000;
-
-            response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                },
-                body: JSON.stringify(chatBody),
-            });
-        }
-
-        // Check response again after retry
+        // Retry logic managed here... 
         if (!response.ok) {
-            // If we didn't retry, or if the retry failed
-            if (!retried) {
-                throw new Error(initialErrorMessage || 'OpenAI API error');
+            const initialError = await response.json();
+            const initialErrorMessage = initialError.error?.message || '';
+
+            console.warn(`[OpenAI Debug] Error with model ${model}: ${initialErrorMessage}`);
+
+            // Error Case 1: "Not a chat model" -> Retry with Completions API
+            if (initialErrorMessage.includes('This is not a chat model')) {
+                console.log(`[OpenAI Debug] Switching to /v1/completions for ${model}`);
+                retried = true;
+                // Attempt 2: Completions
+                const prompt = `${promptContent}\n\n${testInput || ''}`;
+                const completionBody = {
+                    model: model,
+                    prompt: prompt,
+                    max_tokens: 1000,
+                };
+
+                response = await fetch('https://api.openai.com/v1/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                    },
+                    body: JSON.stringify(completionBody),
+                });
+            }
+            // Error Case 2: "max_tokens is not supported" -> Retry with max_completion_tokens
+            else if (initialErrorMessage.includes("'max_tokens' is not supported")) {
+                console.log(`[OpenAI Debug] Retrying with max_completion_tokens for ${model}`);
+                retried = true;
+
+                // Remove max_tokens and add max_completion_tokens
+                delete chatBody.max_tokens;
+                chatBody.max_completion_tokens = 1000;
+
+                response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                    },
+                    body: JSON.stringify(chatBody),
+                });
             }
 
-            // If we DID retry and it failed again:
-            const retryError = await response.json();
-            throw new Error(retryError.error?.message || 'OpenAI API retry error');
+            // Check response again after retry
+            if (!response.ok) {
+                // If we didn't retry, or if the retry failed
+                if (!retried) {
+                    throw new Error(initialErrorMessage || 'OpenAI API error');
+                }
+
+                // If we DID retry and it failed again:
+                const retryError = await response.json();
+                throw new Error(retryError.error?.message || 'OpenAI API retry error');
+            }
         }
+    } catch (e) {
+        throw e;
     }
 
+    const endTime = Date.now();
+    const latencyMs = endTime - startTime;
+
+    let data;
+
     // If a retry to /completions was successful, handle its specific data structure
-    if (retried && response.url.includes('/completions')) {
+    if (retried && response && response.url.includes('/completions')) {
         data = await response.json();
-        return data.choices[0]?.text || '[No content returned]';
+        return {
+            content: data.choices[0]?.text || '[No content returned]',
+            usage: data.usage,
+            latencyMs
+        };
     }
 
     // Otherwise, handle chat completions data structure (either initial success or chat retry success)
@@ -135,11 +162,19 @@ export async function testWithOpenAI(
 
     if (!content) {
         console.warn('OpenAI returned no content:', data);
-        if (data.error) return `Error: ${data.error.message}`;
-        return `[No content returned by API for model ${model}. Raw response logged.]`;
+        if (data.error) throw new Error(`Error: ${data.error.message}`);
+        return {
+            content: `[No content returned by API for model ${model}. Raw response logged.]`,
+            usage: data.usage,
+            latencyMs
+        };
     }
 
-    return content;
+    return {
+        content,
+        usage: data.usage,
+        latencyMs
+    };
 }
 
 export async function testWithAnthropic(
@@ -195,14 +230,19 @@ Response would appear here based on your prompt and input.`;
 
 export async function testPrompt(request: AITestRequest): Promise<AITestResponse> {
     try {
-        let output: string;
+        let output: string = '';
         let effectiveModel = request.model;
+        let usage;
+        let latencyMs;
 
         switch (request.provider) {
 
             case 'openai':
                 effectiveModel = request.model || 'gpt-4o-mini';
-                output = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel);
+                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel);
+                output = result.content;
+                usage = result.usage;
+                latencyMs = result.latencyMs;
                 break;
             case 'anthropic':
                 // For now hardcoded in existing function, but we can expose if needed
@@ -219,6 +259,8 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
             output,
             provider: request.provider,
             model: effectiveModel,
+            usage,
+            latencyMs
         };
     } catch (error) {
         return {
