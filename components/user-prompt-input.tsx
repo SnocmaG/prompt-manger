@@ -4,8 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Import, Play, Star, Tag, Hash, CloudDownload, Loader2, ListFilter, Layers, Square, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { SmartImportDialog } from "./smart-import-dialog";
 import {
     DropdownMenu,
@@ -15,7 +13,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 
 interface UserPromptInputProps {
