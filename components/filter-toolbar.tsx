@@ -22,8 +22,7 @@ import {
     Hash,
     CloudDownload,
     Loader2,
-    X,
-    ChevronRight
+    X
 } from "lucide-react"
 
 interface FilterToolbarProps {
