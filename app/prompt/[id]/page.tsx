@@ -200,7 +200,8 @@ export default function PromptWorkshop() {
                             provider,
                             model: customModel,
                             overrideContent: systemPrompt,
-                            promptId: prompt.id
+                            promptId: prompt.id,
+                            runMode: 'bulk'
                         }),
                     });
                     const data = await response.json();
@@ -243,7 +244,8 @@ export default function PromptWorkshop() {
                         provider,
                         model: customModel,
                         overrideContent: systemPrompt,
-                        promptId: prompt.id
+                        promptId: prompt.id,
+                        runMode: 'single'
                     }),
                 });
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserInfo } from '@/lib/auth';
 import { testPrompt, AIProvider } from '@/lib/ai-providers';
+import { calculateCost } from '@/lib/cost-utils';
 
 import { prisma } from '@/lib/prisma';
 
@@ -46,6 +47,9 @@ export async function POST(request: NextRequest) {
         // Save execution history (Fire and forget or await? Await to ensure safety)
         if (promptId && result.success) {
             try {
+                // Calculate estimated cost
+                const cost = calculateCost(result.model || model, result.usage);
+
                 await prisma.promptExecution.create({
                     data: {
                         promptId,
@@ -55,6 +59,12 @@ export async function POST(request: NextRequest) {
                         provider: result.provider,
                         response: result.output,
                         createdBy: name || userId || 'system',
+                        // Analytics
+                        durationMs: result.latencyMs,
+                        tokensIn: result.usage?.prompt_tokens,
+                        tokensOut: result.usage?.completion_tokens,
+                        cost: cost,
+                        runMode: body.runMode || 'single',
                     }
                 });
             } catch (err) {

@@ -1,6 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, AlertCircle, Layers, Timer, Coins, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExpressionText } from '@/components/expression-text';
 
@@ -15,6 +15,12 @@ interface PromptExecution {
     response: string;
     createdAt: string;
     createdBy: string;
+    // Analytics
+    durationMs?: number;
+    tokensIn?: number;
+    tokensOut?: number;
+    cost?: number;
+    runMode?: string;
 }
 
 interface RunHistoryProps {
@@ -105,6 +111,29 @@ export function RunHistory({ executions, onSelect, onDelete, onClearAll, selecte
                                 </div>
                                 <div className="text-xs text-muted-foreground line-clamp-2 w-full font-mono mt-1 opacity-80 pointer-events-none">
                                     {run.response}
+                                </div>
+
+                                {/* Analytics Footer */}
+                                <div className="flex items-center gap-3 mt-2 w-full pt-1.5 border-t border-border/40 pointer-events-none">
+                                    {run.runMode === 'bulk' && (
+                                        <div className="flex items-center gap-1 text-[10px] text-purple-600 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                            <Layers className="h-3 w-3" />
+                                            <span>Bulk</span>
+                                        </div>
+                                    )}
+                                    {run.durationMs && (
+                                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground" title="Latency">
+                                            <Timer className="h-3 w-3 opacity-70" />
+                                            <span>{(run.durationMs / 1000).toFixed(2)}s</span>
+                                        </div>
+                                    )}
+                                    {/* Only show tokens/cost if available (non-zero) */}
+                                    {(run.cost || 0) > 0 && (
+                                        <div className="flex items-center gap-1 text-[10px] text-green-600/80 ml-auto" title="Cost">
+                                            <Zap className="h-3 w-3 opacity-70" />
+                                            <span>${run.cost?.toFixed(5)}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );

@@ -90,6 +90,9 @@ model PromptExecution {
   tokensOut     Int?
   cost          Float?
   
+  // single, bulk, evaluation
+  runMode       String?  @default("single")
+  
   @@index([createdAt])
 }
 
