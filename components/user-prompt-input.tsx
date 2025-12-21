@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Import, Play, Star, Tag, Hash, CloudDownload, Loader2 } from "lucide-react";
+import { Plus, Trash2, Import, Play, Star, Tag, Hash, CloudDownload, Loader2, ListFilter, Layers, Square, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -113,43 +113,64 @@ export function UserPromptInput({
                     </div>
                     <div className="flex items-center gap-1">
 
-                        {/* Filters */}
+                        {/* Filter Menu */}
                         {onImportBulkInputs && (
-                            <div className="flex items-center gap-1 mr-2">
-                                {/* Rating Filter */}
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant={selectedRatings.length > 0 ? "secondary" : "ghost"} size="icon" className="h-6 w-6">
-                                            <Star className={`h-3 w-3 ${selectedRatings.length > 0 ? 'text-yellow-500 fill-current' : ''}`} />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Filter by Rating</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        {[5, 4, 3, 2, 1].map(r => (
-                                            <DropdownMenuCheckboxItem
-                                                key={r}
-                                                checked={selectedRatings.includes(r)}
-                                                onCheckedChange={() => toggleRating(r)}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant={selectedRatings.length > 0 || selectedTypes.length > 0 ? "secondary" : "outline"}
+                                        size="sm"
+                                        className="h-7 gap-2 px-2 text-xs mr-2 border-dashed"
+                                    >
+                                        <ListFilter className="h-3.5 w-3.5" />
+                                        <span>Filters</span>
+                                        {(selectedRatings.length > 0 || selectedTypes.length > 0) && (
+                                            <Badge variant="secondary" className="px-1 h-4 min-w-[16px] text-[9px] ml-0.5">
+                                                {selectedRatings.length + selectedTypes.length}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-[200px]">
+                                    <DropdownMenuLabel className="flex items-center justify-between">
+                                        <span>Filter Reviews</span>
+                                        {(selectedRatings.length > 0 || selectedTypes.length > 0) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-4 w-4"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setSelectedRatings([]);
+                                                    setSelectedTypes([]);
+                                                }}
                                             >
-                                                {r} Stars
-                                            </DropdownMenuCheckboxItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        )}
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
 
-                                {/* Type Filter */}
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant={selectedTypes.length > 0 ? "secondary" : "ghost"} size="icon" className="h-6 w-6">
-                                            <Tag className={`h-3 w-3 ${selectedTypes.length > 0 ? 'text-blue-500' : ''}`} />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
-                                        <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
+                                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground flex items-center gap-2">
+                                        <Star className="h-3 w-3" /> Ratings
+                                    </DropdownMenuLabel>
+                                    {[5, 4, 3, 2, 1].map(r => (
+                                        <DropdownMenuCheckboxItem
+                                            key={r}
+                                            checked={selectedRatings.includes(r)}
+                                            onCheckedChange={() => toggleRating(r)}
+                                        >
+                                            {r} Stars
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground flex items-center gap-2">
+                                        <Tag className="h-3 w-3" /> Type
+                                    </DropdownMenuLabel>
+                                    <ScrollArea className="h-[100px]">
                                         {availableTypes.length === 0 ? (
-                                            <div className="p-2 text-xs text-muted-foreground">No types found</div>
+                                            <div className="p-2 text-xs text-muted-foreground italic">No types found</div>
                                         ) : (
                                             availableTypes.map(t => (
                                                 <DropdownMenuCheckboxItem
@@ -161,77 +182,87 @@ export function UserPromptInput({
                                                 </DropdownMenuCheckboxItem>
                                             ))
                                         )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                    </ScrollArea>
 
-                                {/* Limit Filter */}
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                                            <Hash className="h-3 w-3" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Fetch Limit</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuRadioGroup value={limit.toString()} onValueChange={(v) => setLimit(parseInt(v))}>
-                                            {[10, 20, 50, 100].map(l => (
-                                                <DropdownMenuRadioItem key={l} value={l.toString()}>
-                                                    {l} Reviews
-                                                </DropdownMenuRadioItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground flex items-center gap-2">
+                                        <Hash className="h-3 w-3" /> Limit
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuRadioGroup value={limit.toString()} onValueChange={(v) => setLimit(parseInt(v))}>
+                                        <div className="flex items-center justify-between px-2 py-1">
+                                            {[10, 20, 50].map(l => (
+                                                <Button
+                                                    key={l}
+                                                    variant={limit === l ? "secondary" : "ghost"}
+                                                    size="sm"
+                                                    className="h-6 w-8 text-[10px] p-0"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setLimit(l);
+                                                    }}
+                                                >
+                                                    {l}
+                                                </Button>
                                             ))}
-                                        </DropdownMenuRadioGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                        </div>
+                                    </DropdownMenuRadioGroup>
 
-                                {/* Fetch Action */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-muted-foreground hover:text-primary"
-                                    onClick={handleFetchReviews}
-                                    disabled={isFetching}
-                                    title="Fetch Reviews from DB"
-                                >
-                                    {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <CloudDownload className="h-3 w-3" />}
-                                </Button>
-
-                                <div className="h-4 w-px bg-border/50 mx-1" />
-                            </div>
+                                    <DropdownMenuSeparator />
+                                    <div className="p-2">
+                                        <Button
+                                            size="sm"
+                                            className="w-full h-7 gap-2"
+                                            onClick={handleFetchReviews}
+                                            disabled={isFetching}
+                                        >
+                                            {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <CloudDownload className="h-3 w-3" />}
+                                            Fetch {limit} Reviews
+                                        </Button>
+                                    </div>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
+
                         {onImportBulkInputs && (
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 gap-1 text-[10px] text-muted-foreground hover:text-primary"
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
                                 onClick={() => setIsImportOpen(true)}
                                 disabled={isTesting}
+                                title="Import file"
                             >
-                                <Import className="h-3 w-3" />
-                                Import
+                                <Import className="h-4 w-4" />
                             </Button>
                         )}
-                        <div className="h-4 w-px bg-border/50 mx-1" />
 
-                        {/* Add Header Run Button for consistency */}
+                        <div className="h-4 w-px bg-border/50 mx-2" />
+
+                        {/* Run Button */}
                         <Button
                             size="icon"
                             variant="default"
-                            className="h-6 w-6 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground mr-2 flex items-center justify-center"
+                            className="h-7 w-7 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground flex items-center justify-center mr-2"
                             onClick={onRun}
                             disabled={isTesting}
                             title="Run Bulk Tests"
                         >
-                            <Play className="h-3 w-3 fill-current ml-0.5" />
+                            <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
                         </Button>
 
-                        <div className="flex items-center gap-2 mr-2">
-                            <Switch
-                                id="bulk-mode"
-                                checked={isBulkMode}
-                                onCheckedChange={onToggleBulk}
-                            />
-                            <Label htmlFor="bulk-mode" className="text-xs">Bulk Mode</Label>
+                        {/* Bulk Toggle Icon */}
+                        <div className="flex items-center gap-2 mr-1">
+                            {onToggleBulk && (
+                                <Button
+                                    variant={isBulkMode ? "secondary" : "ghost"}
+                                    size="icon"
+                                    className="h-7 w-7 rounded-sm"
+                                    onClick={() => onToggleBulk(!isBulkMode)}
+                                    title="Toggle Bulk Mode"
+                                >
+                                    <Layers className="h-4 w-4" />
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -317,14 +348,15 @@ export function UserPromptInput({
                     </Button>
 
                     {onToggleBulk && (
-                        <div className="flex items-center gap-2 ml-2">
-                            <Switch
-                                id="bulk-mode"
-                                checked={isBulkMode}
-                                onCheckedChange={onToggleBulk}
-                            />
-                            <Label htmlFor="bulk-mode" className="text-xs text-muted-foreground">Bulk Mode</Label>
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            onClick={() => onToggleBulk(!isBulkMode)}
+                            title="Switch to Bulk Mode"
+                        >
+                            <Square className="h-4 w-4" />
+                        </Button>
                     )}
                 </div>
             </div>
