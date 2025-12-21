@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Send, Import } from "lucide-react";
+import { Plus, Trash2, Import, Play } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -60,6 +60,19 @@ export function UserPromptInput({
                             </Button>
                         )}
                         <div className="h-4 w-px bg-border/50 mx-1" />
+
+                        {/* Add Header Run Button for consistency */}
+                        <Button
+                            size="icon"
+                            variant="default"
+                            className="h-6 w-6 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground mr-2 flex items-center justify-center"
+                            onClick={onRun}
+                            disabled={isTesting}
+                            title="Run Bulk Tests"
+                        >
+                            <Play className="h-3 w-3 fill-current ml-0.5" />
+                        </Button>
+
                         <div className="flex items-center gap-2 mr-2">
                             <Switch
                                 id="bulk-mode"
@@ -153,12 +166,12 @@ export function UserPromptInput({
                     <Button
                         size="icon"
                         variant="default"
-                        className="h-6 w-6 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground"
+                        className="h-6 w-6 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground flex items-center justify-center"
                         onClick={onRun}
                         disabled={isTesting}
                         title="Run Test (⌘+Enter)"
                     >
-                        <Send className="h-3 w-3 translate-x-px translate-y-px" />
+                        <Play className="h-3 w-3 fill-current ml-0.5" />
                     </Button>
                 </div>
             </div>

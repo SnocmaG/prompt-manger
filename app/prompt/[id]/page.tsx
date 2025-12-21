@@ -279,19 +279,6 @@ export default function PromptWorkshop() {
             });
             if (response.ok) {
                 const newVersion = await response.json();
-
-                // Check if we were editing the live version and this is a "Deploy Changes" action
-                const liveVersion = prompt.versions.find(v => v.id === prompt.liveVersionId);
-                const isDirtyLive = liveVersion && liveVersion.systemPrompt !== systemPrompt;
-
-                if (isDirtyLive) {
-                    await fetch(`/api/prompts/${prompt.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ liveVersionId: newVersion.id })
-                    });
-                }
-
                 fetchPrompt(); // Refresh list
             }
         } catch (e) { console.error(e); }

@@ -80,7 +80,7 @@ export function ResponseViewer({
                             {bulkOutputs.map((output, idx) => {
                                 const inputVal = bulkInputs.find(i => i.id === output.inputId)?.value || '';
                                 return (
-                                    <div key={output.inputId} className="bg-background border rounded-md shadow-sm overflow-hidden flex flex-col group">
+                                    <div key={output.inputId} className="bg-background border rounded-md shadow-sm flex flex-col group">
                                         {/* Header */}
                                         <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b">
                                             <div className="flex items-center gap-2 overflow-hidden">
@@ -101,9 +101,9 @@ export function ResponseViewer({
 
                                                     {/* Custom Tooltip Box */}
                                                     {inputVal && (
-                                                        <div className="absolute left-0 bottom-full mb-2 w-[300px] p-3 bg-popover text-popover-foreground text-xs rounded-md border shadow-lg z-50 opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 pointer-events-none">
+                                                        <div className="absolute left-0 bottom-full mb-2 w-[300px] p-3 bg-popover text-popover-foreground text-xs rounded-md border shadow-2xl z-[100] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 pointer-events-none">
                                                             <div className="font-semibold mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Full Input</div>
-                                                            <div className="font-mono whitespace-pre-wrap break-words max-h-[200px] overflow-hidden">{inputVal}</div>
+                                                            <div className="font-mono whitespace-pre-wrap break-words max-h-[200px] overflow-y-auto">{inputVal}</div>
                                                             {/* Arrow */}
                                                             <div className="absolute left-4 -bottom-1 w-2 h-2 bg-popover border-r border-b transform rotate-45"></div>
                                                         </div>
@@ -119,10 +119,10 @@ export function ResponseViewer({
                                     </div>
                                 );
                             })}
-                        </div>
-                    </ScrollArea>
-                </div>
-            </div>
+                        </div >
+                    </ScrollArea >
+                </div >
+            </div >
         );
     }
 
