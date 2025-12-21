@@ -2,18 +2,11 @@ import { useState, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Import, Play, Star, Tag, Hash, CloudDownload, Loader2, ListFilter, Layers, Square, X } from "lucide-react";
+import { Plus, Trash2, Import, Play, Layers, Square } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SmartImportDialog } from "./smart-import-dialog";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuCheckboxItem,
-    DropdownMenuTrigger,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuRadioGroup,
-} from "@/components/ui/dropdown-menu";
+// Import new Toolbar
+import { FilterToolbar } from "./filter-toolbar";
 
 interface UserPromptInputProps {
     value: string;
@@ -44,41 +37,42 @@ export function UserPromptInput({
     onImportBulkInputs
 }: UserPromptInputProps) {
     const [isImportOpen, setIsImportOpen] = useState(false);
-
-    // Filter State
-    const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
-    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [availableTypes, setAvailableTypes] = useState<string[]>([]);
-    const [limit, setLimit] = useState(10);
     const [isFetching, setIsFetching] = useState(false);
 
-    // Fetch available review types on mount (if in bulk mode)
+    // Fetch types on mount (optimize: only once)
     useEffect(() => {
-        if (isBulkMode) {
-            fetch('/api/reviews/types')
-                .then(res => res.ok ? res.json() : [])
-                .then(setAvailableTypes)
-                .catch(console.error);
-        }
-    }, [isBulkMode]);
+        fetch('/api/reviews/types')
+            .then(res => res.ok ? res.json() : [])
+            .then(setAvailableTypes)
+            .catch(console.error);
+    }, []);
 
-    const handleFetchReviews = async () => {
+    const handleFetchReviews = async ({ ratings, types, limit }: { ratings: number[], types: string[], limit: number }) => {
         if (isFetching || !onImportBulkInputs) return;
         setIsFetching(true);
         try {
             const res = await fetch('/api/reviews/fetch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ratings: selectedRatings,
-                    types: selectedTypes,
-                    limit
-                })
+                body: JSON.stringify({ ratings, types, limit })
             });
             if (res.ok) {
                 const data = await res.json();
                 if (data.reviews && Array.isArray(data.reviews)) {
-                    onImportBulkInputs(data.reviews);
+                    // Logic: If in single mode, just set the ONE value. 
+                    // If in bulk mode, append/replace logic handled by parent? 
+                    // Actually parent `onImportBulkInputs` typically adds. 
+
+                    if (!isBulkMode) {
+                        // Single Mode: Extract first one
+                        if (data.reviews.length > 0) {
+                            onChange(data.reviews[0]);
+                        }
+                    } else {
+                        // Bulk Mode
+                        onImportBulkInputs(data.reviews);
+                    }
                 }
             }
         } catch (e) {
@@ -86,18 +80,6 @@ export function UserPromptInput({
         } finally {
             setIsFetching(false);
         }
-    };
-
-    const toggleRating = (r: number) => {
-        setSelectedRatings(prev =>
-            prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]
-        );
-    };
-
-    const toggleType = (t: string) => {
-        setSelectedTypes(prev =>
-            prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]
-        );
     };
 
     if (isBulkMode) {
@@ -110,114 +92,16 @@ export function UserPromptInput({
                     </div>
                     <div className="flex items-center gap-1">
 
-                        {/* Filter Menu */}
+                        {/* New Filter Toolbar */}
                         {onImportBulkInputs && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant={selectedRatings.length > 0 || selectedTypes.length > 0 ? "secondary" : "outline"}
-                                        size="sm"
-                                        className="h-7 gap-2 px-2 text-xs mr-2 border-dashed"
-                                    >
-                                        <ListFilter className="h-3.5 w-3.5" />
-                                        <span>Filters</span>
-                                        {(selectedRatings.length > 0 || selectedTypes.length > 0) && (
-                                            <Badge variant="secondary" className="px-1 h-4 min-w-[16px] text-[9px] ml-0.5">
-                                                {selectedRatings.length + selectedTypes.length}
-                                            </Badge>
-                                        )}
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-[200px]">
-                                    <DropdownMenuLabel className="flex items-center justify-between">
-                                        <span>Filter Reviews</span>
-                                        {(selectedRatings.length > 0 || selectedTypes.length > 0) && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-4 w-4"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    setSelectedRatings([]);
-                                                    setSelectedTypes([]);
-                                                }}
-                                            >
-                                                <X className="h-3 w-3" />
-                                            </Button>
-                                        )}
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-
-                                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground flex items-center gap-2">
-                                        <Star className="h-3 w-3" /> Ratings
-                                    </DropdownMenuLabel>
-                                    {[5, 4, 3, 2, 1].map(r => (
-                                        <DropdownMenuCheckboxItem
-                                            key={r}
-                                            checked={selectedRatings.includes(r)}
-                                            onCheckedChange={() => toggleRating(r)}
-                                        >
-                                            {r} Stars
-                                        </DropdownMenuCheckboxItem>
-                                    ))}
-
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground flex items-center gap-2">
-                                        <Tag className="h-3 w-3" /> Type
-                                    </DropdownMenuLabel>
-                                    <ScrollArea className="h-[100px]">
-                                        {availableTypes.length === 0 ? (
-                                            <div className="p-2 text-xs text-muted-foreground italic">No types found</div>
-                                        ) : (
-                                            availableTypes.map(t => (
-                                                <DropdownMenuCheckboxItem
-                                                    key={t}
-                                                    checked={selectedTypes.includes(t)}
-                                                    onCheckedChange={() => toggleType(t)}
-                                                >
-                                                    {t}
-                                                </DropdownMenuCheckboxItem>
-                                            ))
-                                        )}
-                                    </ScrollArea>
-
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground flex items-center gap-2">
-                                        <Hash className="h-3 w-3" /> Limit
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuRadioGroup value={limit.toString()} onValueChange={(v) => setLimit(parseInt(v))}>
-                                        <div className="flex items-center justify-between px-2 py-1">
-                                            {[10, 20, 50].map(l => (
-                                                <Button
-                                                    key={l}
-                                                    variant={limit === l ? "secondary" : "ghost"}
-                                                    size="sm"
-                                                    className="h-6 w-8 text-[10px] p-0"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        setLimit(l);
-                                                    }}
-                                                >
-                                                    {l}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </DropdownMenuRadioGroup>
-
-                                    <DropdownMenuSeparator />
-                                    <div className="p-2">
-                                        <Button
-                                            size="sm"
-                                            className="w-full h-7 gap-2"
-                                            onClick={handleFetchReviews}
-                                            disabled={isFetching}
-                                        >
-                                            {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <CloudDownload className="h-3 w-3" />}
-                                            Fetch {limit} Reviews
-                                        </Button>
-                                    </div>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="mr-2">
+                                <FilterToolbar
+                                    onFetch={handleFetchReviews}
+                                    isFetching={isFetching}
+                                    availableTypes={availableTypes}
+                                    isBulkMode={true}
+                                />
+                            </div>
                         )}
 
                         {onImportBulkInputs && (
@@ -251,11 +135,11 @@ export function UserPromptInput({
                         <div className="flex items-center gap-2 mr-1">
                             {onToggleBulk && (
                                 <Button
-                                    variant={isBulkMode ? "secondary" : "ghost"}
+                                    variant="secondary"
                                     size="icon"
-                                    className="h-7 w-7 rounded-sm"
+                                    className="h-7 w-7 rounded-sm border-primary/20 bg-primary/10 text-primary"
                                     onClick={() => onToggleBulk(!isBulkMode)}
-                                    title="Toggle Bulk Mode"
+                                    title="Switch to Single Mode"
                                 >
                                     <Layers className="h-4 w-4" />
                                 </Button>
@@ -333,22 +217,38 @@ export function UserPromptInput({
                     <Badge variant="outline" className="text-[10px] h-4">Single Input</Badge>
                 </div>
                 <div className="flex items-center gap-2">
+
+                    {/* Filter Toolbar (Single Mode - No Limit) */}
+                    {onImportBulkInputs && (
+                        <div className="mr-2">
+                            <FilterToolbar
+                                onFetch={handleFetchReviews}
+                                isFetching={isFetching}
+                                availableTypes={availableTypes}
+                                isBulkMode={false} // Force single mode
+                            />
+                        </div>
+                    )}
+
+                    <div className="h-4 w-px bg-border/50 mx-1" />
+
                     <Button
                         size="icon"
                         variant="default"
-                        className="h-6 w-6 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground flex items-center justify-center"
+                        className="h-7 w-7 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95 bg-primary text-primary-foreground flex items-center justify-center"
                         onClick={onRun}
                         disabled={isTesting}
                         title="Run Test (⌘+Enter)"
                     >
-                        <Play className="h-3 w-3 fill-current ml-0.5" />
+                        <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
                     </Button>
 
+                    {/* Bulk Toggle in Single Mode */}
                     {onToggleBulk && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground rounded-sm ml-1"
                             onClick={() => onToggleBulk(!isBulkMode)}
                             title="Switch to Bulk Mode"
                         >
@@ -370,7 +270,6 @@ export function UserPromptInput({
                 className="flex-1 p-4 text-sm font-mono border-0 focus-visible:ring-0 resize-none rounded-none bg-background/50"
                 disabled={isTesting}
             />
-            {/* Added a hint for consistency, though not strictly required if keeping orig style */}
             <div className="px-4 py-1 text-[10px] text-muted-foreground border-t flex justify-end bg-background/50">
                 Hit <span className="font-mono bg-muted px-1 rounded ml-1">⌘+Enter</span> to run
             </div>
