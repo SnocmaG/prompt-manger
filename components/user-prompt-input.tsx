@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Send } from "lucide-react";
+import { Plus, Trash2, Send, Import } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { SmartImportDialog } from "./smart-import-dialog";
 
 interface UserPromptInputProps {
     value: string;
@@ -18,6 +20,7 @@ interface UserPromptInputProps {
     onBulkInputChange?: (id: string, value: string) => void;
     onAddBulkInput?: () => void;
     onRemoveBulkInput?: (id: string) => void;
+    onImportBulkInputs?: (inputs: string[]) => void;
 }
 
 export function UserPromptInput({
@@ -30,8 +33,11 @@ export function UserPromptInput({
     bulkInputs = [],
     onBulkInputChange,
     onAddBulkInput,
-    onRemoveBulkInput
+    onRemoveBulkInput,
+    onImportBulkInputs
 }: UserPromptInputProps) {
+    const [isImportOpen, setIsImportOpen] = useState(false);
+
     if (isBulkMode) {
         return (
             <div className="flex flex-col h-full bg-card border-b border-border/40">
@@ -41,6 +47,19 @@ export function UserPromptInput({
                         <Badge variant="outline" className="text-[10px] h-4">{bulkInputs.length} Cases</Badge>
                     </div>
                     <div className="flex items-center gap-2">
+                        {onImportBulkInputs && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 gap-1 text-[10px] text-muted-foreground hover:text-primary"
+                                onClick={() => setIsImportOpen(true)}
+                                disabled={isTesting}
+                            >
+                                <Import className="h-3 w-3" />
+                                Import
+                            </Button>
+                        )}
+                        <div className="h-4 w-px bg-border/50 mx-1" />
                         <div className="flex items-center gap-2 mr-2">
                             <Switch
                                 id="bulk-mode"
@@ -91,6 +110,13 @@ export function UserPromptInput({
                             </Button>
                         </div>
                     </ScrollArea>
+
+                    <SmartImportDialog
+                        open={isImportOpen}
+                        onOpenChange={setIsImportOpen}
+                        onImport={(cases) => onImportBulkInputs?.(cases)}
+                    />
+
                 </div>
                 <div className="p-3 border-t bg-background/50 flex justify-end">
                     <Button

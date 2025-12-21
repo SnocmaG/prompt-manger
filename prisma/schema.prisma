@@ -168,3 +168,18 @@ model EvaluationResult {
   
   createdAt        DateTime       @default(now())
 }
+
+model Review {
+  id              String   @id @default(uuid())
+  reviewId        String   @unique
+  
+  starRating      Int?
+  reviewText      String   @db.Text
+  reviewDate      DateTime?
+
+  // Mapped field
+  reviewType      String?  @map("Review Type")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

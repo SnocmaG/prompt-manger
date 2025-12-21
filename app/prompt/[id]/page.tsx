@@ -427,9 +427,21 @@ export default function PromptWorkshop() {
                                                 isBulkMode={isBulkMode}
                                                 onToggleBulk={setIsBulkMode}
                                                 bulkInputs={bulkInputs}
-                                                onBulkInputChange={(id, val) => setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i))}
-                                                onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: Date.now().toString(), value: '' }])}
-                                                onRemoveBulkInput={(id) => setBulkInputs(prev => prev.filter(i => i.id !== id))}
+                                                onBulkInputChange={(id, val) => {
+                                                    setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i));
+                                                }}
+                                                onAddBulkInput={() => {
+                                                    setBulkInputs(prev => [...prev, { id: crypto.randomUUID(), value: '' }]);
+                                                }}
+                                                onRemoveBulkInput={(id) => {
+                                                    setBulkInputs(prev => prev.filter(i => i.id !== id));
+                                                }}
+                                                onImportBulkInputs={(cases) => {
+                                                    setBulkInputs(prev => [
+                                                        ...prev.filter(p => p.value.trim() !== ''), // Keep existing non-empty? or just append?
+                                                        ...cases.map(c => ({ id: crypto.randomUUID(), value: c }))
+                                                    ]);
+                                                }}
                                             />
                                         </div>
                                     )}
@@ -497,8 +509,14 @@ export default function PromptWorkshop() {
                                                             onToggleBulk={setIsBulkMode}
                                                             bulkInputs={bulkInputs}
                                                             onBulkInputChange={(id, val) => setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i))}
-                                                            onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: Date.now().toString(), value: '' }])}
+                                                            onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: crypto.randomUUID(), value: '' }])}
                                                             onRemoveBulkInput={(id) => setBulkInputs(prev => prev.filter(i => i.id !== id))}
+                                                            onImportBulkInputs={(cases) => {
+                                                                setBulkInputs(prev => [
+                                                                    ...prev.filter(p => p.value.trim() !== ''),
+                                                                    ...cases.map(c => ({ id: crypto.randomUUID(), value: c }))
+                                                                ]);
+                                                            }}
                                                         />
                                                     </div>
                                                 </Panel>
