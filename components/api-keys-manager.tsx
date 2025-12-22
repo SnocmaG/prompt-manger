@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash2, Copy, Plus } from "lucide-react"
-import { useUser, useOrganization } from "@clerk/nextjs" // Keep client hook usage
+import { useUser } from "@clerk/nextjs" // Keep client hook usage
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface ApiKey {
