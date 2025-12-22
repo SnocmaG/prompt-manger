@@ -10,6 +10,9 @@
         "postinstall": "prisma generate",
         "db:seed": "npx prisma db seed"
     },
+    "engines": {
+        "node": ">=20.0.0"
+    },
     "dependencies": {
         "@clerk/nextjs": "^5.7.4",
         "@prisma/client": "^5.22.0",
