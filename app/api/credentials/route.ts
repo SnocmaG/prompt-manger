@@ -55,13 +55,21 @@ export async function POST(req: Request) {
             return new NextResponse("Missing required fields", { status: 400 });
         }
 
+        // Check if user has any existing credentials for this provider
+        const existingCount = await prisma.lLMCredential.count({
+            where: {
+                clientId: userId,
+                provider: provider
+            }
+        });
+
         const credential = await prisma.lLMCredential.create({
             data: {
                 name,
                 apiKey, // Storing plain text as requested
                 provider,
                 clientId: userId,
-                isDefault: false, // Default is false initially
+                isDefault: existingCount === 0, // Auto-set default if it's the first one
             }
         });
 

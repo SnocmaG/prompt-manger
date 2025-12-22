@@ -74,7 +74,7 @@ export async function testWithOpenAI(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
+                'Authorization': `Bearer ${effectiveApiKey}`,
             },
             body: JSON.stringify(chatBody),
         });
@@ -102,7 +102,7 @@ export async function testWithOpenAI(
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`,
+                        'Authorization': `Bearer ${effectiveApiKey}`,
                     },
                     body: JSON.stringify(completionBody),
                 });
@@ -120,7 +120,7 @@ export async function testWithOpenAI(
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`,
+                        'Authorization': `Bearer ${effectiveApiKey}`,
                     },
                     body: JSON.stringify(chatBody),
                 });

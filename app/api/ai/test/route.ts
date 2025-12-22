@@ -19,13 +19,26 @@ export async function POST(request: NextRequest) {
         const { testInput, provider, model, overrideContent, promptId } = body;
 
         // Fetch active credential
-        const activeCredential = await prisma.lLMCredential.findFirst({
+        let activeCredential = await prisma.lLMCredential.findFirst({
             where: {
                 clientId: userId,
                 isDefault: true,
                 provider: 'openai' // Support other providers later
             }
         });
+
+        // Fallback: If no default is set, use the most recent one
+        if (!activeCredential) {
+            activeCredential = await prisma.lLMCredential.findFirst({
+                where: {
+                    clientId: userId,
+                    provider: 'openai'
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            });
+        }
 
         const apiKey = activeCredential?.apiKey;
 
