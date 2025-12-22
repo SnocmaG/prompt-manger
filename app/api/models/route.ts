@@ -1,6 +1,9 @@
 
 import { NextResponse } from 'next/server';
 
+import { auth } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma'; // Ensure prisma is imported
+
 interface OpenAIModel {
     id: string;
     created: number;
@@ -9,9 +12,27 @@ interface OpenAIModel {
 }
 
 export async function GET() {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const { userId } = auth();
+
+    // Default to system key
+    let apiKey = process.env.OPENAI_API_KEY;
+
+    // If logged in, check for user override
+    if (userId) {
+        const activeCredential = await prisma.lLMCredential.findFirst({
+            where: {
+                clientId: userId,
+                isDefault: true,
+                provider: 'openai'
+            }
+        });
+        if (activeCredential?.apiKey) {
+            apiKey = activeCredential.apiKey;
+        }
+    }
 
     if (!apiKey) {
+        // If no system key and no user key, return empty list or error (for now error to prompt setup)
         return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 });
     }
 

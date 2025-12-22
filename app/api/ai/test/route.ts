@@ -18,6 +18,17 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { testInput, provider, model, overrideContent, promptId } = body;
 
+        // Fetch active credential
+        const activeCredential = await prisma.lLMCredential.findFirst({
+            where: {
+                clientId: userId,
+                isDefault: true,
+                provider: 'openai' // Support other providers later
+            }
+        });
+
+        const apiKey = activeCredential?.apiKey;
+
         // If no content provided, we can't test. (Previously checked branch)
         if (!overrideContent) {
             return NextResponse.json(
@@ -31,8 +42,9 @@ export async function POST(request: NextRequest) {
             provider: provider as AIProvider,
             promptContent: overrideContent,
             testInput,
-            model
-        });
+            model,
+            apiKey: apiKey // Pass the custom key if found
+        } as any);
 
         if (!result.success) {
             return NextResponse.json(
@@ -44,7 +56,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Save execution history (Fire and forget or await? Await to ensure safety)
+        // Save execution history
         if (promptId && result.success) {
             try {
                 // Calculate estimated cost
@@ -65,11 +77,11 @@ export async function POST(request: NextRequest) {
                         tokensOut: result.usage?.completion_tokens,
                         cost: cost,
                         runMode: body.runMode || 'single',
+                        credentialId: activeCredential?.id,
                     }
                 });
             } catch (err) {
                 console.error('Failed to save execution history:', err);
-                // Don't fail the request just because save failed
             }
         }
 

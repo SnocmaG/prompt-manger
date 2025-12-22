@@ -34,11 +34,12 @@ interface TokenUsage {
 export async function testWithOpenAI(
     promptContent: string,
     testInput?: string,
-    model: string = 'gpt-4o-mini'
+    model: string = 'gpt-4o-mini',
+    apiKey?: string
 ): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    const effectiveApiKey = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
 
-    if (!apiKey) {
+    if (!effectiveApiKey) {
         throw new Error('OpenAI API key not configured');
     }
 
@@ -239,7 +240,8 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
 
             case 'openai':
                 effectiveModel = request.model || 'gpt-4o-mini';
-                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel);
+                effectiveModel = request.model || 'gpt-4o-mini';
+                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, (request as any).apiKey);
                 output = result.content;
                 usage = result.usage;
                 latencyMs = result.latencyMs;

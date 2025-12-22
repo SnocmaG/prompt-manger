@@ -11,7 +11,8 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table';
-import { Activity, DollarSign, Zap, BarChart3 } from 'lucide-react';
+import { Activity, DollarSign, Zap, BarChart3, Key } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,7 +60,41 @@ async function getAnalytics(clientId: string) {
         }
     });
 
-    return { aggregations, traces };
+    // 3. Get breakdown by credential
+    const byCredential = await prisma.promptExecution.groupBy({
+        by: ['credentialId'],
+        where: {
+            prompt: { clientId }
+        },
+        _sum: {
+            cost: true,
+            tokensIn: true,
+            tokensOut: true,
+            durationMs: true
+        },
+        _count: {
+            id: true
+        }
+    });
+
+    // Fetch credential names
+    const credentialIds = byCredential.map(c => c.credentialId).filter(Boolean) as string[];
+    const credentials = await prisma.lLMCredential.findMany({
+        where: { id: { in: credentialIds } },
+        select: { id: true, name: true }
+    });
+
+    const credentialMap = new Map(credentials.map(c => [c.id, c.name]));
+
+    const credentialStats = byCredential.map(item => ({
+        credentialId: item.credentialId,
+        name: item.credentialId ? (credentialMap.get(item.credentialId) || 'Unknown Key') : 'System Default / Legacy',
+        totalCost: item._sum.cost || 0,
+        totalTokens: (item._sum.tokensIn || 0) + (item._sum.tokensOut || 0),
+        count: item._count.id
+    })).sort((a, b) => b.totalCost - a.totalCost);
+
+    return { aggregations, traces, credentialStats };
 }
 
 export default async function AnalyticsPage() {
@@ -68,7 +103,7 @@ export default async function AnalyticsPage() {
     // Safety check just in case
     if (!clientId) return <div className="p-8">Unauthorized</div>;
 
-    const { aggregations, traces } = await getAnalytics(clientId);
+    const { aggregations, traces, credentialStats } = await getAnalytics(clientId);
 
     // Helpers
     const totalCost = aggregations._sum.cost || 0;
@@ -108,6 +143,50 @@ export default async function AnalyticsPage() {
                         value={`${avgLatency}ms`}
                         icon={<BarChart3 className="h-4 w-4 text-purple-500" />}
                     />
+                </div>
+
+                {/* Credential Breakdown */}
+                <div className="rounded-xl border bg-card shadow-sm">
+                    <div className="p-6 border-b">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <Key className="h-4 w-4" />
+                            Usage by Credential
+                        </h3>
+                    </div>
+                    <div className="p-0">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Credential Name</TableHead>
+                                    <TableHead>Total Calls</TableHead>
+                                    <TableHead>Total Tokens</TableHead>
+                                    <TableHead className="text-right">Total Cost</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {credentialStats.map((stat) => (
+                                    <TableRow key={stat.credentialId || 'system'}>
+                                        <TableCell className="font-medium flex items-center gap-2">
+                                            {stat.name}
+                                            {!stat.credentialId && <Badge variant="secondary" className="text-[10px]">System</Badge>}
+                                        </TableCell>
+                                        <TableCell>{stat.count.toLocaleString()}</TableCell>
+                                        <TableCell>{stat.totalTokens.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono text-xs">
+                                            ${stat.totalCost.toFixed(5)}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {credentialStats.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            No usage data recorded yet.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
 
                 {/* Traces Table */}

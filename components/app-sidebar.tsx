@@ -151,14 +151,14 @@ export function AppSidebar() {
                         {!isCollapsed && <span className="truncate">Documentation</span>}
                     </div>
                 </Link>
-                <Link href="/settings/keys">
+                <Link href="/settings">
                     <div className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[#ffffff10]",
-                        pathname === "/settings/keys" && "bg-[#ffffff10] text-white",
+                        pathname === "/settings" && "bg-[#ffffff10] text-white",
                         isCollapsed && "justify-center px-2"
-                    )} title={isCollapsed ? "API Keys" : undefined}>
+                    )} title={isCollapsed ? "Settings" : undefined}>
                         <Key className="h-4 w-4 shrink-0" />
-                        {!isCollapsed && <span className="truncate">API Keys</span>}
+                        {!isCollapsed && <span className="truncate">Settings</span>}
                     </div>
                 </Link>
             </div >

@@ -252,7 +252,7 @@ export function UserPromptInput({
                             onClick={() => onToggleBulk(!isBulkMode)}
                             title="Switch to Bulk Mode"
                         >
-                            <Square className="h-4 w-4" />
+                            <Layers className="h-4 w-4" />
                         </Button>
                     )}
                 </div>
