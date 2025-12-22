@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Import, Play, Layers, Square } from "lucide-react";
+import { Plus, Trash2, Import, Play, Layers } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SmartImportDialog } from "./smart-import-dialog";
 // Import new Toolbar
