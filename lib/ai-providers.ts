@@ -7,6 +7,7 @@ interface AITestRequest {
     promptContent: string;
     testInput?: string;
     model?: string;
+    apiKey?: string;
 }
 
 interface AITestResponse {
@@ -241,7 +242,7 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
             case 'openai':
                 effectiveModel = request.model || 'gpt-4o-mini';
                 effectiveModel = request.model || 'gpt-4o-mini';
-                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, (request as any).apiKey);
+                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, request.apiKey);
                 output = result.content;
                 usage = result.usage;
                 latencyMs = result.latencyMs;

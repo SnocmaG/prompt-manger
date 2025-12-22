@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             testInput,
             model,
             apiKey: apiKey // Pass the custom key if found
-        } as any);
+        });
 
         if (!result.success) {
             return NextResponse.json(
