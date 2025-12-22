@@ -19,7 +19,8 @@ interface ApiKey {
 
 export function ApiKeysManager() {
     const { user } = useUser();
-    const { organization } = useOrganization();
+    const { user } = useUser();
+    // const { organization } = useOrganization(); // Removed unused variable which caused build error
 
     const [keys, setKeys] = useState<ApiKey[]>([])
     const [loading, setLoading] = useState(true)
