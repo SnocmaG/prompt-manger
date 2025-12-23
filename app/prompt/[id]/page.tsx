@@ -501,7 +501,6 @@ export default function PromptWorkshop() {
                                             )}
                                         </div>
                                     )}
-                                            )}
                                     isBulkMode={isBulkMode}
                                     bulkOutputs={bulkOutputs}
                                     bulkInputs={bulkInputs}
