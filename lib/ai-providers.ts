@@ -33,6 +33,53 @@ interface TokenUsage {
     total_tokens: number;
 }
 
+// ... (existing code)
+
+async function testWithOpenAIImage(
+    promptContent: string,
+    testInput?: string,
+    model: string = 'dall-e-3',
+    apiKey?: string
+): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
+    const effectiveApiKey = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
+    if (!effectiveApiKey) throw new Error('OpenAI API key not configured');
+
+    const startTime = Date.now();
+
+    // Combine system prompt and user input for the image prompt
+    const fullPrompt = `${promptContent}\n${testInput || ''}`.trim().substring(0, 4000); // Limit length
+
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${effectiveApiKey}`,
+        },
+        body: JSON.stringify({
+            model: model.includes('dall-e') ? model : 'dall-e-3', // Fallback to dall-e-3 if using custom alias
+            prompt: fullPrompt,
+            n: 1,
+            size: "1024x1024",
+            quality: "standard",
+            response_format: "url"
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'OpenAI Image API error');
+    }
+
+    const data = await response.json();
+    const endTime = Date.now();
+
+    return {
+        content: `![Generated Image](${data.data[0].url})`, // Markdown format for the viewer
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }, // Image gen doesn't return tokens
+        latencyMs: endTime - startTime
+    };
+}
+
 export async function testWithOpenAI(
     promptContent: string,
     testInput?: string,
@@ -40,7 +87,13 @@ export async function testWithOpenAI(
     apiKey?: string,
     imageUrl?: string
 ): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
+    // Reroute to Image API if model is DALL-E or the custom "gpt-image" alias
+    if (model.toLowerCase().includes('dall-e') || model.toLowerCase().includes('gpt-image')) {
+        return testWithOpenAIImage(promptContent, testInput, model, apiKey);
+    }
+
     const effectiveApiKey = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
+    // ... (rest of existing testWithOpenAI)
 
     if (!effectiveApiKey) {
         throw new Error('OpenAI API key not configured');
