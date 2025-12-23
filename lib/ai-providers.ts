@@ -115,9 +115,16 @@ async function testWithOpenAIImage(
     const data = await response.json();
     const endTime = Date.now();
 
+    // Capture the revised prompt (DALL-E 3 rewrites prompts, this is the "true" context)
+    const revisedPrompt = data.data[0].revised_prompt || promptContent;
+
+    // We store the revised prompt in the Markdown Alt text so it's saved in the DB 
+    // and can be read back as context for the next turn.
+    const cleanRevisedPrompt = revisedPrompt.replace(/[\[\]]/g, ''); // Sanitize brackets to prevent markdown breakage
+
     return {
-        content: `![Generated Image](${data.data[0].url})`, // Markdown format for the viewer
-        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }, // Image gen doesn't return tokens
+        content: `![${cleanRevisedPrompt}](${data.data[0].url})`,
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
         latencyMs: endTime - startTime
     };
 }
