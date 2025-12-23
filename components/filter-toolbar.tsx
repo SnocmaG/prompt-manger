@@ -90,7 +90,7 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, availableCl
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className={`h-full px-3 gap-2 text-xs font-medium hover:bg-muted/50 rounded-none ${activeCount > 0 ? "text-primary" : "text-muted-foreground"}`}
+                className={`h-full px-3 gap-2 text-xs font-medium hover:bg-accent hover:text-accent-foreground rounded-none ${activeCount > 0 ? "text-primary" : "text-muted-foreground"}`}
             >
                 <ListFilter className="h-4 w-4" />
                 <span className="hidden sm:inline">Filters</span>
@@ -114,7 +114,7 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, availableCl
                         {/* Rating Filter */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant={selectedRatings.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-muted/50">
+                                <Button variant={selectedRatings.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-accent hover:text-accent-foreground">
                                     <Star className={`h-4 w-4 ${selectedRatings.length > 0 ? 'text-yellow-500 fill-current' : ''}`} />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -136,7 +136,7 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, availableCl
                         {/* Type Filter */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant={selectedTypes.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-muted/50">
+                                <Button variant={selectedTypes.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-accent hover:text-accent-foreground">
                                     <Tag className={`h-4 w-4 ${selectedTypes.length > 0 ? 'text-blue-500' : ''}`} />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -164,7 +164,7 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, availableCl
                         {/* Client Filter */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant={selectedClients.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-muted/50">
+                                <Button variant={selectedClients.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-accent hover:text-accent-foreground">
                                     <Building2 className={`h-4 w-4 ${selectedClients.length > 0 ? 'text-purple-500' : ''}`} />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -193,7 +193,7 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, availableCl
                         {isBulkMode && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-none border-r hover:bg-muted/50">
+                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-none border-r hover:bg-accent hover:text-accent-foreground">
                                         <div className="relative">
                                             <Hash className="h-4 w-4" />
                                             <span className="absolute -bottom-2 -right-2 text-[8px] font-mono bg-muted px-0.5 rounded border">{limit}</span>
