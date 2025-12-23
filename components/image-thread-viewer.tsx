@@ -41,7 +41,7 @@ export function ImageThreadViewer({ executions, isRunning, pendingInput, onDownl
             <div className="flex-1 overflow-hidden bg-muted/10 relative">
                 <ScrollArea className="h-full w-full">
                     <div className="flex flex-col gap-6 p-6 min-h-full">
-                        {thread.map((run, idx) => {
+                        {thread.map((run) => {
                             const imageUrlMatch = run.response.match(/^!\[(.*?)\]\((.*?)\)$/);
                             const imageUrl = imageUrlMatch ? imageUrlMatch[2] : null;
 
