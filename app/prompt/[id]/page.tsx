@@ -12,6 +12,7 @@ import { ResponseViewer } from "@/components/response-viewer";
 import { DeployDialog } from "@/components/deploy-dialog";
 import { EditVersionDialog } from "@/components/edit-version-dialog";
 import { RunHistory } from "@/components/run-history";
+import { ImageThreadViewer } from "@/components/image-thread-viewer";
 import { RightActionStrip } from "@/components/right-action-strip";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "@/components/ui/button";
