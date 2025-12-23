@@ -110,7 +110,7 @@ export function ResponseViewer({
                     </div>
                     <div className="flex items-center gap-2">
                         {/* Model Selector for Bulk Mode */}
-                        {customModel !== undefined && setCustomModel && (
+                        {setCustomModel && typeof customModel === 'string' && (
                             <div className="relative mr-2">
                                 <Input
                                     value={customModel}
@@ -228,7 +228,7 @@ export function ResponseViewer({
                     </span>
 
                     {/* Model Selector / Badge */}
-                    {customModel !== undefined && setCustomModel ? (
+                    {setCustomModel && typeof customModel === 'string' ? (
                         <div className="relative">
                             <Input
                                 value={customModel}

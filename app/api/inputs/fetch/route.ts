@@ -7,12 +7,6 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
     try {
         const user = await getUserInfo();
-        console.log('[Fetch API] User Info:', {
-            email: user.email,
-            isAdmin: user.isAdmin,
-            clientId: user.clientId
-        });
-
         const body = await req.json();
         const { client, inputType, limit = 10 } = body;
 
@@ -48,7 +42,10 @@ export async function POST(req: Request) {
 
         const inputs = await prisma.clientInput.findMany({
             where,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [
+                { createdAt: 'desc' },
+                { id: 'desc' }
+            ],
             take: limit
         });
 
