@@ -501,213 +501,208 @@ export default function PromptWorkshop() {
                                             )}
                                         </div>
                                     )}
-                                    isBulkMode={isBulkMode}
-                                    bulkOutputs={bulkOutputs}
-                                    bulkInputs={bulkInputs}
-                                            />
+
                                 </div>
-                                    )}
-                            </div>
 
-                            {/* Desktop Resizable Grid - Hidden on Mobile */}
-                            <div className="hidden md:flex flex-1 h-full">
-                                <PanelGroup direction="horizontal" className="h-full w-full">
+                                {/* Desktop Resizable Grid - Hidden on Mobile */}
+                                <div className="hidden md:flex flex-1 h-full">
+                                    <PanelGroup direction="horizontal" className="h-full w-full">
 
-                                    {/* Left Column: Input + System Prompt (Resizable Width) */}
-                                    <Panel defaultSize={50} minSize={20}>
-                                        <PanelGroup direction="vertical">
+                                        {/* Left Column: Input + System Prompt (Resizable Width) */}
+                                        <Panel defaultSize={50} minSize={20}>
+                                            <PanelGroup direction="vertical">
 
-                                            {/* Top Pane: User Prompt (Resizable Height) */}
-                                            <Panel defaultSize={40} minSize={20}>
-                                                <div className="h-full flex flex-col border-b border-border/50">
-                                                    <UserPromptInput
-                                                        value={userPrompt}
-                                                        onChange={setUserPrompt}
-                                                        onRun={handleRunTest}
-                                                        isTesting={isRunning}
-                                                        isBulkMode={isBulkMode}
-                                                        onToggleBulk={setIsBulkMode}
-                                                        bulkInputs={bulkInputs}
-                                                        onBulkInputChange={(id, val) => setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i))}
-                                                        onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: crypto.randomUUID(), value: '' }])}
-                                                        onRemoveBulkInput={(id) => setBulkInputs(prev => prev.filter(i => i.id !== id))}
-                                                        onImportBulkInputs={(cases) => {
-                                                            setBulkInputs(prev => [
-                                                                ...prev.filter(p => p.value.trim() !== ''),
-                                                                ...cases.map(c => ({ id: crypto.randomUUID(), value: c.content }))
-                                                            ]);
-                                                            // Handle Image import for single mode if applicable
-                                                            if (!isBulkMode && cases.length > 0) {
-                                                                setInputImage(cases[0].imageUrl);
+                                                {/* Top Pane: User Prompt (Resizable Height) */}
+                                                <Panel defaultSize={40} minSize={20}>
+                                                    <div className="h-full flex flex-col border-b border-border/50">
+                                                        <UserPromptInput
+                                                            value={userPrompt}
+                                                            onChange={setUserPrompt}
+                                                            onRun={handleRunTest}
+                                                            isTesting={isRunning}
+                                                            isBulkMode={isBulkMode}
+                                                            onToggleBulk={setIsBulkMode}
+                                                            bulkInputs={bulkInputs}
+                                                            onBulkInputChange={(id, val) => setBulkInputs(prev => prev.map(i => i.id === id ? { ...i, value: val } : i))}
+                                                            onAddBulkInput={() => setBulkInputs(prev => [...prev, { id: crypto.randomUUID(), value: '' }])}
+                                                            onRemoveBulkInput={(id) => setBulkInputs(prev => prev.filter(i => i.id !== id))}
+                                                            onImportBulkInputs={(cases) => {
+                                                                setBulkInputs(prev => [
+                                                                    ...prev.filter(p => p.value.trim() !== ''),
+                                                                    ...cases.map(c => ({ id: crypto.randomUUID(), value: c.content }))
+                                                                ]);
+                                                                // Handle Image import for single mode if applicable
+                                                                if (!isBulkMode && cases.length > 0) {
+                                                                    setInputImage(cases[0].imageUrl);
+                                                                }
+                                                            }}
+                                                            imageUrl={inputImage}
+                                                            onImageChange={setInputImage}
+                                                        />
+                                                    </div>
+                                                </Panel>
+
+                                                <PanelResizeHandle className="h-1 bg-border/50 hover:bg-primary/20 transition-colors w-full cursor-row-resize" />
+
+                                                {/* Bottom Pane: System Prompt */}
+                                                <Panel defaultSize={60} minSize={20}>
+                                                    <div className="h-full flex flex-col">
+                                                        <PromptEditor
+                                                            systemPrompt={systemPrompt}
+                                                            onChange={setSystemPrompt}
+                                                            onSave={handleSaveVersion}
+                                                            isLive={currentVersionId === prompt.liveVersionId}
+                                                            hasUnsavedChanges={
+                                                                !!(prompt.liveVersionId &&
+                                                                    prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
                                                             }
-                                                        }}
-                                                        imageUrl={inputImage}
-                                                        onImageChange={setInputImage}
-                                                    />
-                                                </div>
-                                            </Panel>
+                                                        />
+                                                    </div>
+                                                </Panel>
+                                            </PanelGroup>
+                                        </Panel>
 
-                                            <PanelResizeHandle className="h-1 bg-border/50 hover:bg-primary/20 transition-colors w-full cursor-row-resize" />
+                                        <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
 
-                                            {/* Bottom Pane: System Prompt */}
-                                            <Panel defaultSize={60} minSize={20}>
-                                                <div className="h-full flex flex-col">
-                                                    <PromptEditor
-                                                        systemPrompt={systemPrompt}
-                                                        onChange={setSystemPrompt}
-                                                        onSave={handleSaveVersion}
-                                                        isLive={currentVersionId === prompt.liveVersionId}
-                                                        hasUnsavedChanges={
-                                                            !!(prompt.liveVersionId &&
-                                                                prompt.versions.find(v => v.id === prompt.liveVersionId)?.systemPrompt !== systemPrompt)
-                                                        }
-                                                    />
-                                                </div>
-                                            </Panel>
-                                        </PanelGroup>
-                                    </Panel>
+                                        {/* Right Column: AI Response (Resizable Width) */}
+                                        <Panel defaultSize={50} minSize={20}>
+                                            <div className="h-full flex flex-col border-l border-border/50 bg-card">
+                                                <ResponseViewer
+                                                    output={aiOutput}
+                                                    isTesting={isRunning}
+                                                    provider={provider}
+                                                    error={error}
+                                                    model={usedModel}
+                                                    customModel={customModel}
+                                                    setCustomModel={setCustomModel}
+                                                    availableModels={availableModels}
+                                                    metrics={metrics}
+                                                    onDownload={() => downloadExperimentAsExcel(
+                                                        systemPrompt,
+                                                        isBulkMode ? null : userPrompt,
+                                                        isBulkMode ? null : aiOutput,
+                                                        isBulkMode ? bulkOutputs.map(o => ({
+                                                            input: bulkInputs.find(i => i.id === o.inputId)?.value || '',
+                                                            output: o.output,
+                                                            model: o.model,
+                                                            status: o.status
+                                                        })) : undefined
+                                                    )}
+                                                    isBulkMode={isBulkMode}
+                                                    bulkOutputs={bulkOutputs}
+                                                    bulkInputs={bulkInputs}
+                                                />
+                                            </div>
+                                        </Panel>
 
-                                    <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
-
-                                    {/* Right Column: AI Response (Resizable Width) */}
-                                    <Panel defaultSize={50} minSize={20}>
-                                        <div className="h-full flex flex-col border-l border-border/50 bg-card">
-                                            <ResponseViewer
-                                                output={aiOutput}
-                                                isTesting={isRunning}
-                                                provider={provider}
-                                                error={error}
-                                                model={usedModel}
-                                                customModel={customModel}
-                                                setCustomModel={setCustomModel}
-                                                availableModels={availableModels}
-                                                metrics={metrics}
-                                                onDownload={() => downloadExperimentAsExcel(
-                                                    systemPrompt,
-                                                    isBulkMode ? null : userPrompt,
-                                                    isBulkMode ? null : aiOutput,
-                                                    isBulkMode ? bulkOutputs.map(o => ({
-                                                        input: bulkInputs.find(i => i.id === o.inputId)?.value || '',
-                                                        output: o.output,
-                                                        model: o.model,
-                                                        status: o.status
-                                                    })) : undefined
-                                                )}
-                                                isBulkMode={isBulkMode}
-                                                bulkOutputs={bulkOutputs}
-                                                bulkInputs={bulkInputs}
-                                            />
-                                        </div>
-                                    </Panel>
-
-                                </PanelGroup>
-                            </div>
-                        </div>
-                    </Panel>
-
-                    {/* Right Drawer Panel (Conditionally rendered) */}
-                    {activeRightTab && (
-                        <>
-                            <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
-                            <Panel defaultSize={25} minSize={15} maxSize={40} className="bg-card">
-                                <div className="h-full flex flex-col border-l">
-                                    {/* Header */}
-                                    <div className="h-14 flex items-center justify-between px-4 border-b shrink-0 bg-muted/10">
-                                        <span className="font-semibold text-sm flex items-center gap-2">
-                                            {activeRightTab === 'history' && <HistoryIcon className="h-4 w-4" />}
-                                            {activeRightTab === 'runs' && <PlayCircle className="h-4 w-4" />}
-                                            {activeRightTab === 'history' ? 'Version History' : 'Run History'}
-                                        </span>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setActiveRightTab(null)}>
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                    <div className="flex-1 overflow-hidden relative">
-                                        {activeRightTab === 'history' && prompt && (
-                                            <VersionHistory
-                                                versions={prompt.versions}
-                                                liveVersionId={prompt.liveVersionId}
-                                                onRestore={handleRestore}
-                                                onDeploy={setDeployTarget}
-                                                onDelete={handleDeleteVersion}
-                                                onClearAll={handleClearVersions}
-                                            />
-                                        )}
-                                        {activeRightTab === 'runs' && prompt && (
-                                            <RunHistory
-                                                executions={prompt.executions ? prompt.executions.map(e => ({
-                                                    ...e,
-                                                    versionLabel: e.versionLabel || undefined
-                                                })) : []}
-                                                onSelect={(run) => {
-                                                    setAiOutput(run.response);
-                                                    setUserPrompt(run.userPrompt);
-                                                    setUsedModel(run.model);
-                                                    setActiveMobileTab('response');
-                                                }}
-                                                onDelete={handleDeleteRun}
-                                                onClearAll={handleClearHistory}
-                                            />
-                                        )}
-                                    </div>
+                                    </PanelGroup>
                                 </div>
-                            </Panel>
-                        </>
-                    )}
-                </PanelGroup>
+                            </div>
+                        </Panel>
+
+                        {/* Right Drawer Panel (Conditionally rendered) */}
+                        {activeRightTab && (
+                            <>
+                                <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/20 transition-colors h-full cursor-col-resize" />
+                                <Panel defaultSize={25} minSize={15} maxSize={40} className="bg-card">
+                                    <div className="h-full flex flex-col border-l">
+                                        {/* Header */}
+                                        <div className="h-14 flex items-center justify-between px-4 border-b shrink-0 bg-muted/10">
+                                            <span className="font-semibold text-sm flex items-center gap-2">
+                                                {activeRightTab === 'history' && <HistoryIcon className="h-4 w-4" />}
+                                                {activeRightTab === 'runs' && <PlayCircle className="h-4 w-4" />}
+                                                {activeRightTab === 'history' ? 'Version History' : 'Run History'}
+                                            </span>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setActiveRightTab(null)}>
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="flex-1 overflow-hidden relative">
+                                            {activeRightTab === 'history' && prompt && (
+                                                <VersionHistory
+                                                    versions={prompt.versions}
+                                                    liveVersionId={prompt.liveVersionId}
+                                                    onRestore={handleRestore}
+                                                    onDeploy={setDeployTarget}
+                                                    onDelete={handleDeleteVersion}
+                                                    onClearAll={handleClearVersions}
+                                                />
+                                            )}
+                                            {activeRightTab === 'runs' && prompt && (
+                                                <RunHistory
+                                                    executions={prompt.executions ? prompt.executions.map(e => ({
+                                                        ...e,
+                                                        versionLabel: e.versionLabel || undefined
+                                                    })) : []}
+                                                    onSelect={(run) => {
+                                                        setAiOutput(run.response);
+                                                        setUserPrompt(run.userPrompt);
+                                                        setUsedModel(run.model);
+                                                        setActiveMobileTab('response');
+                                                    }}
+                                                    onDelete={handleDeleteRun}
+                                                    onClearAll={handleClearHistory}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                </Panel>
+                            </>
+                        )}
+                    </PanelGroup>
+                </div>
+
+                {/* Fixed Right Action Strip */}
+                <RightActionStrip
+                    activeTab={activeRightTab}
+                    onTabChange={setActiveRightTab}
+                    tabs={[
+                        {
+                            id: 'history',
+                            label: 'Version History',
+                            icon: <HistoryIcon className="h-5 w-5" />,
+                            content: null // Not used here anymore
+                        },
+                        {
+                            id: 'runs',
+                            label: 'Run History',
+                            icon: <PlayCircle className="h-5 w-5" />,
+                            content: null
+                        }
+                    ]}
+                />
             </div>
 
-            {/* Fixed Right Action Strip */}
-            <RightActionStrip
-                activeTab={activeRightTab}
-                onTabChange={setActiveRightTab}
-                tabs={[
-                    {
-                        id: 'history',
-                        label: 'Version History',
-                        icon: <HistoryIcon className="h-5 w-5" />,
-                        content: null // Not used here anymore
-                    },
-                    {
-                        id: 'runs',
-                        label: 'Run History',
-                        icon: <PlayCircle className="h-5 w-5" />,
-                        content: null
-                    }
-                ]}
-            />
-        </div>
+            {
+                deployTarget && (
+                    <DeployDialog
+                        open={!!deployTarget}
+                        onOpenChange={(open) => !open && setDeployTarget(null)}
+                        promptId={prompt.id}
+                        versionId={deployTarget.id}
+                        versionLabel={deployTarget.label}
+                        onSuccess={() => {
+                            setDeployTarget(null);
+                            fetchPrompt();
+                        }}
+                    />
+                )
+            }
 
             {
-        deployTarget && (
-            <DeployDialog
-                open={!!deployTarget}
-                onOpenChange={(open) => !open && setDeployTarget(null)}
-                promptId={prompt.id}
-                versionId={deployTarget.id}
-                versionLabel={deployTarget.label}
-                onSuccess={() => {
-                    setDeployTarget(null);
-                    fetchPrompt();
-                }}
-            />
-        )
-    }
-
-    {
-        editTarget && (
-            <EditVersionDialog
-                open={!!editTarget}
-                onOpenChange={(open) => !open && setEditTarget(null)}
-                versionId={editTarget.id}
-                currentLabel={editTarget.label}
-                onSuccess={() => {
-                    setEditTarget(null);
-                    fetchPrompt();
-                }}
-            />
-        )
-    }
+                editTarget && (
+                    <EditVersionDialog
+                        open={!!editTarget}
+                        onOpenChange={(open) => !open && setEditTarget(null)}
+                        versionId={editTarget.id}
+                        currentLabel={editTarget.label}
+                        onSuccess={() => {
+                            setEditTarget(null);
+                            fetchPrompt();
+                        }}
+                    />
+                )
+            }
         </div >
     );
 }
