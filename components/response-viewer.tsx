@@ -216,13 +216,7 @@ export function ResponseViewer({
         );
     }
 
-    if (!output && !isTesting && !error) {
-        return (
-            <div className="flex flex-col h-full items-center justify-center text-muted-foreground p-8 border-l border-border/50 bg-muted/20">
-                <p>Run a test to see the AI response here.</p>
-            </div>
-        );
-    }
+
 
     return (
         <div className="flex flex-col h-full bg-card border-l border-border/50">
@@ -305,24 +299,30 @@ export function ResponseViewer({
             </div>
             <div className="flex-1 relative overflow-hidden">
                 <ScrollArea className="h-full w-full">
-                    <div className="p-4 font-mono text-sm whitespace-pre-wrap">
-                        {error ? (
-                            <div className="text-destructive flex items-start gap-2">
-                                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                                <div>{error}</div>
-                            </div>
-                        ) : output ? (
-                            <div className="text-foreground leading-relaxed">
-                                {output}
-                            </div>
-                        ) : (
-                            !isTesting && (
-                                <div className="text-muted-foreground/50 italic text-xs mt-10 text-center">
-                                    waiting for execution...
+                    {(!output && !isTesting && !error) ? (
+                        <div className="flex flex-col h-full items-center justify-center text-muted-foreground p-8">
+                            <p>Run a test to see the AI response here.</p>
+                        </div>
+                    ) : (
+                        <div className="p-4 font-mono text-sm whitespace-pre-wrap">
+                            {error ? (
+                                <div className="text-destructive flex items-start gap-2">
+                                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                                    <div>{error}</div>
                                 </div>
-                            )
-                        )}
-                    </div>
+                            ) : output ? (
+                                <div className="text-foreground leading-relaxed">
+                                    {output}
+                                </div>
+                            ) : (
+                                !isTesting && (
+                                    <div className="text-muted-foreground/50 italic text-xs mt-10 text-center">
+                                        waiting for execution...
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
                 </ScrollArea>
             </div>
             {/* Single Mode Analytics Footer */}
