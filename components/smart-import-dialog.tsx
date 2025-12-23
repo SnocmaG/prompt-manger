@@ -17,20 +17,44 @@ import { Input } from "@/components/ui/input";
 import { Upload, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
 
 interface SmartImportDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onImport: (cases: string[]) => void;
+    onImport: (cases: { content: string; imageUrl?: string }[]) => void;
+    availableClients: string[]; // For selection
+    availableTypes?: string[];
 }
 
-export function SmartImportDialog({ open, onOpenChange, onImport }: SmartImportDialogProps) {
+export function SmartImportDialog({ open, onOpenChange, onImport, availableClients = [], availableTypes = ["Review", "Email", "Ticket", "Chat Log"] }: SmartImportDialogProps) {
     const [text, setText] = useState('');
     const [separator, setSeparator] = useState('---');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [previewCases, setPreviewCases] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState('manual');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Save Logic
+    const [saveToLibrary, setSaveToLibrary] = useState(false);
+
+    // Client Selection
+    const [selectedClient, setSelectedClient] = useState('');
+    const [newClientName, setNewClientName] = useState('');
+
+    // Input Type Selection
+    const [selectedType, setSelectedType] = useState('Review');
+    const [newTypeName, setNewTypeName] = useState('');
+
+    const [isSaving, setIsSaving] = useState(false);
 
     // -- Logic --
 
@@ -106,12 +130,50 @@ export function SmartImportDialog({ open, onOpenChange, onImport }: SmartImportD
         reader.readAsText(file);
     };
 
-    const handleImport = () => {
-        onImport(previewCases);
+    const handleImport = async () => {
+        if (saveToLibrary) {
+            // Validate
+            const finalClient = newClientName.trim() || selectedClient;
+            if (!finalClient) {
+                alert("Please select or enter a Client Name to save to library.");
+                return;
+            }
+
+            setIsSaving(true);
+            try {
+                // Determine Generic Type
+                const finalType = newTypeName.trim() || selectedType;
+
+                const res = await fetch('/api/inputs/ingest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inputs: previewCases,
+                        client: finalClient,
+                        inputType: finalType
+                    })
+                });
+
+                if (!res.ok) throw new Error('Failed to save');
+
+                // Continue to normal import
+            } catch (e) {
+                console.error(e);
+                console.error(e);
+                alert("Failed to save to inputs, but importing locally.");
+            } finally {
+                setIsSaving(false);
+            }
+        }
+
+        onImport(previewCases.map(c => ({ content: c })));
         onOpenChange(false);
         // Reset
         setText('');
         setPreviewCases([]);
+        setSaveToLibrary(false);
+        setSelectedClient('');
+        setNewClientName('');
     };
 
     return (
@@ -191,6 +253,94 @@ export function SmartImportDialog({ open, onOpenChange, onImport }: SmartImportD
                                             }}>Use Newline</Button>
                                         </div>
                                     </div>
+
+                                    {/* Save Options */}
+                                    {/* Save Options */}
+                                    <div className="mt-4 p-3 bg-muted/20 border rounded-md flex flex-col gap-3">
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                id="save-library"
+                                                checked={saveToLibrary}
+                                                onCheckedChange={(c) => setSaveToLibrary(c)}
+                                            />
+                                            <div className="grid gap-1.5 leading-none">
+                                                <Label htmlFor="save-library" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                                    Save to Input Library
+                                                </Label>
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    Persist these cases to the database.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {saveToLibrary && (
+                                            <div className="ml-6 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Select value={selectedClient} onValueChange={(val: string) => {
+                                                        setSelectedClient(val);
+                                                        setNewClientName("");
+                                                    }}>
+                                                        <SelectTrigger className="w-[200px] h-8 text-xs">
+                                                            <SelectValue placeholder="Select client..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {availableClients.map((c) => (
+                                                                <SelectItem key={c} value={c} className="text-xs">
+                                                                    {c}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+
+                                                    <span className="text-[10px] text-muted-foreground uppercase font-semibold">OR</span>
+
+                                                    <Input
+                                                        placeholder="New Client Name"
+                                                        className="h-8 text-xs w-[180px]"
+                                                        value={newClientName}
+                                                        onChange={(e) => {
+                                                            setNewClientName(e.target.value);
+                                                            if (e.target.value) setSelectedClient("");
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {saveToLibrary && (
+                                            <div className="ml-6 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Select value={selectedType} onValueChange={(val: string) => {
+                                                        setSelectedType(val);
+                                                        setNewTypeName("");
+                                                    }}>
+                                                        <SelectTrigger className="w-[200px] h-8 text-xs">
+                                                            <SelectValue placeholder="Select type..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {availableTypes.map((t) => (
+                                                                <SelectItem key={t} value={t} className="text-xs">
+                                                                    {t}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+
+                                                    <span className="text-[10px] text-muted-foreground uppercase font-semibold">OR</span>
+
+                                                    <Input
+                                                        placeholder="New Type (e.g. Email)"
+                                                        className="h-8 text-xs w-[180px]"
+                                                        value={newTypeName}
+                                                        onChange={(e) => {
+                                                            setNewTypeName(e.target.value);
+                                                            if (e.target.value) setSelectedType("");
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="text-xs text-muted-foreground pt-4">
                                         Type a character sequence to split by. <br />Use <code>\n</code> for newlines.
                                     </div>
@@ -242,8 +392,8 @@ export function SmartImportDialog({ open, onOpenChange, onImport }: SmartImportD
 
                 <DialogFooter className="mt-4">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button onClick={handleImport} disabled={previewCases.length === 0}>
-                        Import {previewCases.length} Cases
+                    <Button onClick={handleImport} disabled={previewCases.length === 0 || isSaving}>
+                        {isSaving ? "Saving..." : `Import ${previewCases.length} Cases`}
                     </Button>
                 </DialogFooter>
             </DialogContent>

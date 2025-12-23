@@ -8,6 +8,7 @@ interface AITestRequest {
     testInput?: string;
     model?: string;
     apiKey?: string;
+    imageUrl?: string;
 }
 
 interface AITestResponse {
@@ -36,7 +37,8 @@ export async function testWithOpenAI(
     promptContent: string,
     testInput?: string,
     model: string = 'gpt-4o-mini',
-    apiKey?: string
+    apiKey?: string,
+    imageUrl?: string
 ): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
     const effectiveApiKey = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
 
@@ -54,7 +56,16 @@ export async function testWithOpenAI(
         model: model,
         messages: [
             { role: 'system', content: promptContent },
-            ...(testInput ? [{ role: 'user', content: testInput }] : []),
+            // User message: Text only OR Multimodal
+            ...(testInput || imageUrl ? [{
+                role: 'user',
+                content: imageUrl
+                    ? [
+                        { type: 'text', text: testInput || '' },
+                        { type: 'image_url', image_url: { url: imageUrl } }
+                    ]
+                    : testInput || ''
+            }] : []),
         ],
     };
 
@@ -242,7 +253,7 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
             case 'openai':
                 effectiveModel = request.model || 'gpt-4o-mini';
                 effectiveModel = request.model || 'gpt-4o-mini';
-                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, request.apiKey);
+                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, request.apiKey, request.imageUrl);
                 output = result.content;
                 usage = result.usage;
                 latencyMs = result.latencyMs;

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { testInput, provider, model, overrideContent, promptId } = body;
+        const { testInput, provider, model, overrideContent, promptId, imageUrl } = body;
 
         // Fetch active credential
         let activeCredential = await prisma.lLMCredential.findFirst({
@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
             promptContent: overrideContent,
             testInput,
             model,
-            apiKey: apiKey // Pass the custom key if found
+            apiKey: apiKey, // Pass the custom key if found
+            imageUrl
         });
 
         if (!result.success) {

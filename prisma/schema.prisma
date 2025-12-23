@@ -200,7 +200,30 @@ model Review {
 
   // Mapped field
   reviewType      String?  @map("Review Type")
+  
+  client          String   @default("Default") // "Client A", "Client B", etc.
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([client])
+}
+
+model ClientInput {
+  id          String   @id @default(uuid())
+  externalId  String?  @unique // formerly reviewId
+  
+  content     String   @db.Text
+  client      String   
+  inputType   String   // "Review", "Email", "Ticket"
+  
+  // Dynamic Metadata (JSON)
+  metadata    Json     // { rating: 5, source: "web", ... }
+  imageUrl    String?  // Optional URL for multimodal inputs
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([client])
+  @@index([inputType])
 }

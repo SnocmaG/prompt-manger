@@ -20,7 +20,10 @@ interface UserPromptInputProps {
     onBulkInputChange?: (id: string, value: string) => void;
     onAddBulkInput?: () => void;
     onRemoveBulkInput?: (id: string) => void;
-    onImportBulkInputs?: (inputs: string[]) => void;
+    onImportBulkInputs?: (inputs: { content: string; imageUrl?: string }[]) => void;
+    // Single mode extended prop
+    imageUrl?: string;
+    onImageChange?: (url: string | undefined) => void;
 }
 
 export function UserPromptInput({
@@ -34,44 +37,63 @@ export function UserPromptInput({
     onBulkInputChange,
     onAddBulkInput,
     onRemoveBulkInput,
-    onImportBulkInputs
+    onImportBulkInputs,
+    imageUrl,
+    onImageChange
 }: UserPromptInputProps) {
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [availableTypes, setAvailableTypes] = useState<string[]>([]);
+    const [availableClients, setAvailableClients] = useState<string[]>([]);
     const [isFetching, setIsFetching] = useState(false);
 
     // Fetch types on mount (optimize: only once)
     useEffect(() => {
-        fetch('/api/reviews/types')
-            .then(res => res.ok ? res.json() : [])
-            .then(setAvailableTypes)
-            .catch(console.error);
+        const loadFilters = async () => {
+            try {
+                const [typesRes, clientsRes] = await Promise.all([
+                    fetch('/api/inputs/types'),
+                    fetch('/api/inputs/clients')
+                ]);
+
+                if (typesRes.ok) setAvailableTypes(await typesRes.json());
+                if (clientsRes.ok) setAvailableClients(await clientsRes.json());
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        loadFilters();
     }, []);
 
-    const handleFetchReviews = async ({ ratings, types, limit }: { ratings: number[], types: string[], limit: number }) => {
+    const handleFetchReviews = async ({ types, clients, limit }: { types: string[], clients: string[], limit: number }) => {
         if (isFetching || !onImportBulkInputs) return;
         setIsFetching(true);
         try {
-            const res = await fetch('/api/reviews/fetch', {
+            const res = await fetch('/api/inputs/fetch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ratings, types, limit })
+                body: JSON.stringify({ types, client: clients, limit }) /* metadata filters? */
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data.reviews && Array.isArray(data.reviews)) {
-                    // Logic: If in single mode, just set the ONE value. 
-                    // If in bulk mode, append/replace logic handled by parent? 
-                    // Actually parent `onImportBulkInputs` typically adds. 
+                if (data.inputs && Array.isArray(data.inputs)) {
+                    // Normalize to object structure
+                    const results = data.inputs.map((i: any) => ({
+                        content: i.content,
+                        imageUrl: i.imageUrl || undefined
+                    }));
 
                     if (!isBulkMode) {
                         // Single Mode: Extract first one
-                        if (data.reviews.length > 0) {
-                            onChange(data.reviews[0]);
+                        if (results.length > 0) {
+                            onChange(results[0].content);
+                            if (onImageChange) onImageChange(results[0].imageUrl);
                         }
                     } else {
                         // Bulk Mode
-                        onImportBulkInputs(data.reviews);
+                        // NOTE: Bulk import prop signature needs update if we want images in bulk
+                        // For now, map back to string or update parent to handle objects
+                        // Assuming valid conversion for now, or casting if parent updated
+                        onImportBulkInputs?.(results);
                     }
                 }
             }
@@ -99,6 +121,7 @@ export function UserPromptInput({
                                     onFetch={handleFetchReviews}
                                     isFetching={isFetching}
                                     availableTypes={availableTypes}
+                                    availableClients={availableClients}
                                     isBulkMode={true}
                                 />
                             </div>
@@ -192,6 +215,8 @@ export function UserPromptInput({
                         open={isImportOpen}
                         onOpenChange={setIsImportOpen}
                         onImport={(cases) => onImportBulkInputs?.(cases)}
+                        availableClients={availableClients}
+                        availableTypes={availableTypes}
                     />
 
                 </div>
@@ -215,6 +240,12 @@ export function UserPromptInput({
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">User Prompt</span>
                     <Badge variant="outline" className="text-[10px] h-4">Single Input</Badge>
+                    {imageUrl && (
+                        <Badge variant="secondary" className="text-[10px] h-4 gap-1 text-blue-600 bg-blue-50 border-blue-200">
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            Image Attached
+                        </Badge>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
 
@@ -225,6 +256,7 @@ export function UserPromptInput({
                                 onFetch={handleFetchReviews}
                                 isFetching={isFetching}
                                 availableTypes={availableTypes}
+                                availableClients={availableClients}
                                 isBulkMode={false} // Force single mode
                             />
                         </div>

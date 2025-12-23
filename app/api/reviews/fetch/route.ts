@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { ratings, types, limit = 10 } = body;
+        const { ratings, types, clients, limit = 10 } = body;
 
         // Build Where Clause
         const where: Prisma.ReviewWhereInput = {
@@ -21,6 +21,10 @@ export async function POST(req: Request) {
 
         if (types && Array.isArray(types) && types.length > 0) {
             where.reviewType = { in: types };
+        }
+
+        if (clients && Array.isArray(clients) && clients.length > 0) {
+            where.client = { in: clients };
         }
 
         const reviews = await prisma.review.findMany({

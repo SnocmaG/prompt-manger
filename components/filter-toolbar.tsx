@@ -22,20 +22,23 @@ import {
     Hash,
     CloudDownload,
     Loader2,
-    X
+    X,
+    Building2
 } from "lucide-react"
 
 interface FilterToolbarProps {
-    onFetch: (options: { ratings: number[], types: string[], limit: number }) => void;
+    onFetch: (options: { ratings: number[], types: string[], clients: string[], limit: number }) => void;
     isFetching: boolean;
     availableTypes: string[];
+    availableClients: string[];
     isBulkMode?: boolean; // If false, limit is fixed to 1 and hidden
 }
 
-export function FilterToolbar({ onFetch, isFetching, availableTypes, isBulkMode = false }: FilterToolbarProps) {
+export function FilterToolbar({ onFetch, isFetching, availableTypes, availableClients, isBulkMode = false }: FilterToolbarProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+    const [selectedClients, setSelectedClients] = useState<string[]>([]);
     const [limit, setLimit] = useState(isBulkMode ? 10 : 1);
 
     // Reset limit if mode changes
@@ -43,10 +46,10 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, isBulkMode 
         setLimit(isBulkMode ? 10 : 1);
     }, [isBulkMode]);
 
-    const activeCount = selectedRatings.length + selectedTypes.length;
+    const activeCount = selectedRatings.length + selectedTypes.length + selectedClients.length;
 
     const handleFetch = () => {
-        onFetch({ ratings: selectedRatings, types: selectedTypes, limit });
+        onFetch({ ratings: selectedRatings, types: selectedTypes, clients: selectedClients, limit });
     };
 
     const toggleRating = (r: number) => {
@@ -61,10 +64,17 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, isBulkMode 
         );
     };
 
+    const toggleClient = (c: string) => {
+        setSelectedClients(prev =>
+            prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+        );
+    };
+
     const clearFilters = (e: React.MouseEvent) => {
         e.stopPropagation();
         setSelectedRatings([]);
         setSelectedTypes([]);
+        setSelectedClients([]);
     };
 
     return (
@@ -144,6 +154,34 @@ export function FilterToolbar({ onFetch, isFetching, availableTypes, isBulkMode 
                                                 onCheckedChange={() => toggleType(t)}
                                             >
                                                 {t}
+                                            </DropdownMenuCheckboxItem>
+                                        ))
+                                    )}
+                                </ScrollArea>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Client Filter */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant={selectedClients.length > 0 ? "secondary" : "ghost"} size="icon" className="h-9 w-9 rounded-none border-r hover:bg-muted/50">
+                                    <Building2 className={`h-4 w-4 ${selectedClients.length > 0 ? 'text-purple-500' : ''}`} />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                <DropdownMenuLabel>Filter by Client</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <ScrollArea className="h-[200px]">
+                                    {availableClients.length === 0 ? (
+                                        <div className="p-2 text-xs text-muted-foreground">No clients found</div>
+                                    ) : (
+                                        availableClients.map(c => (
+                                            <DropdownMenuCheckboxItem
+                                                key={c}
+                                                checked={selectedClients.includes(c)}
+                                                onCheckedChange={() => toggleClient(c)}
+                                            >
+                                                {c}
                                             </DropdownMenuCheckboxItem>
                                         ))
                                     )}

@@ -69,6 +69,7 @@ export default function PromptWorkshop() {
     // --- Lifted State ---
     const [systemPrompt, setSystemPrompt] = useState('');
     const [userPrompt, setUserPrompt] = useState('');
+    const [inputImage, setInputImage] = useState<string | undefined>(undefined);
     const [aiOutput, setAiOutput] = useState('');
     const [error, setError] = useState<string | undefined>();
     const [isRunning, setIsRunning] = useState(false);
@@ -245,7 +246,8 @@ export default function PromptWorkshop() {
                         model: customModel,
                         overrideContent: systemPrompt,
                         promptId: prompt.id,
-                        runMode: 'single'
+                        runMode: 'single',
+                        imageUrl: inputImage
                     }),
                 });
 
@@ -445,8 +447,12 @@ export default function PromptWorkshop() {
                                                 onImportBulkInputs={(cases) => {
                                                     setBulkInputs(prev => [
                                                         ...prev.filter(p => p.value.trim() !== ''), // Keep existing non-empty? or just append?
-                                                        ...cases.map(c => ({ id: crypto.randomUUID(), value: c }))
+                                                        ...cases.map(c => ({ id: crypto.randomUUID(), value: c.content }))
                                                     ]);
+                                                    // Handle Image import for single mode (mobile)
+                                                    if (!isBulkMode && cases.length > 0) {
+                                                        setInputImage(cases[0].imageUrl);
+                                                    }
                                                 }}
                                             />
                                         </div>
@@ -521,9 +527,15 @@ export default function PromptWorkshop() {
                                                             onImportBulkInputs={(cases) => {
                                                                 setBulkInputs(prev => [
                                                                     ...prev.filter(p => p.value.trim() !== ''),
-                                                                    ...cases.map(c => ({ id: crypto.randomUUID(), value: c }))
+                                                                    ...cases.map(c => ({ id: crypto.randomUUID(), value: c.content }))
                                                                 ]);
+                                                                // Handle Image import for single mode if applicable
+                                                                if (!isBulkMode && cases.length > 0) {
+                                                                    setInputImage(cases[0].imageUrl);
+                                                                }
                                                             }}
+                                                            imageUrl={inputImage}
+                                                            onImageChange={setInputImage}
                                                         />
                                                     </div>
                                                 </Panel>
