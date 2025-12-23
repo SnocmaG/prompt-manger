@@ -109,6 +109,49 @@ export function ResponseViewer({
                         )}
                     </div>
                     <div className="flex items-center gap-2">
+                        {/* Model Selector for Bulk Mode */}
+                        {customModel && setCustomModel && (
+                            <div className="relative mr-2">
+                                <Input
+                                    value={customModel}
+                                    onChange={(e) => {
+                                        setCustomModel(e.target.value);
+                                        setShowModelDropdown(true);
+                                    }}
+                                    onFocus={() => setShowModelDropdown(true)}
+                                    onBlur={() => setTimeout(() => setShowModelDropdown(false), 200)}
+                                    placeholder="Model"
+                                    className="h-6 text-[10px] bg-background/50 w-[140px] px-2 py-0 border-purple-500/20 text-purple-600 focus-visible:ring-purple-500/30"
+                                />
+                                {showModelDropdown && (
+                                    <div className="absolute top-full right-0 w-[250px] mt-1 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
+                                        <div className="max-h-[145px] overflow-y-auto py-1">
+                                            {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
+                                                .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase()))
+                                                .map((modelItem) => (
+                                                    <div
+                                                        key={modelItem.id}
+                                                        className="px-2 py-1.5 text-xs hover:bg-muted cursor-pointer truncate"
+                                                        onClick={() => {
+                                                            setCustomModel(modelItem.id);
+                                                            setShowModelDropdown(false);
+                                                        }}
+                                                        title={modelItem.id}
+                                                    >
+                                                        {modelItem.id}
+                                                    </div>
+                                                ))}
+                                            {(availableModels.length > 0 ? availableModels : FALLBACK_MODELS)
+                                                .filter(m => m.id.toLowerCase().includes(customModel.toLowerCase())).length === 0 && (
+                                                    <div className="px-2 py-1.5 text-xs text-muted-foreground italic">
+                                                        No matching models
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         {onDownload && (
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDownload}>
                                 <Download className="h-4 w-4" />
