@@ -12,7 +12,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No inputs provided' }, { status: 400 });
         }
 
-        const data = inputs.map((item: any) => {
+        type IngestInput = string | { content: string; imageUrl?: string };
+
+        const data = inputs.map((item: IngestInput) => {
             // Support both string inputs and object inputs with content/imageUrl
             const content = typeof item === 'string' ? item : item.content;
             const imageUrl = typeof item === 'object' ? item.imageUrl : undefined;

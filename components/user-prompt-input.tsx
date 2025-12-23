@@ -77,7 +77,7 @@ export function UserPromptInput({
                 const data = await res.json();
                 if (data.inputs && Array.isArray(data.inputs)) {
                     // Normalize to object structure
-                    const results = data.inputs.map((i: any) => ({
+                    const results = data.inputs.map((i: { content: string; imageUrl?: string | null }) => ({
                         content: i.content,
                         imageUrl: i.imageUrl || undefined
                     }));
