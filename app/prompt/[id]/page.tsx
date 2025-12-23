@@ -247,7 +247,10 @@ export default function PromptWorkshop() {
                         overrideContent: systemPrompt,
                         promptId: prompt.id,
                         runMode: 'single',
-                        imageUrl: inputImage
+                        imageUrl: inputImage,
+                        previousContext: prompt.executions && prompt.executions.length > 0
+                            ? prompt.executions[0].response // Assuming executions are ordered desc
+                            : undefined
                     }),
                 });
 

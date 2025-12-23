@@ -112,6 +112,18 @@ export function RunHistory({ executions, onSelect, onDelete, onClearAll, selecte
                                 <div className="text-xs text-muted-foreground line-clamp-2 w-full font-mono mt-1 opacity-80 pointer-events-none">
                                     {run.response}
                                 </div>
+                                {(run.model.includes('dall-e') || run.model.includes('image')) && (
+                                    <div className="mt-1">
+                                        <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1 rounded border border-blue-200">IMAGE</span>
+                                    </div>
+                                )}
+                                {
+                                    (run.model.includes('dall-e') || run.model.includes('image')) && (
+                                        <div className="mt-1">
+                                            <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1 rounded border border-blue-200">IMAGE</span>
+                                        </div>
+                                    )
+                                }
 
                                 {/* Analytics Footer */}
                                 <div className="flex items-center gap-3 mt-2 w-full pt-1.5 border-t border-border/40 pointer-events-none">
@@ -139,7 +151,7 @@ export function RunHistory({ executions, onSelect, onDelete, onClearAll, selecte
                         );
                     })}
                 </div>
-            </ScrollArea>
-        </div>
+            </ScrollArea >
+        </div >
     );
 }

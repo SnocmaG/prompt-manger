@@ -312,7 +312,18 @@ export function ResponseViewer({
                                 </div>
                             ) : output ? (
                                 <div className="text-foreground leading-relaxed">
-                                    {output}
+                                    {output.match(/^!\[(.*?)\]\((.*?)\)$/) ? (
+                                        <div className="flex justify-center">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={output.match(/^!\[(.*?)\]\((.*?)\)$/)?.[2]}
+                                                alt={output.match(/^!\[(.*?)\]\((.*?)\)$/)?.[1] || 'Generated Image'}
+                                                className="max-w-full rounded-lg shadow-sm border"
+                                            />
+                                        </div>
+                                    ) : (
+                                        output
+                                    )}
                                 </div>
                             ) : (
                                 !isTesting && (

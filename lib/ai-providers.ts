@@ -9,6 +9,43 @@ interface AITestRequest {
     model?: string;
     apiKey?: string;
     imageUrl?: string;
+    previousContext?: string;
+}
+
+// Helper: Refine image prompt using LLM if history exists
+async function refineImagePrompt(
+    basePrompt: string,
+    userInput: string,
+    previousContext: string,
+    apiKey: string
+): Promise<string> {
+    // fast-path for no history
+    if (!previousContext) return `${basePrompt}\n${userInput}`;
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini', // Cheap & fast refiner
+                messages: [
+                    { role: "system", content: "You are an expert at refining DALL-E image prompts based on conversation history. You will receive a previous image description (or context) and a new user instruction. output ONLY the new, full, detailed DALL-E prompt that incorporates the user's change into the previous context. Do not output anything else." },
+                    { role: "user", content: `Previous Context: ${previousContext}\n\nUser Change Instruction: ${userInput || "Regenerate"}\n\nBase System Style: ${basePrompt}` }
+                ],
+                max_tokens: 300
+            })
+        });
+
+        if (!response.ok) return `${basePrompt}\n${userInput}`; // Fallback on error
+
+        const data = await response.json();
+        return data.choices[0]?.message?.content || `${basePrompt}\n${userInput}`;
+    } catch (e) {
+        return `${basePrompt}\n${userInput}`;
+    }
 }
 
 interface AITestResponse {
@@ -39,15 +76,20 @@ async function testWithOpenAIImage(
     promptContent: string,
     testInput?: string,
     model: string = 'dall-e-3',
-    apiKey?: string
+    apiKey?: string,
+    previousContext?: string
 ): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
     const effectiveApiKey = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
     if (!effectiveApiKey) throw new Error('OpenAI API key not configured');
 
     const startTime = Date.now();
 
-    // Combine system prompt and user input for the image prompt
-    const fullPrompt = `${promptContent}\n${testInput || ''}`.trim().substring(0, 4000); // Limit length
+    // Refine the prompt if we have history
+    let fullPrompt = `${promptContent}\n${testInput || ''}`.trim();
+    if (previousContext) {
+        fullPrompt = await refineImagePrompt(promptContent, testInput || '', previousContext, effectiveApiKey);
+    }
+    fullPrompt = fullPrompt.substring(0, 4000); // Limit length
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
@@ -85,11 +127,12 @@ export async function testWithOpenAI(
     testInput?: string,
     model: string = 'gpt-4o-mini',
     apiKey?: string,
-    imageUrl?: string
+    imageUrl?: string,
+    previousContext?: string
 ): Promise<{ content: string; usage?: TokenUsage; latencyMs: number }> {
     // Reroute to Image API if model is DALL-E or the custom "gpt-image" alias
     if (model.toLowerCase().includes('dall-e') || model.toLowerCase().includes('gpt-image')) {
-        return testWithOpenAIImage(promptContent, testInput, model, apiKey);
+        return testWithOpenAIImage(promptContent, testInput, model, apiKey, previousContext);
     }
 
     const effectiveApiKey = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
@@ -306,7 +349,8 @@ export async function testPrompt(request: AITestRequest): Promise<AITestResponse
             case 'openai':
                 effectiveModel = request.model || 'gpt-4o-mini';
                 effectiveModel = request.model || 'gpt-4o-mini';
-                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, request.apiKey, request.imageUrl);
+                effectiveModel = request.model || 'gpt-4o-mini';
+                const result = await testWithOpenAI(request.promptContent, request.testInput, effectiveModel, request.apiKey, request.imageUrl, request.previousContext);
                 output = result.content;
                 usage = result.usage;
                 latencyMs = result.latencyMs;
