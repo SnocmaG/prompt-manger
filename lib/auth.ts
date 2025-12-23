@@ -2,7 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
-const ADMIN_EMAILS = ['snircomag@gmail.com', 'snir@moonshot.com'];
+const ADMIN_EMAILS = ['snircomag@gmail.com', 'snir@moonshot.com', 'snir@moonshot.co.il'];
 
 export async function getCurrentUser() {
     const user = await currentUser();

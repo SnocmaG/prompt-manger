@@ -7,6 +7,12 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
     try {
         const user = await getUserInfo();
+        console.log('[Fetch API] User Info:', {
+            email: user.email,
+            isAdmin: user.isAdmin,
+            clientId: user.clientId
+        });
+
         const body = await req.json();
         const { client, inputType, limit = 10 } = body;
 
