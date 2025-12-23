@@ -43,7 +43,7 @@ async function refineImagePrompt(
 
         const data = await response.json();
         return data.choices[0]?.message?.content || `${basePrompt}\n${userInput}`;
-    } catch (e) {
+    } catch (_) {
         return `${basePrompt}\n${userInput}`;
     }
 }
