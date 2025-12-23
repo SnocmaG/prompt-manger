@@ -10,11 +10,6 @@ export async function GET() {
             select: {
                 client: true
             },
-            where: {
-                client: {
-                    not: null
-                }
-            },
             orderBy: {
                 client: 'asc'
             }
