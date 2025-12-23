@@ -477,30 +477,51 @@ export default function PromptWorkshop() {
                                     )}
                                     {activeMobileTab === 'response' && (
                                         <div className="absolute inset-0 flex flex-col bg-card">
-                                            <ResponseViewer
-                                                output={aiOutput}
-                                                isTesting={isRunning}
-                                                provider={provider}
-                                                error={error}
-                                                model={usedModel}
-                                                customModel={customModel}
-                                                setCustomModel={setCustomModel}
-                                                availableModels={availableModels}
-                                                metrics={metrics}
-                                                onDownload={() => downloadExperimentAsExcel(
-                                                    systemPrompt,
-                                                    isBulkMode ? null : userPrompt,
-                                                    isBulkMode ? null : aiOutput,
-                                                    isBulkMode ? bulkOutputs.map(o => ({
-                                                        input: bulkInputs.find(i => i.id === o.inputId)?.value || '',
-                                                        output: o.output,
-                                                        model: o.model,
-                                                        status: o.status
-                                                    })) : undefined
-                                                )}
-                                                isBulkMode={isBulkMode}
-                                                bulkOutputs={bulkOutputs}
-                                                bulkInputs={bulkInputs}
+                                            {(customModel && (customModel.includes('image') || customModel.includes('dall-e'))) ? (
+                                                <ImageThreadViewer
+                                                    executions={prompt.executions || []}
+                                                    isRunning={isRunning}
+                                                    pendingInput={userPrompt}
+                                                />
+                                            ) : (
+                                                <ResponseViewer
+                                                    output={aiOutput}
+                                                    isTesting={isRunning}
+                                                    provider={provider}
+                                                    error={error}
+                                                    customModel={customModel}
+                                                    setCustomModel={setCustomModel}
+                                                    availableModels={availableModels}
+                                                    metrics={metrics}
+                                                    // Bulk
+                                                    isBulkMode={isBulkMode}
+                                                    bulkOutputs={bulkOutputs}
+                                                    bulkInputs={bulkInputs}
+                                                />
+                                            )}
+                                            output={aiOutput}
+                                            isTesting={isRunning}
+                                            provider={provider}
+                                            error={error}
+                                            model={usedModel}
+                                            customModel={customModel}
+                                            setCustomModel={setCustomModel}
+                                            availableModels={availableModels}
+                                            metrics={metrics}
+                                            onDownload={() => downloadExperimentAsExcel(
+                                                systemPrompt,
+                                                isBulkMode ? null : userPrompt,
+                                                isBulkMode ? null : aiOutput,
+                                                isBulkMode ? bulkOutputs.map(o => ({
+                                                    input: bulkInputs.find(i => i.id === o.inputId)?.value || '',
+                                                    output: o.output,
+                                                    model: o.model,
+                                                    status: o.status
+                                                })) : undefined
+                                            )}
+                                            isBulkMode={isBulkMode}
+                                            bulkOutputs={bulkOutputs}
+                                            bulkInputs={bulkInputs}
                                             />
                                         </div>
                                     )}
