@@ -22,6 +22,10 @@ async function refineImagePrompt(
     // fast-path for no history
     if (!previousContext) return `${basePrompt}\n${userInput}`;
 
+    // Extract text from Markdown Image if present: ![The text we want...](url)
+    const contextMatch = previousContext.match(/^!\[(.*?)\]\(.*?\)$/);
+    const cleanContext = contextMatch ? contextMatch[1] : previousContext;
+
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -33,7 +37,7 @@ async function refineImagePrompt(
                 model: 'gpt-4o-mini', // Cheap & fast refiner
                 messages: [
                     { role: "system", content: "You are an expert at refining DALL-E image prompts based on conversation history. You will receive a previous image description (or context) and a new user instruction. output ONLY the new, full, detailed DALL-E prompt that incorporates the user's change into the previous context. Do not output anything else." },
-                    { role: "user", content: `Previous Context: ${previousContext}\n\nUser Change Instruction: ${userInput || "Regenerate"}\n\nBase System Style: ${basePrompt}` }
+                    { role: "user", content: `Previous Context: ${cleanContext}\n\nUser Change Instruction: ${userInput || "Regenerate"}\n\nBase System Style: ${basePrompt}` }
                 ],
                 max_tokens: 300
             })
